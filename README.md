@@ -1,86 +1,123 @@
-# Stingforge
+<p align="center">
+  <img src="docs/media/logo.png" alt="Stingforge" width="560">
+</p>
 
-**Evolve. Adapt. Strike.**
+<p align="center"><b>Evolve. Adapt. Strike.</b><br>
+Ein horizontales Pixel-Shoot’em-up mit einer Biene in der Hauptrolle – eine Hommage an <i>Apidya</i> (Amiga, 1992).</p>
 
-Ein horizontales Bienen-Shoot’em-up: Yuri fliegt durch zehn Reiche gegen eine Welt
-voller Stahl, Sporen und Maschinen. Waffen, Werkstatt-Upgrades und Evolutionen
-lassen sich zu unterschiedlichen Builds kombinieren.
+<p align="center">
+  <img src="docs/media/level1-bluetenmeer.png" alt="Level 1 – Blütenmeer" width="860">
+</p>
 
-## Fertige Spieldateien
+Yuri, eine Kampfbiene, fliegt durch zehn Reiche – vom sonnigen Blütenmeer über Wurzelhöhlen,
+Pilzwald und Sturm bis in den biomechanischen Schwarmstock und den Kern der Verwandlung.
 
-- [Windows](<release/Stingforge.exe>) – ohne Installation, alle Spieldaten eingebettet.
-- [Linux](<release/Stingforge.x86_64>) – ohne Installation, gegebenenfalls als ausführbar markieren.
-- [Prüfsummen](<release/SHA256SUMS.txt>).
+Waffen, Werkstatt-Upgrades und Evolutionen lassen sich zu ganz unterschiedlichen Builds kombinieren:
+Wellenschuss im Kreisflug, Kettenblitz mit Splitterkern oder ein Schild als Wabenhülle.
+Jedes Level endet mit einem Boss, der sich wie sein Tier bewegt und in mehreren Phasen eskaliert.
 
-Vorhandene Spielstände der früheren Version werden beim ersten Start nach
-Stingforge kopiert. Die alten Originaldateien bleiben erhalten; vorhandene
-Stingforge-Spielstände werden nicht überschrieben.
+## Galerie
 
-## Losspielen
+| | |
+|---|---|
+| ![Hauptmenü](docs/media/hauptmenue.png) | ![Level 4 – Pilzwald](docs/media/level4-pilzwald.png) |
+| **Hauptmenü** – Pixel-Titelbild, Spielstand auf einen Blick | **Pilzwald** – wandernde Sporenwolken engen die Wege ein |
+| ![Level 6 – Glas](docs/media/level6-glas.png) | ![Larven-Boss, Phase II](docs/media/boss-larve-phase2.png) |
+| **Gläsernes Gewächshaus** – Glasscheiben fangen Schüsse ab, bis sie zerspringen | **Grabende Riesenlarve** – Phasenwechsel mit Auftritt |
+| ![Boss Mantidenpaar](docs/media/boss-mantidenpaar.png) | ![Boss Kernorganismus](docs/media/boss-kernorganismus.png) |
+| **Mantidenpaar** – zwei Klingen, ein Rhythmus | **Kern der Verwandlung** – der Endboss (und nicht zum letzten Mal) |
+| ![Werkstatt](docs/media/werkstatt.png) | ![Evolution](docs/media/evolution.png) |
+| **Werkstatt** – Kategorien, Upgrades, animierte Erklärszene | **Evolution** – nach jedem Level eine dauerhafte Weiterentwicklung |
 
-1. **Neue Kampagne** → Schwierigkeit → Starttalent.
-2. Fliegen: **WASD/Pfeile** oder linker Stick; schießen: **Leertaste/A** halten.
-3. Waffenleiste: **Q/E** bzw. **LB/RB**; kaufen/aktivieren: **F/RT**; Pause: **Esc/Start**.
-4. Nach einem Level eine Evolution wählen und Werkstatt-Punkte investieren.
-5. Taktische Käufe werden nach jedem Level auf 0 zurückgesetzt; Werkstatt und
-   Evolutionen bleiben. Die kostenlose Basiswaffe ist immer verfügbar.
-6. Schild erst kaufen: Stufe 1/2/3 gibt genau 1/2/3 Ladungen. Verlorene Ladungen
-   regenerieren; die Pentagramme um die Biene zeigen den aktuellen Vorrat.
-7. **Highscores** zeigt verdiente Run-Gesamtpunkte, getrennt nach Kampagne und Boss-Rush.
-   Die Schwierigkeit wird beim Runstart gewählt und bleibt danach fest.
+**Ultrawide:** Das Spielfeld bleibt 16:9, die Seiten zeigen die Levelkulisse weiter.
 
-Tastatur und Xbox werden gleichzeitig angezeigt. Alle Belegungen sind einstellbar.
-**F4/Back** öffnet das Debugmenü für gezieltes Testen von Leveln und Builds.
+![Ultrawide – Level 3](docs/media/ultrawide-level3.png)
+![Ultrawide – Schwarmkönigin](docs/media/ultrawide-koenigin.png)
 
-## Diese Überarbeitung (R4)
+## Was drinsteckt
 
-- **Pixellook in 1920 × 1080:** neues Pixel-Titelbild und -Logo, Pixelschriften
-  (Jersey 10, Silkscreen), Rahmen und Menüs im Amiga-Stil mit Copperverläufen.
-- **Ultrawide (21:9, 32:9) und 16:10:** Das Spielfeld bleibt 16:9, die Ränder zeigen
-  die Levelkulisse weiter, die HUD-Bänder laufen über die volle Breite.
-- **Flacheres HUD:** oben 40 statt 56, unten 44 statt 64 Weltpixel, gleiche
-  Schriftgrößen, mehr Spielfeld.
-- **Neu gezeichnete Bosse** und eine pixelgenaue Schwachpunktmarke.
-- **Behoben:** Der Zwischengegner bleibt jetzt in jedem Level, bis er besiegt ist;
-  Werkstatt- und Debuglisten springen nach einer Auswahl nicht mehr nach oben.
-- **20 Starttalente**, bei jedem Start drei zufällig zur Wahl; **Schild** als Wabenhülle;
-  **Blitz** feuert je Stufe eine Kugel mehr (2/3/4); schmalere Menüzeilen.
-- **Bosse** bewegen sich ohne Zittern und wie ihr Tier; der **Endboss** täuscht seinen
-  Tod vor; neue **Gegner** von hinten, von oben und vom Boden; **Highscore-Namen**;
-  neu gestaltete **Hindernisse**, **Wind** und **Vordergrundebenen**; echter **Wellenschuss**.
+- **Zehn Level, zehn Bosse:** jeder Boss mit eigener Musik, eigenen Bewegungen und Angriffen
+  sowie einem Phasenwechsel mit Auftritt.
+- **Taktische Waffenleiste:**
+  - Basis-, Fächer-, Blitz- und Plasmawaffe, Drohne, Bomben, Schild und Tempo, gekauft mit Nektar.
+  - Beim Blättern sagt eine Stimme das gewählte Upgrade an.
+- **Werkstatt:** 32 dauerhafte Upgrades in fünf Kategorien, mit Punkten gekauft, jedes mit einer
+  animierten Erklärszene.
+- **Evolutionen und Starttalente:** 20 Starttalente, drei davon zufällig zur Wahl;
+  nach jedem Level eine Evolution.
+- **Eigener Soundtrack:** Jedes Level hat einen durchkomponierten Track, exakt so lang wie der Weg
+  bis zum Boss und synchron zur Levelzeit. Pause und Checkpoints halten ihn im Takt.
+- **Pixellook in 1920 × 1080:** Ultrawide (21:9, 32:9) und 16:10, Pixelschriften, Menüs im Amiga-Stil.
+- **Modi:**
+  - Kampagne mit Checkpoints
+  - Training
+  - Boss-Rush
+  - Highscores mit Namenseingabe
+- **Bedienung:** Tastatur, Maus und Xbox-Controller, frei belegbar, beide Gerätearten
+  immer gleichzeitig angezeigt.
 
-Details: [R4-Bericht](<docs/STINGFORGE_R4.md>). Frühere Stände:
-[R3](<docs/STINGFORGE_R3.md>) · [R2](<docs/STINGFORGE_R2.md>) · [R1](<docs/STINGFORGE.md>).
+## Spielen
 
-## Dokumentation
+Fertige Spieldateien für **Windows** und **Linux** werden als einzelne Datei ohne Installation
+gebaut. Sie sind zu groß für das Repository und gehören zu den
+[Releases](https://github.com/floppi77/stingforge/releases).
 
-- [Handbuch](<docs/HANDBUCH.md>) – Steuerung und Spielsysteme.
-- [Build-Anleitung](<docs/BUILD.md>) – Engine, Import und Exporte.
-- [R2-Testprotokoll](<docs/TESTPROTOKOLL_R2.md>) – aktuelle vollständige Abnahme.
-- [Historische Prüfungen](<docs/TESTPROTOKOLL.md>) – frühere Entwicklungsstände.
-- [Abschlussbericht](<docs/BERICHT.md>) – Projektumfang.
-- [Audio](<docs/AUDIO.md>) und [Messungen](<docs/AUDIO_MEASUREMENTS.md>).
+| Aktion | Tastatur | Controller |
+|---|---|---|
+| Fliegen | WASD / Pfeile | linker Stick |
+| Schießen (halten) | Leertaste | A |
+| Waffenleiste wählen | Q / E | LB / RB |
+| Kaufen / aktivieren | F | RT |
+| Pause | Esc | Start |
 
-## Quellen bauen und prüfen
+Alles Weitere steht im [Handbuch](docs/HANDBUCH.md).
+
+## Aus den Quellen bauen
+
+Benötigt **Godot 4.7** (GL Compatibility).
 
 ```bash
-export XDG_DATA_HOME="$PWD/.godot_data"
-export XDG_CONFIG_HOME="$PWD/.godot_config"
-export XDG_CACHE_HOME="$PWD/.godot_cache"
+export XDG_DATA_HOME="$PWD/.godot_data" XDG_CONFIG_HOME="$PWD/.godot_config" XDG_CACHE_HOME="$PWD/.godot_cache"
 godot --headless --path . --export-release Linux build/linux/Stingforge.x86_64
 godot --headless --path . --export-release Windows build/windows/Stingforge.exe
-python3 tools/verify_stingforge_r3.py
-python3 tools/verify_stingforge_r3_exports.py
+python3 tools/verify_stingforge_r3.py     # 40 Regressionssuiten
 ```
 
-Neue Bilder werden in dieser Umgebung mit dem [Import-Hilfsskript](<tools/import_shuttle.sh>)
-importiert, ohne den vorhandenen Godot-Cache zurückzusetzen. Die Prüfläufe verwenden
-isolierte Speicherordner im Buildverzeichnis und verändern keine echten Nutzersaves.
+Details: [Build-Anleitung](docs/BUILD.md).
 
-## Aufbau
+## Soundtrack-Pipeline
 
-Godot-Autoloads verwalten Daten, Speicher und Eingaben; die Spielwelt liegt unter
-[scripts/game](<scripts/game/>), Menüs und HUD unter [scripts/screens](<scripts/screens/>).
-Grafik- und Audioressourcen liegen unter [assets](<assets/>), automatisierte Prüfungen
-unter [tests](<tests/>). Der fremde Projektordner Astra bleibt unberührt und ist vom
-Export ausgeschlossen.
+Die Musik entsteht als Code in [tools/music](tools/music/):
+
+1. **Komposition:** Partituren in Python mit einer Tempokarte, die jeden Checkpoint auf einen
+   Taktanfang legt.
+2. **Instrumente:** sfizz spielt die freien Sample-Bibliotheken ab, Csound liefert die
+   Synthesizer.
+3. **Mix und Mastering:** −16 LUFS, −1 dBTP.
+4. **Messbericht:** je Track ein Bericht mit Spektrogramm.
+
+Konzept und Werkzeuge: [Soundtrack-Konzept](docs/SOUNDTRACK_KONZEPT.md).
+Die Sample-Bibliotheken werden nicht mitgeliefert, sondern bei Bedarf geladen.
+
+## Projektaufbau
+
+- **Spielwelt:** [scripts/game](scripts/game/)
+- **Menüs und HUD:** [scripts/screens](scripts/screens/)
+- **UI-Bausteine:** [scripts/core](scripts/core/)
+- **Grafik, Schriften, Musik und Klänge:** [assets](assets/)
+- **Automatisierte Prüfungen:** [tests](tests/)
+- **Werkzeuge** (Pixel-Pipeline, Musik, Prüf- und Paketskripte): [tools](tools/)
+- **Änderungsberichte:** [R4](docs/STINGFORGE_R4.md) · [R3](docs/STINGFORGE_R3.md) · [R2](docs/STINGFORGE_R2.md)
+
+## Danksagung und Lizenzen Dritter
+
+- **Schriften:** Jersey 10, Silkscreen und Nunito, alle unter der
+  [SIL Open Font License](assets/ui/fonts/pixel/OFL-Jersey10.txt).
+- **Samples:** [VSCO 2 Community Edition](https://github.com/sgossner/VSCO-2-CE) und
+  [Versilian Community Sample Library](https://github.com/sgossner/VCSL) von Versilian Studios
+  (CC0), für den Soundtrack.
+- **Sprachansagen:** erzeugt mit [ElevenLabs](https://elevenlabs.io).
+- **Vorbild:** *Apidya* (Kaiko, 1992). Stingforge ist eine eigenständige Hommage, ohne
+  Verbindung zu den Rechteinhabern.
+
+Eine Lizenz für den Projektcode ist noch nicht festgelegt.
