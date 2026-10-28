@@ -10,7 +10,7 @@ Form: A 28 · B 29 · C 28 · D 25 · E 21 Takte (= Checkpoints).
 from __future__ import annotations
 
 from score import Song, n
-from songs._kit import (CLASH, Human, LOG_HI, LOG_LO, SNARE_ROLL, SWELL4, TIMP_LO, TIMP_MID,
+from songs._kit import (lead_in, CLASH, Human, LOG_HI, LOG_LO, SNARE_ROLL, SWELL4, TIMP_LO, TIMP_MID,
                         TIMP_ROLL_LO, TIMP_ROLL_MID, TOM_LO, WOOD, arp, bar_slots, bassline,
                         close, crash, drums, fit_octave, grid, pad, phrase, repeat_to, take,
                         voicing)
@@ -289,13 +289,10 @@ def build():
     for b in range(3):
         S.add('sub', 'E', 16 + b, 0, 1.4, n('A1'), 86)
 
-    # ---------------------------------------------------------- Ankündigung (1,25 s)
-    S.add('kit', 'tail', 0, 0, 2.5, TIMP_LO, 127)
-    S.add('kit', 'tail', 0, 0, 2.5, CLASH, 118)
-    S.add('boom', 'tail', 0, 0, 2.5, n('A1'), 110)
-    for p in (n('A1'), n('E2'), n('A2'), n('C3')):
-        S.add('bassoon', 'tail', 0, 0, 1.2, p, 110)
-    S.add('kit', 'tail', 0, 0, 1.2, TIMP_MID, 110)
+    # ---------------------------------------------------------- Ankündigung (1,25 s): Auftakt
+    # Kein Schlussakkord: Wirbel und Basshinführung münden auf dem nächsten Schlag in die
+    # Bossmusik (boss2, Grundton A), die genau dann mit der Ankunft des Bosses einsetzt.
+    leadin_spec = lead_in(S, 'A')
 
     mixspec = {
         'kit':      {'engine': 'sfz', 'inst': 'kit', 'gain': -0.5, 'rev': 0.16},
@@ -312,4 +309,5 @@ def build():
         'riser':    {'engine': 'cs', 'instr': 'riser', 'gain': -10.0, 'rev': 0.2},
         'boom':     {'engine': 'cs', 'instr': 'boom', 'gain': -5.0, 'rev': 0.12},
     }
+    mixspec.update(leadin_spec)
     return song, mixspec, {'file': 'level2', 'title': 'Level 2 – Wurzelreich', 'reverb': 2.6}

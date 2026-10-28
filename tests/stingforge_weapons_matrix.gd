@@ -34,7 +34,7 @@ func _fire_once(clear_first: bool = true) -> void:
 func _check_weapon_levels() -> void:
 	var specifications := {
 		"base": [[1, 2, 14.8]],
-		"fan": [[1, 3, 15.6], [2, 4, 20.8], [3, 5, 26.0]],
+		"fan": [[1, 4, 22.4], [2, 5, 28.0], [3, 6, 33.6]],
 		# R4: Blitz Stufe 2 war schusszahlgleich mit Stufe 1; jetzt 2/3/4 Kugeln.
 		"lightning": [[1, 2, 11.6], [2, 3, 17.4], [3, 4, 23.2]],
 		"plasma": [[1, 1, 18.4], [2, 2, 36.8], [3, 3, 55.2]],
@@ -129,7 +129,7 @@ func _shop_outcome(weapon_id: String, id: String, level: int) -> Array:
 		"bomb_radius": result = [g.player_pulse_radius()]
 		"bomb_charge": result = [player.bomb_cycle()]
 		"magnet": result = [g.magnet_radius()]
-		"nectar_plus": result = [g.drop_amount(1)]
+		"nectar_plus": result = [g.nectar_bonus_chance()]
 		"start_heal": result = [player.hp]
 		"boss_bane": result = [g._shot_damage(100.0, true)]
 		"crit":
@@ -192,8 +192,10 @@ func _shop_outcome(weapon_id: String, id: String, level: int) -> Array:
 					splash += float(b.splash)
 					chain += float(b.chain)
 					size += float(b.scale) + float(b.r)
+				# Zielsuche wirkt bewusst nur im Nahbereich (Bullets.HOMING_RANGE): Ziel dort platzieren.
+				var aim := Vector2(330, 200) if id in ["homing", "homing_power"] else Vector2(550, 160)
 				for frame in range(15):
-					field.update(1.0 / 60.0, player.position, [Vector2(550, 160)])
+					field.update(1.0 / 60.0, player.position, [aim])
 					for b in field.player_bullets:
 						path_length += (b.p as Vector2).distance_to(b.prev_p)
 				for b in field.player_bullets:
@@ -347,7 +349,9 @@ func _check_max_builds() -> void:
 			for b in field.player_bullets:
 				finite = finite and (b.p as Vector2).is_finite() and (b.v as Vector2).is_finite()
 		var elapsed_ms := float(Time.get_ticks_usec() - start) / 1000.0
-		check(peak < BulletField.MAX_PLAYER and peak_volley <= 14, "%s Maxbuild10s: ohne Limitsättigung, peak=%d/salve=%d" % [weapon_id, peak, peak_volley])
+		# R6: Fächer Stufe 3 hat 6 Stacheln (Aufwertung) – Salvengrenze 15; die Grenze je
+		# Sekunde (balanceprobe, 120 Kugeln/s) bleibt maßgeblich und unverändert.
+		check(peak < BulletField.MAX_PLAYER and peak_volley <= 15, "%s Maxbuild10s: ohne Limitsättigung, peak=%d/salve=%d" % [weapon_id, peak, peak_volley])
 		check(finite and player.fire_interval() >= Player.MIN_INTERVAL, "%s Maxbuild: endliche Bahnen, begrenzter Feuertakt" % weapon_id)
 		measurements.append({"maxbuild_weapon": weapon_id, "simulated_seconds": 10, "peak_projectiles": peak, "peak_volley": peak_volley,
 			"last_volley_damage": player.last_volley_damage, "interval": player.fire_interval(), "simulation_ms": elapsed_ms})

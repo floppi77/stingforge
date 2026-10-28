@@ -51,7 +51,8 @@ func _data() -> void:
 		homing = maxf(homing, float(step.mod.homing))
 	for step in ShopData.item("homing_power").steps:
 		add = maxf(add, float(step.mod.homing_add))
-	_ok(homing <= 2.5 and add <= 1.8, "Zielsuche abgeschwächt (max %.1f + %.1f)" % [homing, add])
+	_ok(homing <= 1.25 and add <= 0.9 and ShopData.item("homing_power").req == [["homing", 3]],
+		"Zielsuche abgeschwächt (max %.2f + %.2f), Starke Zielsuche ab Zielsuche 3" % [homing, add])
 	var phases: Array = Data.boss("giant_larva").phases
 	var all := []
 	for ph in phases:

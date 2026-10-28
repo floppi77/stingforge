@@ -10,7 +10,7 @@ Takt 12 von C. Am Ende verstummen die Pumpen, nur Tropfen bleiben.
 from __future__ import annotations
 
 from score import Song, n
-from songs._kit import (BRAKE_SUSP, CRASH, CLASH, GONG, Human, SNARE, SWELL4, TIMP_LO,
+from songs._kit import (lead_in, BRAKE_SUSP, CRASH, CLASH, GONG, Human, SNARE, SWELL4, TIMP_LO,
                         TIMP_ROLL_LO, WOOD, arp, bassline, close, crash, drums, grid, pad, phrase,
                         repeat_to, voicing)
 from songs._themes import fragment, invert, leitmotiv, mechanize, second_theme
@@ -225,13 +225,10 @@ def build():
     S.add('kit', 'E', 15, 0, 16, SWELL4, 100)
     S.add('drone', 'E', 14, 0, 5, n('Db2'), 104, bright=0.7, aux=4.2)
 
-    # ---------------------------------------------------------- Ankündigung (1,25 s)
-    S.add('kit', 'tail', 0, 0, 2.5, TIMP_LO, 122)
-    S.add('kit', 'tail', 0, 0, 2.5, GONG, 110)
-    S.add('boom', 'tail', 0, 0, 2.5, n('C1'), 112)
-    for p in close('Cm', n('C3'), 4):
-        S.add('piano', 'tail', 0, 0, 1.2, p, 112)
-        S.add('vc_sus', 'tail', 0, 0, 1.2, p - 12, 104)
+    # ---------------------------------------------------------- Ankündigung (1,25 s): Auftakt
+    # Kein Schlussakkord: Wirbel und Basshinführung münden auf dem nächsten Schlag in die
+    # Bossmusik (boss7, Grundton C), die genau dann mit der Ankunft des Bosses einsetzt.
+    leadin_spec = lead_in(S, 'C')
 
     mixspec = {
         'kit':      {'engine': 'sfz', 'inst': 'kit', 'gain': -2.0, 'rev': 0.45},
@@ -245,4 +242,5 @@ def build():
         'riser':    {'engine': 'cs', 'instr': 'riser', 'gain': -9.0, 'rev': 0.24},
         'boom':     {'engine': 'cs', 'instr': 'boom', 'gain': -3.0, 'rev': 0.2},
     }
+    mixspec.update(leadin_spec)
     return song, mixspec, {'file': 'level7', 'title': 'Level 7 – Verlorene Kanalisation', 'reverb': 3.2}

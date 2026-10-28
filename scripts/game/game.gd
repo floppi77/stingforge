@@ -84,6 +84,8 @@ func setup(cfg: Dictionary) -> void:
 	if int(Save.g("game.tutorial", true)) and bool(Save.campaign.get("level_stats", {}).is_empty()):
 		tutorial_t = 9.0
 	_notify(Loc.t("level." + str(level_index)), 3.0)
+	if mode == "tutorial":
+		add_child(load("res://scripts/game/tutorial.gd").new(self))
 	if mode == "rush":
 		_start_boss_rush()
 	elif bool(cfg.get("boss_only", false)):
@@ -296,8 +298,14 @@ func spawn_enemy(id: String, pos: Vector2, opts: Dictionary = {}) -> Node:
 	return enemies[enemies.size() - 1]
 
 ## Für Prüfläufe: Blütenstaubmenge eines Tropfens an dieser Stelle.
-func drop_amount(amount: int) -> int:
-	return amount + int(player.evo_effect("nectar_drop")) + int(player.shop_mod("nectar_plus"))
+## roll < 0: echter Zufallswurf für "Reichere Beute" (Chance auf einen Tropfen mehr).
+func drop_amount(amount: int, roll: float = -1.0) -> int:
+	var r := rng.randf() if roll < 0.0 else roll
+	return amount + int(player.evo_effect("nectar_drop")) + (1 if r < nectar_bonus_chance() else 0)
+
+## "Reichere Beute": Wahrscheinlichkeit eines zusätzlichen Blütenstaubs je Gegner.
+func nectar_bonus_chance() -> float:
+	return clampf(player.shop_mod("nectar_plus"), 0.0, 1.0)
 
 ## Für Prüfläufe: Radius der Druckwelle.
 func player_pulse_radius() -> float:
@@ -317,7 +325,7 @@ func _on_enemy_killed(e: Enemy) -> void:
 	last_kill_times.append(stats.time)
 	# Pollenexplosion
 	if player.evo_has("pollen_burst"):
-		spawn_pollen(e.position, 1.4, true)
+		spawn_pollen(e.position, 1.4 * player.fusion_factor("pollen_burst"), true)
 	# Schwarmruf
 	if player.evo_has("swarm_call"):
 		while last_kill_times.size() > 0 and stats.time - float(last_kill_times[0]) > 3.0:
@@ -328,7 +336,7 @@ func _on_enemy_killed(e: Enemy) -> void:
 			_swarm_strike()
 
 func _drop_nectar(pos: Vector2, amount: int) -> void:
-	var total := amount + int(player.evo_effect("nectar_drop")) + int(player.shop_mod("nectar_plus"))
+	var total := drop_amount(amount)
 	var count := clampi(total, 1, 5)
 	for i in range(count):
 		var p := Pickup.new()
@@ -410,6 +418,11 @@ func _update_hazards(delta: float) -> void:
 	for h in fx.hazards:
 		match String(h.kind):
 			"root_spike":
+				if String(h.get("style", "")) == "water":
+					# Brunnensäule: Trefferform = gezeichneter Strahl samt Krone.
+					if Fx.geyser_hits(h, player.position, 4.6 * (1.0 + player.evo_effect("hitbox"))) and player.take_damage(1, h.base):
+						fx.hit_spark(player.position, Color(0.7, 0.9, 1.0))
+					continue
 				var frac := 1.0 - float(h.life) / float(h.max_life)
 				var height := float(h.get("height", 80.0)) * clampf(frac * float(h.max_life) / float(h.warn), 0.0, 1.0)
 				var elapsed := frac * float(h.max_life)
@@ -450,6 +463,11 @@ func _update_hazards(delta: float) -> void:
 	# Nicht nur Spawns: Abwehr reagiert auch auf bereits anfliegende Geschosse.
 	for b in bullets.enemy_bullets:
 		_apply_pollen_defenses(b)
+
+## Wassersäule (Brunnenstrahl mit Vorwarnung) – Level 3 und der Hecht-Boss.
+func spawn_geyser(x: float, height: float = GEYSER_HEIGHT, life: float = 3.6, warn: float = 0.7) -> void:
+	fx.add_hazard({"kind": "root_spike", "p": Vector2(x, 0), "base": Vector2(x, App.PLAY_BOTTOM),
+		"t": 0.0, "life": life, "max_life": life, "warn": warn, "dmg": 1, "style": "water", "height": height})
 
 ## Bodenausbruch (Erdsäule mit Vorwarnung) – für Bossangriffe.
 func spawn_ground_spike(x: float, warn: float = 0.55, height: float = 96.0, life: float = 1.5) -> void:
@@ -503,7 +521,7 @@ func _bullet_hits_panel(b: Dictionary, panel: Rect2) -> bool:
 func _apply_pollen_defenses(b: Dictionary) -> void:
 	if player == null or float(b.life) <= 0.0:
 		return
-	var in_aura := player.evo_has("pollen_shield") and (b.p as Vector2).distance_to(player.position) <= 130.0
+	var in_aura := player.evo_has("pollen_shield") and (b.p as Vector2).distance_to(player.position) <= 130.0 * player.fusion_factor("pollen_shield", 1.35)
 	if in_aura:
 		if not b.has("pollen_base_slow"):
 			b["pollen_base_slow"] = float(b.get("slow", 1.0))
@@ -526,7 +544,7 @@ func _apply_pollen_defenses(b: Dictionary) -> void:
 			continue
 		seen[h.blind_id] = true
 		b["pollen_seen"] = seen
-		if rng.randf() < 0.4:
+		if rng.randf() < 0.4 * player.fusion_factor("pollen_blind", 1.5):
 			b.life = 0.0
 			return
 
@@ -666,7 +684,7 @@ func _update_collisions() -> void:
 		if e.position.distance_to(ppos) < e.radius + pr:
 			if player.take_damage(1, e.position):
 				if player.evo_has("chitin_thorns"):
-					e.take_damage(24.0)
+					e.take_damage(24.0 * player.fusion_factor("chitin_thorns", 1.6))
 					e.position += (e.position - ppos).normalized() * 24.0
 	# Bosskontakt prüft denselben sichtbaren Körper samt lebenden Modulen.
 	if boss != null and is_instance_valid(boss) and not boss.dead:
@@ -674,7 +692,7 @@ func _update_collisions() -> void:
 		if not contact.is_empty() and player.take_damage(1, contact.p):
 			fx.hit_spark(player.position, Color(1, 0.5, 0.5))
 			if player.evo_has("chitin_thorns"):
-				boss.take_damage(24.0, contact.p, int(contact.part))
+				boss.take_damage(24.0 * player.fusion_factor("chitin_thorns", 1.6), contact.p, int(contact.part))
 
 ## Einschlagfarben beschreiben das getroffene Material, nicht ein schwarzes Loch.
 func _impact_color(target: Node2D) -> Color:
@@ -1048,12 +1066,15 @@ func _on_boss_triggered() -> void:
 		if is_instance_valid(e):
 			e.queue_free()
 	enemies.clear()
-	# Ankündigung: Rütteln, Aufblitzen, Schriftzug und Warnsound, dann erst der Boss
-	Audio.sfx("boss_warn", -2.0, 0.92)
+	# Ankündigung: Rütteln, Aufblitzen, Schriftzug, dann erst der Boss. Den Klang
+	# übernimmt bei durchkomponierter Levelmusik deren Auftakt (kein Warnton darüber).
+	var timed_music := Audio.is_timed_music(String(level_data.get("music", "level1")))
+	if not timed_music:
+		Audio.sfx("boss_warn", -2.0, 0.92)
 	shake(16.0)
 	background.flash(Color(1, 1, 1), 0.5, 0.55)
 	if app != null and app.hud != null and app.hud.has_method("boss_announce"):
-		app.hud.boss_announce(1.3)
+		app.hud.boss_announce(1.3, not timed_music)
 	var generation := _stage_generation
 	await get_tree().create_timer(1.25, false).timeout
 	if level_over or not is_inside_tree() or generation != _stage_generation:
@@ -1074,7 +1095,10 @@ func _spawn_boss() -> void:
 	boss.defeated.connect(_on_boss_defeated)
 	boss.phase_changed.connect(_on_boss_phase)
 	boss_intro_t = 2.5
-	Audio.play_music(_boss_music(String(level_data.get("boss", ""))))
+	# Nahtlos: Der Leveltrack endet genau jetzt mit seinem Auftakt, die Bossmusik
+	# setzt auf dem nächsten Schlag ein – harter Schnitt statt Überblendung.
+	var seamless := Audio.is_timed_music(String(level_data.get("music", "level1"))) and mode != "rush"
+	Audio.play_music(_boss_music(String(level_data.get("boss", ""))), 0.03 if seamless else 0.8)
 	_notify(String(boss.name_text), 3.0)
 	background.flash(Color(1, 0.4, 0.4), 0.18, 0.6)
 

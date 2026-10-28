@@ -28,15 +28,26 @@ ohne alte Originale oder schon vorhandene Stingforge-Dateien zu überschreiben.
 ## 1a. Das Hauptmenü
 
 Vor dem vom Betreiber gelieferten Bienen-/Ruinenmotiv steht links der goldene
-Titel. Darunter: *Fortsetzen* (mit Levelstand), *Neue Kampagne*, *Training*,
-*Boss-Rush*, *Werkstatt*, *Einstellungen*, *Credits* und *Spiel beenden*.
+Titel. Darunter: *Fortsetzen* (mit Levelstand), *Neue Kampagne*, *Tutorial*,
+*Training*, *Boss-Rush*, *Highscores*, *Verschmelzungen*, *Einstellungen*, *Credits*
+und *Spiel beenden*.
+
+- **Tutorial:** Ein kurzer Übungsflug in der ersten Welt.
+  - Bei jedem neuen Schritt hält das Spiel an und ein kleines Bildfenster erklärt ihn:
+    Fliegen, Schießen, Blütenstaub sammeln, Waffenleiste mit LB/RB bzw. Q/E und Kosten,
+    Kauf und Stufen, Gegenfeuer, Schild und Bombe, Umrechnung am Levelende, Werkstatt und
+    Highscore.
+  - Beim ersten Start einer Kampagne wird es angeboten. Dein Spielstand bleibt dabei unberührt.
+- **Verschmelzungen:** Zeigt alle Evolutionspaare, die gemeinsam stärker werden.
+  Noch nicht entdeckte Paare stehen ausgegraut da.
+- **Werkstatt:** Sie öffnet sich nur zwischen den Leveln.
 Nur die gewählte Zeile leuchtet gold. Gesperrte Einträge haben ein Schloss;
 ohne Spielstand ist *Neue Kampagne* vorausgewählt.
 
 Die transparente Karte unten rechts zeigt dein aktuelles Level und die
 Schwierigkeit des gespeicherten Laufs, freigeschaltete Evolutionen, verfügbare
 Werkstatt-Punkte und Bestpunkte aus dem Profil. Tastatur- und Xbox-Hinweise
-stehen gemeinsam unten links. Bei Standardschrift passen alle acht Einträge
+stehen gemeinsam unten links. Bei Standardschrift passen alle Einträge
 ohne Scrollen. Mit größerer Schrift scrollt die Auswahl zum gewählten Eintrag.
 
 ## 2. Steuerung
@@ -174,11 +185,11 @@ Ton. Das nächste Level beginnt mit 0 Blütenstaub, die Punkte bleiben.
 | Eintrag | Wirkung | Stufen |
 |---|---|---|
 | Basisschuss | zwei präzise Stachelschüsse, immer verfügbar | 1 |
-| Fächerschuss | breiter Fächer, mehr Trefferfläche | 3 |
+| Fächerschuss | 4/5/6 Stacheln, größte Trefferfläche; mit Kreisflug gestaffelte Ringe, mit Welle ein breites Wellenband | 3 |
 | Blitzwaffe | schnelle Kugeln (Stufe 1/2/3: zwei, drei, vier); ein Treffer springt auf den nächsten Gegner im Umkreis (66 % Schaden) und von dort auf den übernächsten (33 %) | 3 |
 | Plasmawaffe | langsam, hoher Schaden, kleine Streuung (etwa ein Viertel des Fächers), Flächenwirkung | 3 |
 | Begleiter | automatisch feuernde Drohnen | 3 |
-| Bomben | lösen automatisch aus, räumen gegnerisches Feuer | 3 |
+| Bomben | zünden **von selbst** alle paar Sekunden eine Druckwelle um die Biene, die Geschosse löscht und Gegner trifft (höhere Stufe = öfter) | 3 |
 | Schild | fängt Treffer ab, lädt sich wieder auf | 3 |
 | Flugtempo | höheres Tempo; erneut kaufen senkt es wieder | 3 |
 | — | *Wind und Strömung* drücken höchstens mit 62 % deines Flugtempos; **wer gegensteuert, kommt immer noch vorwärts** | — |
@@ -256,10 +267,12 @@ Sie bleiben für den ganzen Lauf und stapeln sich mit allem anderen.
   mittlerem, dann in großem Radius um die Biene und laufen zuletzt schneller;
   beim *Wellenschuss* fliegen sie in einer Welle, die sich über die Zusatzstufen
   *Weite Wellen* und *Schnelle Wellen* weiter formen lässt.
-* **Zielsuche** wirkt nur im Nahbereich (etwa ein Drittel der Bildbreite) und lenkt maßvoll.
+* **Zielsuche** wirkt nur im Nahbereich (etwa ein Viertel der Bildbreite) und korrigiert die
+  Bahn nur leicht. *Starke Zielsuche* wird erst mit *Zielsuche* Stufe 3 kaufbar.
+* **Reichere Beute** gibt je Gegner eine Chance von 15/20/30 % auf einen Blütenstaub mehr.
 * **Ketten**: Einige Upgrades werden erst frei, wenn ihr Vorläufer gekauft ist –
   *Schnelle Wellen* und *Weite Wellen* brauchen *Wellenschuss*, *Panzerbrecher*
-  braucht *Schwere Geschosse*, *Starke Zielsuche* braucht *Zielsuche*.
+  braucht *Schwere Geschosse*, *Starke Zielsuche* braucht *Zielsuche* Stufe 3.
   Gesperrte Einträge stehen grau mit der geforderten Vorbedingung da.
 * **Kombinierbare Flugformen**: *Kreisflug*, *Wellenschuss* und *Zielsuche* lassen
   sich jetzt zusammen kaufen. Kreisgeschosse bleiben räumlich getrennt; Wellen
@@ -444,8 +457,9 @@ keine behaupteten echten Bosskampfzeiten.
 
 **Highscores** im Hauptmenü zeigt lokale Run-Ranglisten: Kampagne und Boss-Rush
 getrennt, nach Schwierigkeit filterbar, als Top 10 oder Top 20. Gezählt werden
-verdiente Gesamtpunkte, unabhängig davon, wie viel bereits in der Werkstatt
-ausgegeben wurde. Der Nektarumrechnungsbonus zählt genau einmal dazu.
+verdiente Gesamtpunkte **abzüglich der Werkstatt-Ausgaben**: Wer Punkte in dauerhafte
+Upgrades steckt, wird stärker, schmälert aber seinen Highscore. Der Umrechnungsbonus
+für Blütenstaub zählt genau einmal dazu.
 
 Einträge entstehen beim endgültigen Game Over, ausdrücklichen Runende oder Sieg.
 Continues bleiben derselbe Run; Training zählt nicht. Alte Levelbestwerte werden

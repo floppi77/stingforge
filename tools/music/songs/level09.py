@@ -12,7 +12,7 @@ Takt 16 von C.
 from __future__ import annotations
 
 from score import Song, n
-from songs._kit import (BRAKE1, CLASH, CRASH, FRAME_HI, FRAME_LO, GONG, Human, LOG_HI, SNARE_ROLL,
+from songs._kit import (lead_in, BRAKE1, CLASH, CRASH, FRAME_HI, FRAME_LO, GONG, Human, LOG_HI, SNARE_ROLL,
                         SWELL4, TIMP_LO, TIMP_ROLL_LO, TOM_LO, arp, bassline, close, crash, drums,
                         grid, pad, phrase, repeat_to, voicing)
 from songs._themes import (augment, fragment, invert, leitmotiv, mechanize, second_theme,
@@ -263,13 +263,10 @@ def build():
     S.add('kit', 'E', 23, 0, 20, SNARE_ROLL, 96)
     S.add('drone', 'E', 24, 0, 4, n('Bb2'), 100, bright=0.7, aux=4.2)
 
-    # ---------------------------------------------------------- Ankündigung (1,25 s)
-    S.add('kit', 'tail', 0, 0, 2.5, TIMP_LO, 127)
-    S.add('kit', 'tail', 0, 0, 2.5, CLASH, 118)
-    S.add('boom', 'tail', 0, 0, 2.5, n('A1'), 112)
-    S.add('choir', 'tail', 0, 0, 1.2, n('A3'), 116, bright=0.6, aux=0)
-    for p in close('Am', n('A3'), 3):
-        S.add('lead', 'tail', 0, 0, 1.2, p, 108, bright=0.6)
+    # ---------------------------------------------------------- Ankündigung (1,25 s): Auftakt
+    # Kein Schlussakkord: Wirbel und Basshinführung münden auf dem nächsten Schlag in die
+    # Bossmusik (boss9, Grundton A), die genau dann mit der Ankunft des Bosses einsetzt.
+    leadin_spec = lead_in(S, 'A')
 
     mixspec = {
         'kit':      {'engine': 'sfz', 'inst': 'kit', 'gain': -1.0, 'rev': 0.2},
@@ -287,6 +284,7 @@ def build():
         'riser':    {'engine': 'cs', 'instr': 'riser', 'gain': -9.0, 'rev': 0.2},
         'boom':     {'engine': 'cs', 'instr': 'boom', 'gain': -5.0, 'rev': 0.14},
     }
+    mixspec.update(leadin_spec)
     return song, mixspec, {'file': 'level9', 'title': 'Level 9 – Schwarmstock', 'reverb': 2.5}
 
 

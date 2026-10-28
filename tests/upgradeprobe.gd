@@ -558,11 +558,17 @@ func _check_magnet() -> void:
 
 func _check_nectar_plus() -> void:
 	var g0 := await _start({})
-	var n0: int = g0.drop_amount(1)
+	var n0: int = g0.drop_amount(1, 0.0)
 	await _stop()
 	var g := await _start({"nectar_plus": 3})
-	var n1: int = g.drop_amount(1)
-	_ok("nectar_plus", n1 > n0, "%d Blütenstaub je Tropfen statt %d" % [n1, n0])
+	var hit: int = g.drop_amount(1, 0.29)
+	var miss: int = g.drop_amount(1, 0.31)
+	var got := 0
+	for i in range(4000):
+		got += g.drop_amount(1) - 1
+	var rate := float(got) / 4000.0
+	_ok("nectar_plus", absf(g.nectar_bonus_chance() - 0.3) < 0.001 and hit == n0 + 1 and miss == n0
+		and absf(rate - 0.3) < 0.04, "Stufe 3: 30 %% Chance (gemessen %.1f %%), Treffer +1" % (rate * 100.0))
 	await _stop()
 
 func _check_graze() -> void:

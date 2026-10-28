@@ -397,8 +397,9 @@ def spectrogram(x: np.ndarray, song: Song, path: Path, title: str) -> None:
     for sec in song.sections:
         ax.axvline(sec.start, color='cyan', lw=0.8)
         ax.text(sec.start + 0.5, 22000, sec.name, color='cyan', fontsize=9, va='top')
-    mini = song.timeline['intro'] + song.timeline['miniboss']
-    ax.axvline(mini, color='lime', lw=0.8, ls='--')
+    tl = getattr(song, 'timeline', None)
+    if tl:
+        ax.axvline(tl['intro'] + tl['miniboss'], color='lime', lw=0.8, ls='--')
     ax.set_title(title)
     ax.set_xlabel('s')
     fig.tight_layout()
@@ -443,10 +444,23 @@ def main() -> int:
     stems = {p: load_stem(w, length) for p, w in rendered.items()}
     for p, s in stems.items():
         print(f'  Stem {p:10s} Spitze {20 * np.log10(np.abs(s).max() + 1e-12):6.1f} dBFS')
-    mixed = mix(song, spec, stems, length, meta.get('reverb', 2.2))
+    loop_start = meta.get('loop_start')
+    if loop_start is not None:
+        # Loop: Ausklang (Hall, Noten über das Loopende) an den Loopanfang falten,
+        # damit der Sprung vom Ende zum Loopanfang nahtlos klingt.
+        tail_n = int(4.0 * SR)
+        stems = {p: np.vstack([s, load_stem(rendered[p], length + tail_n)[length:]]) for p, s in stems.items()}
+        mixed = mix(song, spec, stems, length + tail_n, meta.get('reverb', 2.2))
+        over = mixed[length:]
+        ls = int(round(loop_start * SR))
+        mixed = mixed[:length].copy()
+        mixed[ls:ls + len(over)] += over[:max(0, length - ls)]
+    else:
+        mixed = mix(song, spec, stems, length, meta.get('reverb', 2.2))
     out = master(mixed, work)
-    fade = int(0.012 * SR)
-    out[-fade:] *= np.linspace(1, 0, fade)[:, None]
+    if loop_start is None:
+        fade = int(0.012 * SR)
+        out[-fade:] *= np.linspace(1, 0, fade)[:, None]
     wav = work / f'{meta["file"]}.wav'
     sf.write(wav, out, SR, subtype='PCM_24')
     i, tp = lufs(wav)
@@ -456,6 +470,12 @@ def main() -> int:
     ogg_len = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of',
                                     'default=nw=1:nk=1', str(ogg)], capture_output=True, text=True).stdout)
     spectrogram(out, song, work / f'{meta["file"]}_spektrogramm.png', f'{meta["title"]} – {song.length:.2f} s')
+    if loop_start is not None:
+        # Loopstart für das Spiel (Audio liest assets/audio/music/loops.json).
+        loops_path = OUT_DIR / 'loops.json'
+        loops = json.loads(loops_path.read_text()) if loops_path.exists() else {}
+        loops[meta['file']] = round(loop_start, 6)
+        loops_path.write_text(json.dumps(loops, indent=1, sort_keys=True) + '\n')
     report = {
         'file': str(ogg.relative_to(ROOT)), 'title': meta['title'],
         'target_length_s': round(song.length, 4), 'wav_length_s': round(len(out) / SR, 4),
@@ -465,7 +485,8 @@ def main() -> int:
         'loudness_ok': abs(i - TARGET_LUFS) <= 0.5 and tp <= TARGET_TP + 0.1,
         'sections': [{'name': s.name, 'start_s': round(s.start, 4), 'bars': s.bars, 'bpm': round(s.bpm, 3)}
                      for s in song.sections],
-        'miniboss_s': round(song.timeline['intro'] + song.timeline['miniboss'], 3),
+        'miniboss_s': round(song.timeline['intro'] + song.timeline['miniboss'], 3) if getattr(song, 'timeline', None) else None,
+        'loop_start_s': meta.get('loop_start'),
         'stems': sorted(stems),
         'register': REGISTER_INFO,
     }

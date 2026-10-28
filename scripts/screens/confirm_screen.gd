@@ -2,6 +2,7 @@ extends "res://scripts/core/ui_screen.gd"
 
 var message := ""
 var on_yes: Callable = Callable()
+var on_no: Callable = Callable()
 var yes_label := "menu.yes"
 var no_label := "menu.no"
 
@@ -9,6 +10,7 @@ func setup(args: Dictionary) -> void:
 	title_key = String(args.get("title", "menu.confirm"))
 	message = String(args.get("message", ""))
 	on_yes = args.get("on_yes", Callable())
+	on_no = args.get("on_no", Callable())
 	yes_label = String(args.get("yes", "menu.yes"))
 	no_label = String(args.get("no", "menu.no"))
 	subtitle_key = message
@@ -29,6 +31,8 @@ func on_activate(index: int) -> void:
 	else:
 		Audio.sfx("ui_back", -6.0, 1.0, true)
 		app.pop_screen()
+		if on_no.is_valid():
+			on_no.call()
 
 ## Links/rechts wechselt zwischen Ja und Nein – wie es der Hinweis verspricht.
 func on_adjust(_index: int, dir: int) -> void:

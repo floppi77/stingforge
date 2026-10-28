@@ -18,6 +18,7 @@ const MAX_SIDE := 1
 const MAX_LANES := 1
 const HIT_RADIUS := 4.6
 const ShieldRingsVisual := preload("res://scripts/game/shield_rings.gd")
+const MAX_COMPANIONS := 5
 var play_bounds := Rect2(14, 16, 924, 438)
 
 func _refresh_bounds() -> void:
@@ -216,8 +217,34 @@ func evo_effect(key: String) -> float:
 			continue
 		var eff: Dictionary = e.get("effect", {})
 		if eff.has(key):
-			total += float(eff[key]) * float(entry.get("level", 1))
+			var value := float(eff[key]) * float(entry.get("level", 1))
+			if evo_fused(String(e.id)):
+				value = Data.fusion_boost(key, value)
+			total += value
 	return total
+
+## Verschmolzen: ein Synergiepartner ist ebenfalls vorhanden und aktiv.
+func evo_fused(id: String) -> bool:
+	if evo_level(id) <= 0:
+		return false
+	for partner in Data.synergy_partners(id):
+		if evo_level(String(partner)) > 0 and _evo_active(Data.evo(String(partner))):
+			return true
+	return false
+
+## Faktor für Ja/Nein-Evolutionen (Pollen, Druckwelle …): verschmolzen stärker.
+func fusion_factor(id: String, factor: float = 1.4) -> float:
+	return factor if evo_fused(id) else 1.0
+
+## Bestehende Verschmelzungen als Paare [a, b] (je Paar einmal).
+func fusions() -> Array:
+	var out: Array = []
+	for entry in evolutions:
+		var a := String(entry.get("id", ""))
+		for b in Data.synergy_partners(a):
+			if evo_level(String(b)) > 0 and a < String(b):
+				out.append([a, String(b)])
+	return out
 
 func evo_has(id: String) -> bool:
 	return evo_level(id) > 0
@@ -313,15 +340,15 @@ func _update_timers(delta: float) -> void:
 		heal(1)
 		nectar_changed.emit(nectar)
 		Audio.sfx("pickup_heart", -6.0, 1.0)
-		notice.emit("Nektar zu Leben umgewandelt")
+		notice.emit("Blütenstaub zu Leben umgewandelt")
 	# Pollenschleier
 	if evo_has("pollen_trail"):
 		pollen_cd -= delta
 		if pollen_cd <= 0.0 and vel.length() > 40.0:
-			pollen_cd = 0.22
+			pollen_cd = 0.22 / fusion_factor("pollen_trail", 1.35)
 			var g := get_parent()
 			if g != null and g.has_method("spawn_pollen"):
-				g.spawn_pollen(position, 1.0 + evo_level("pollen_trail") * 0.5)
+				g.spawn_pollen(position, (1.0 + evo_level("pollen_trail") * 0.5) * fusion_factor("pollen_trail"))
 	# Taktische Bombe: lädt nach und räumt von selbst auf
 	if int(upgrades.get("bombs", 0)) > 0 and bomb_cd <= 0.0 and get_parent() != null:
 		var g := get_parent()
@@ -334,9 +361,9 @@ func _update_timers(delta: float) -> void:
 	if evo_has("resonance_pulse"):
 		if fire_active() and pulse_cd <= 0.0:
 			hold_time += delta
-			if hold_time >= 3.0:
+			if hold_time >= 3.0 / fusion_factor("resonance_pulse", 1.5):
 				hold_time = 0.0
-				pulse_cd = 6.0
+				pulse_cd = 6.0 / fusion_factor("resonance_pulse", 1.5)
 				if get_parent() != null and get_parent().has_method("player_pulse"):
 					get_parent().player_pulse(position)
 
@@ -454,12 +481,15 @@ func _fire_volley() -> void:
 	var pierce := int(evo_effect("pierce"))
 	match weapon:
 		"fan":
-			var count := 3 + (lvl - 1)
+			# Fächer = Fläche: 4/5/6 Stacheln. Mit Kreisflug oder Welle liegen sie in
+			# gestaffelten Bahnen (fan_k), statt alle auf derselben Linie zu laufen.
+			var count: int = [4, 5, 6][clampi(lvl, 1, 3) - 1]
 			var spread := 0.30 + 0.06 * lvl
 			for i in range(count):
-				var a := lerpf(-spread, spread, float(i) / float(maxi(1, count - 1)))
+				var k := float(i) / float(maxi(1, count - 1))
+				var a := lerpf(-spread, spread, k)
 				_spawn(muzzle, Vector2.RIGHT.rotated(a) * 640.0,
-					5.2 * dm, "bullet_fan", {"pierce": pierce, "r": 5.0, "rot": true}, true)
+					5.6 * dm, "bullet_fan", {"pierce": pierce, "r": 5.0, "rot": true, "fan_k": k}, true)
 		"lightning":
 			# Jede Stufe eine Blitzkugel mehr (2/3/4), damit Stufe 2 sichtbar zählt.
 			var offs := [-6.0, 6.0]
@@ -522,8 +552,13 @@ func _spawn(pos: Vector2, vel: Vector2, dmg: float, art: String, opts: Dictionar
 		o["r"] = float(o.get("r", 5.0)) * (1.0 + (big - 1.0) * 0.5)
 	# Formen komponieren: Kreisphase wahrt Richtung/Mündung, Welle moduliert
 	# den Radius, Zielsuche zieht die Phase zum Ziel. Keine neue Feuerquelle.
+	var fan_k := float(o.get("fan_k", -1.0))
+	o.erase("fan_k")
 	if shape and shop_has("orbit"):
 		o["orbit_r"] = shop_mod("orbit_r")
+		if fan_k >= 0.0:
+			# Fächer im Kreisflug: drei versetzte Ringe statt einem.
+			o["orbit_r"] = float(o.orbit_r) * lerpf(0.62, 1.38, fan_k)
 		o["orbit_w"] = shop_mod("orbit_w", 2.4) * (1.0 + shop_mod("bullet_speed"))
 		o["orbit_center"] = position
 		var transverse := (pos - position).rotated(-vel.angle()).y
@@ -545,6 +580,9 @@ func _spawn(pos: Vector2, vel: Vector2, dmg: float, art: String, opts: Dictionar
 		# Aufeinanderfolgende Kugeln schwingen gegenphasig: eine Doppelhelix.
 		var flip := -1.0 if _volley_shots % 2 == 1 else 1.0
 		o["wave_amp"] = (shop_mod("wave_amp") + shop_mod("wave_amp_add")) * flip
+		if fan_k >= 0.0:
+			# Fächer in der Welle: unterschiedlich weite Wellen ergeben ein breites Band.
+			o["wave_amp"] = float(o.wave_amp) * lerpf(0.45, 1.55, fan_k)
 		o["wave_len"] = shop_mod("wave_len", 300.0)
 		o["wave_sp"] = 1.0 + shop_mod("wave_speed")
 	var speed := 1.0 + shop_mod("bullet_speed")
@@ -615,7 +653,7 @@ func _spawn_pattern(pos: Vector2, velocity: Vector2, damage: float, pierce: int,
 			o["pierce"] = pierce + 1
 			o["lchain"] = 1 + int(upgrades.get("lightning", 1))
 		"fan":
-			damage_ratio = 5.2 / 7.4
+			damage_ratio = 5.6 / 7.4
 			speed_ratio = 640.0 / 760.0
 		_:
 			art = "bullet_base"
@@ -626,7 +664,10 @@ func rhythm_interval() -> int:
 	if level <= 0:
 		return 0
 	var effect: Dictionary = Data.evo("resonance_beat").get("effect", {})
-	return maxi(3, int(float(effect.get("rhythm", 12)) / float(level)))
+	var n := float(effect.get("rhythm", 12)) / float(level)
+	if evo_fused("resonance_beat"):
+		n = Data.fusion_boost("rhythm", n)
+	return maxi(3, int(n))
 
 func _fire_rhythm() -> void:
 	var mult := 2.4 * (1.0 + evo_effect("rhythm_mult"))
@@ -637,7 +678,8 @@ func _fire_rhythm() -> void:
 	Audio.sfx("shot_plasma", -12.0, 1.3)
 
 func _update_companions(delta: float) -> void:
-	var count := int(upgrades.get("companion", 0)) + int(evo_effect("companion_add"))
+	# Höchstens fünf Begleiter (so viele kann die Biene sichtbar führen), auch verschmolzen.
+	var count := mini(MAX_COMPANIONS, int(upgrades.get("companion", 0)) + int(evo_effect("companion_add")))
 	companion_phase += delta
 	_update_companion_visuals(count)
 	if count <= 0:
@@ -762,7 +804,7 @@ func add_nectar(n: int, pickup: bool = true) -> void:
 		n = int(floor(due + 0.000001))
 		_nectar_carry = maxf(0.0, due - float(n))
 	if evo_has("nectar_overflow") and int(upgrades.get(weapon, 0)) >= _weapon_max(weapon):
-		add_points(8 * n)
+		add_points(int(8.0 * float(n) * fusion_factor("nectar_overflow", 1.5)))
 		if shield_active() and shield_hits < shield_max:
 			shield_hits += 1
 			if shield_hits >= shield_max:
@@ -874,7 +916,7 @@ func _equip(id: String) -> void:
 		return
 	weapon = id
 	if evo_has("resonance_tuning"):
-		tuning_t = 2.0
+		tuning_t = 2.0 * fusion_factor("resonance_tuning", 1.5)
 	Audio.sfx("purchase", -6.0, 1.15)
 
 func _cycle_speed() -> void:

@@ -130,9 +130,12 @@ func _handle_input() -> void:
 			var u2 := Data.upgrade(id)
 			show_banner("%s  %s" % [Loc.t(String(u2.get("name", ""))), _state_text(p, id)], 1.1)
 			show_banner(Loc.t("bar.no_nectar"), 0.9)
+			Audio.voice("nectar_low", "Zu wenig Blütenstaub")
 		else:
 			deny_flash = 0.3
 			Audio.sfx("deny", -6.0, 1.0, true)
+			if String(res.get("msg", "")) == "bar.no_nectar":
+				Audio.voice("nectar_low", "Zu wenig Blütenstaub")
 			var msg := String(res.get("msg", ""))
 			if msg != "":
 				show_banner(Loc.t(msg), 1.0)
@@ -185,11 +188,12 @@ func _draw_phase(s: float) -> void:
 	var sub_rect := Rect2(band.position.x, cy + 14.0 * s, band.size.x, 22.0 * s)
 	_text(phase_text, sub_rect, 13, _alpha(Color(1.0, 0.72, 0.6), fade), s, true, HORIZONTAL_ALIGNMENT_CENTER)
 
-func boss_announce(seconds: float = 1.3) -> void:
+func boss_announce(seconds: float = 1.3, with_sound: bool = true) -> void:
 	boss_t = seconds
 	boss_len = seconds
 	white_flash = 0.85
-	Audio.sfx("boss_warn", -4.0, 0.8, true)
+	if with_sound:
+		Audio.sfx("boss_warn", -4.0, 0.8, true)
 
 func show_banner(text: String, seconds: float = 1.6) -> void:
 	banners.append({"text": text, "t": seconds, "max": seconds})
@@ -235,8 +239,8 @@ func _status_layout(s: float) -> Dictionary:
 		"header": band,
 		"vital": _area(band, 12, 3, 156, 22, s),
 		"shield": _area(band, 174, 3, 172, 22, s),
-		"nectar": _area(band, 352, 3, 122, 22, s),
-		"score": _area(band, 480, 3, 212, 22, s),
+		"nectar": _area(band, 352, 3, 162, 22, s),
+		"score": _area(band, 520, 3, 172, 22, s),
 		"controls": _area(band, 698, 3, 250, 22, s),
 		"rail": _area(band, 12, RAIL_TOP, 936, RAIL_BOTTOM - RAIL_TOP, s),
 		"level": _area(band, 12, RAIL_TOP, 112, 10, s),
@@ -357,11 +361,11 @@ func _draw_status(p: Player, s: float) -> void:
 	_draw_shields(p, layout.shield, s)
 	var nectar: Rect2 = layout.nectar
 	_icon(Art.sheet("icon_nectar"), _area(nectar, 4, 2, 18, 18, s))
-	_caps("NEKTAR", _area(nectar, 25, 0, 44, 22, s), DIM, s)
-	_value(_points(p.nectar), _area(nectar, 66, 0, 50, 22, s), 18, GOLD, s, HORIZONTAL_ALIGNMENT_RIGHT)
+	_caps("BLÜTENSTAUB", _area(nectar, 25, 0, 74, 22, s), DIM, s)
+	_value(_points(p.nectar), _area(nectar, 100, 0, 56, 22, s), 18, GOLD, s, HORIZONTAL_ALIGNMENT_RIGHT)
 	var score: Rect2 = layout.score
 	_caps("PUNKTE", _area(score, 7, 0, 48, 22, s), DIM, s)
-	_value(_points(p.points), _area(score, 56, 0, 150, 22, s), 20, TEXT, s,
+	_value(_points(p.points), _area(score, 56, 0, 110, 22, s), 20, TEXT, s,
 		HORIZONTAL_ALIGNMENT_RIGHT)
 	# Tastatur UND Xbox stets gleichzeitig, nebeneinander in einer Zeile.
 	var controls: Rect2 = layout.controls

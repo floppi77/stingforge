@@ -9,7 +9,7 @@ Form: A 22 · B 25 · C 24 · D 22 · E 18 Takte. Miniboss bei Levelzeit 146 s =
 from __future__ import annotations
 
 from score import Song, n
-from songs._kit import (CRASH, Human, SHAKE_A, SHAKE_B, SHAKE_C, SWELL4, TIMP_ROLL_LO, TRI,
+from songs._kit import (lead_in, CRASH, Human, SHAKE_A, SHAKE_B, SHAKE_C, SWELL4, TIMP_ROLL_LO, TRI,
                         WOOD, arp, bassline, close, crash, drums, grid, pad, phrase, repeat_to,
                         voicing)
 from songs._themes import fragment, leitmotiv, mechanize, second_theme, transposed
@@ -238,14 +238,10 @@ def build():
     S.add('riser', 'E', 15, 0, 12, n('G2'), 88)
     S.add('kit', 'E', 14, 0, 16, SWELL4, 92)
 
-    # ---------------------------------------------------------- Ankündigung (1,25 s)
-    S.add('kit', 'tail', 0, 0, 2.5, CRASH, 110)
-    S.add('kit', 'tail', 0, 0, 2.5, 41, 120)
-    S.add('kit', 'tail', 0, 0, 2.5, TRI, 110)
-    S.add('bass', 'tail', 0, 0, 1.2, n('G1'), 110)
-    S.add('pad', 'tail', 0, 0, 1.2, n('D4'), 100, bright=0.6)
-    for p in (n('G2'), n('D3'), n('G3')):
-        S.add('marimba', 'tail', 0, 0, 1.2, p, 110)
+    # ---------------------------------------------------------- Ankündigung (1,25 s): Auftakt
+    # Kein Schlussakkord: Wirbel und Basshinführung münden auf dem nächsten Schlag in die
+    # Bossmusik (boss3, Grundton G), die genau dann mit der Ankunft des Bosses einsetzt.
+    leadin_spec = lead_in(S, 'G')
 
     mixspec = {
         'kit':        {'engine': 'sfz', 'inst': 'kit', 'gain': -1.5, 'rev': 0.2},
@@ -262,4 +258,5 @@ def build():
         'glass':      {'engine': 'cs', 'instr': 'glass', 'gain': -12.0, 'pan': 0.25, 'rev': 0.4, 'dly': 0.2},
         'riser':      {'engine': 'cs', 'instr': 'riser', 'gain': -11.0, 'rev': 0.2},
     }
+    mixspec.update(leadin_spec)
     return song, mixspec, {'file': 'level3', 'title': 'Level 3 – Schilf und Teich', 'reverb': 2.8}

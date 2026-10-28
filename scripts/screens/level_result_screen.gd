@@ -7,6 +7,9 @@ var level := 1
 var training := false
 var new_unlock := false
 var chosen := ""
+## Durch die Wahl entstandene Verschmelzungen [[a, b], …] und die davon neu entdeckten Schlüssel.
+var fusions: Array = []
+var fusions_new: Array = []
 
 func setup(args: Dictionary) -> void:
 	stats = args.get("stats", {})
@@ -14,6 +17,8 @@ func setup(args: Dictionary) -> void:
 	training = bool(args.get("training", false))
 	new_unlock = bool(args.get("new_unlock", false))
 	chosen = String(args.get("chosen", ""))
+	fusions = args.get("fusions", [])
+	fusions_new = args.get("fusions_new", [])
 	title_key = "game.level_complete"
 	subtitle_key = ""
 
@@ -34,6 +39,12 @@ func build_items() -> void:
 			"size": 18, "color": UiTheme.family_color(String(e.get("family", "sting")))})
 		if new_unlock:
 			list.append({"kind": "label", "text": Loc.t("evo.new_unlock"), "size": 14, "color": UiTheme.OK})
+		for pair in fusions:
+			var key := Data.fusion_key(String(pair[0]), String(pair[1]))
+			list.append({"kind": "label", "text": "Verschmelzung: %s – beide Evolutionen werden stärker." % Data.fusion_name(String(pair[0]), String(pair[1])),
+				"size": 16, "color": UiTheme.ACCENT2})
+			if fusions_new.has(key):
+				list.append({"kind": "label", "text": "VERSCHMELZUNG ENTDECKT – im Hauptmenü unter „Verschmelzungen“", "size": 13, "color": UiTheme.OK})
 	if training:
 		list.append({"kind": "sep"})
 		list.append({"kind": "label", "text": "game.training_note", "size": 15, "color": UiTheme.DIM})

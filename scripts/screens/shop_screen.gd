@@ -25,6 +25,8 @@ var levels: Dictionary = {}
 var points := 0
 ## "cats": Fokus in der Kategoriespalte; "items": Fokus in der Upgradeliste.
 var mode := "cats"
+## Übungsflug: beim Öffnen einmal erklären; "Weiter" beendet das Tutorial.
+var tutorial := false
 ## Index in _cats; _cats.size() steht für "Weiter".
 var cat_index := 0
 var cat_col: VBoxContainer
@@ -36,12 +38,13 @@ func setup(args: Dictionary) -> void:
 	backdrop_mood = "cool"
 	level = int(args.get("level", 1))
 	from_menu = String(args.get("from", "")) == "menu"
+	tutorial = bool(args.get("tutorial", false))
 	title_key = "Werkstatt"
 	subtitle_key = ""
 	columns = 1
 	back_enabled = true
 	list_width = 0
-	footer_text = "Gekauftes bleibt für den Lauf · ← → wechselt zwischen Kategorien und Liste"
+	footer_text = "Gekauftes bleibt für den Lauf · Ausgegebene Punkte senken deinen Highscore · ← → wechselt zwischen Kategorien und Liste"
 	for cat in ShopData.CATEGORIES:
 		if not ShopData.items_of(String(cat.id)).is_empty():
 			_cats.append(cat)
@@ -59,6 +62,9 @@ func _ready() -> void:
 	side_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	side_panel.custom_minimum_size.x = UiTheme.size(200)
 	_update_focus_visuals()
+	if tutorial and app != null:
+		var tips: Dictionary = load("res://scripts/game/tutorial.gd").TIPS
+		app.call_deferred("show_tutorial_tip", tips["shop"])
 
 func build_items() -> void:
 	var list: Array = []
@@ -117,7 +123,8 @@ func _update_cat_rows() -> void:
 		if value == null:
 			continue
 		if i == _cats.size():
-			value.text = "Level %d" % level if not from_menu else "Menü"
+			# level ist das gerade beendete Level; weiter geht es mit dem nächsten.
+			value.text = "Menü" if from_menu or tutorial else "mit Level %d" % (level + 1)
 			value.add_theme_color_override("font_color", UiTheme.ACCENT)
 			continue
 		var bought := 0
@@ -376,7 +383,7 @@ func _fill_side() -> void:
 func _fill_side_category() -> void:
 	if _on_next_row():
 		_side_line("Weiter", 22, UiTheme.ACCENT, true)
-		_side_line("Weiter zu Level %d." % level if not from_menu else "Zurück zum Hauptmenü.",
+		_side_line("Zurück zum Hauptmenü." if from_menu or tutorial else "Weiter mit Level %d." % (level + 1),
 			15, UiTheme.TEXT)
 		_side_gap(6)
 		_side_line("Nicht ausgegebene Punkte bleiben erhalten.", 14, UiTheme.DIM)
@@ -493,6 +500,7 @@ func _buy(id: String) -> void:
 	points -= price
 	levels[id] = lvl + 1
 	Save.campaign.points = points
+	Save.spend_run_score(price)
 	Save.campaign.shop = levels
 	Save.save_campaign()
 	Audio.sfx("purchase", -3.0, 1.05)

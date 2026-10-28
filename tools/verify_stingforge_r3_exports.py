@@ -13,8 +13,8 @@ import os
 import re
 import subprocess
 
-## Anzahl der Regressionssuiten (R2-Bestand + R3/R4 + R5 Musik/Gameplay).
-SUITE_COUNT = 40
+## Anzahl der Regressionssuiten (R2-Bestand + R3/R4 + R5 Musik/Gameplay + R6).
+SUITE_COUNT = 41
 
 ROOT = Path(__file__).resolve().parents[1]
 LOGS = ROOT / 'build/logs/stingforge-r3'

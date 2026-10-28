@@ -38,7 +38,7 @@ func _ready() -> void:
 	app.menu_main()
 	await get_tree().create_timer(0.35, true).timeout
 	var menu = app.screens[-1]
-	check(menu.items.size() == 9, "Neun Hauptmenüaktionen")
+	check(menu.items.size() == 10, "Zehn Hauptmenüaktionen (mit Tutorial und Verschmelzungen, ohne Werkstatt)")
 	await shot("main_menu.png")
 	var index := -1
 	for i in range(menu.items.size()):

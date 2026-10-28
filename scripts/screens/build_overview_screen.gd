@@ -13,7 +13,7 @@ func build_items() -> void:
 	var weapon := String(c.get("weapon", "base"))
 	list.append({"kind": "label", "text": "Hauptwaffe: %s  (Stufe %d)" % [
 		Loc.t("bar." + weapon), int(c.get("upgrades", {}).get(weapon, 1))], "size": 19, "color": UiTheme.ACCENT})
-	list.append({"kind": "label", "text": "Nektar: %d   Punkte: %d   Leben: %d/%d" % [
+	list.append({"kind": "label", "text": "Blütenstaub: %d   Punkte: %d   Leben: %d/%d" % [
 		int(c.get("nectar", 0)), int(c.get("points", 0)), int(c.get("hp", 3)), int(c.get("max_hp", 3))],
 		"size": 16})
 	list.append({"kind": "sep"})

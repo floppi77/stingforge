@@ -200,6 +200,44 @@ Leveln rot ([Rotlog](../build/logs/r3/r4-miniboss-red.log)), jetzt 10 von 10 gr�
 * **Git:** Repository mit `.gitignore` angelegt. Ausgeschlossen sind Astra, Godot-Caches, Builds,
   Releases, Testablagen und lokale MCP-Konfiguration.
 
+## Vierte Nachrunde: Tutorial, Bossmusik, Verschmelzungen, Balance
+
+- **Tutorial (Übungsflug):** ein eigener Modus auf einer Kopie des Spielstands.
+  - Neun Stationen, jeweils mit angehaltenem Spiel und Bildfenster.
+  - Danach folgen die echte Blütenstaub-Umrechnung, die Werkstatt im Übungsmodus und der
+    Hinweis auf Evolutionen.
+  - Code: `scripts/game/tutorial.gd`, `scripts/screens/tutorial_tip_screen.gd`.
+- **Bossmusik neu:** je Level ein eigener Bosstrack (`tools/music/songs/bosses.py`).
+  - Gleiches Tempo, die Tonart, auf die der Leveltrack hinführt, und eine „Ankunft“ auf dem
+    ersten Schlag.
+  - Danach ein 32-taktiger Loop; `assets/audio/music/loops.json` liefert den Loopstart.
+  - Die Fanfare am Levelende und der Warnton entfallen. Der Leveltrack endet mit einem Auftakt,
+    und der Wechsel erfolgt als harter Schnitt im Takt.
+- **Verschmelzungen:** Synergiepaare wirken jetzt wirklich. Werte steigen um +50 %, Zählwerte
+  um +1, Schwellen sinken um −25 %; Nachteile bleiben. Entdeckungen landen im Profil, die
+  Übersicht steht im Hauptmenü.
+- **Angekündigt heißt umgesetzt:**
+  - Käfer: Glut und Glutsalven.
+  - Hecht: Wassersäulen im Kampf.
+  - Pilz: zerplatzende Knoten.
+  - Erntemaschine: vier Module.
+  - Königin: Hofstaat.
+  - Larve, Phase 3: Dauer-Felsregen mit Lichtschacht-Lücke.
+- **Level 3:** Wassersäulen als Brunnenfontäne; die Trefferform ist genau die sichtbare Säule
+  samt Krone (`Fx.geyser_shape`).
+- **Balance:**
+  - Zielsuche nochmals schwächer (0,6/0,9/1,25, Reichweite 240), Starke Zielsuche erst ab Zielsuche 3.
+  - Reichere Beute: echte Chance von 15/20/30 %.
+  - Fächer: 4/5/6 Stacheln in gestaffelten Bahnen.
+- **Werkstatt und Highscore:**
+  - Werkstatt-Ausgaben senken den Highscore.
+  - Die Werkstatt ist nicht mehr im Hauptmenü; der Knopf sagt „Weiter mit Level N+1“.
+- **Evolutionsbildschirm:** „Angebote mischen (1×)“ als schmaler, mittiger Knopf; der veraltete
+  Hinweis entfällt.
+- **Sprache:**
+  - Die Ansagen kommen jetzt von Piper (Stimme Thorsten), neu ist „Zu wenig Blütenstaub“.
+  - Sichtbare Texte nennen die Währung einheitlich **Blütenstaub**.
+
 ## Prüfung
 
 * `python3 tools/verify_stingforge_r3.py`: alle Suiten einschließlich Pause-, Zwischengegner-

@@ -495,6 +495,7 @@ func _s_magnet() -> void:
 		_sprite("nectar", start.lerp(b, u * u))
 
 func _s_nectar_plus() -> void:
+	# Mit etwas Glück fällt ein zusätzlicher Tropfen (jeder dritte Zyklus in der Vorschau).
 	var e := Vector2(_w * 0.55, 20)
 	var u := _loop(0.5)
 	if u < 0.2:
@@ -502,11 +503,12 @@ func _s_nectar_plus() -> void:
 		return
 	_spark(e, GOLD, 3.0)
 	var k := (u - 0.2) / 0.8
-	var n := 1 + stage
-	for i in range(n):
-		var dx := (float(i) - (n - 1) * 0.5) * 10.0
-		_sprite("nectar", e + Vector2(dx * k * 1.5, k * k * 40.0), Color.WHITE if i == 0 else Color(1, 1, 0.8))
-	_text(Vector2(e.x + 22, 18), "+%d" % stage, GOLD)
+	var lucky := posmod(int(floorf(_t * 0.5)), 3) == 0
+	_sprite("nectar", e + Vector2(-6.0 * k, k * k * 40.0))
+	if lucky:
+		_sprite("nectar", e + Vector2(9.0 * k, k * k * 40.0), Color(1, 1, 0.7))
+		_text(e + Vector2(14, -6), "+1", GOLD)
+	_text(Vector2(e.x + 22, 18), "%d%%" % [15, 20, 30][stage - 1], UiTheme.DIM)
 
 func _s_graze() -> void:
 	var b := _bee_pos()

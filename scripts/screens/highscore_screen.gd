@@ -30,7 +30,7 @@ func build_items() -> void:
 	var mode_label := "Kampagne" if selected_mode == "campaign" else "Boss Rush"
 	header_note = "%s  /  %s  /  Top %d" % [mode_label, DIFFICULTY_LABELS[difficulty_filter], row_limit]
 	hint_override = "Links/rechts oder Bestätigen ändert den gewählten Filter. Hoch/runter scrollt durch die Liste."
-	footer_text = "Gesamtpunkte = verdiente Punkte, unabhängig von Werkstatt-Ausgaben. * = aus altem Spielstand geschätzt."
+	footer_text = "Gesamtpunkte = verdiente Punkte abzüglich Werkstatt-Ausgaben. * = aus altem Spielstand geschätzt."
 	items = [
 		{"kind": "choice", "id": "mode", "text": "Modus", "value_text": "‹  " + mode_label + "  ›", "compact": true},
 		{"kind": "choice", "id": "difficulty", "text": "Schwierigkeit", "value_text": "‹  " + DIFFICULTY_LABELS[difficulty_filter] + "  ›", "compact": true},

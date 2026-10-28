@@ -11,7 +11,7 @@ Takt 14 von C.
 from __future__ import annotations
 
 from score import Song, n
-from songs._kit import (CHIMES_FAST, CRASH, CLASH, GONG, Human, SHAKE_A, SWELL4, TIMP_LO,
+from songs._kit import (lead_in, CHIMES_FAST, CRASH, CLASH, GONG, Human, SHAKE_A, SWELL4, TIMP_LO,
                         TIMP_ROLL_LO, TRI, WOOD, arp, bassline, close, crash, drums, grid, pad,
                         phrase, repeat_to, voicing)
 from songs._themes import fragment, leitmotiv, mechanize, second_theme, transposed
@@ -223,14 +223,10 @@ def build():
     S.add('riser', 'E', 18, 0, 20, n('B2'), 94)
     S.add('kit', 'E', 18, 0, 20, SWELL4, 96)
 
-    # ---------------------------------------------------------- Ankündigung (1,25 s)
-    S.add('kit', 'tail', 0, 0, 2.5, CLASH, 114)
-    S.add('kit', 'tail', 0, 0, 2.5, GONG, 108)
-    S.add('boom', 'tail', 0, 0, 2.5, n('B1'), 100)
-    for p in close('Bmaj7', n('B4'), 4):
-        S.add('glock', 'tail', 0, 0, 1.2, p + 12, 108)
-    S.add('pad', 'tail', 0, 0, 1.2, n('F#4'), 104, bright=0.6)
-    S.add('kit', 'tail', 0, 0, 1.2, TIMP_LO, 110)
+    # ---------------------------------------------------------- Ankündigung (1,25 s): Auftakt
+    # Kein Schlussakkord: Wirbel und Basshinführung münden auf dem nächsten Schlag in die
+    # Bossmusik (boss6, Grundton B), die genau dann mit der Ankunft des Bosses einsetzt.
+    leadin_spec = lead_in(S, 'B')
 
     mixspec = {
         'kit':      {'engine': 'sfz', 'inst': 'kit', 'gain': -2.0, 'rev': 0.22},
@@ -244,4 +240,5 @@ def build():
         'riser':    {'engine': 'cs', 'instr': 'riser', 'gain': -10.0, 'rev': 0.2},
         'boom':     {'engine': 'cs', 'instr': 'boom', 'gain': -6.0, 'rev': 0.14},
     }
+    mixspec.update(leadin_spec)
     return song, mixspec, {'file': 'level6', 'title': 'Level 6 – Gläsernes Gewächshaus', 'reverb': 2.7}

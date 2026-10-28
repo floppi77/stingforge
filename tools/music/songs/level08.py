@@ -10,7 +10,7 @@ Takt 15 von C. Am Ende fallen die Maschinen aus, das Stottern bleibt.
 from __future__ import annotations
 
 from score import Song, n
-from songs._kit import (ANVIL1, ANVIL2, ANVIL3, BRAKE1, BRAKE2, BRAKE_SUSP, CLASH, CRASH,
+from songs._kit import (lead_in, ANVIL1, ANVIL2, ANVIL3, BRAKE1, BRAKE2, BRAKE_SUSP, CLASH, CRASH,
                         FRAME_LO, GONG, Human, LOG_HI, LOG_LO, SNARE_ROLL, SWELL4, TIMP_LO,
                         TIMP_ROLL_LO, TRI, WOOD, arp, bassline, close, crash, drums, grid, pad,
                         phrase, repeat_to, voicing)
@@ -257,14 +257,10 @@ def build():
     S.add('kit', 'E', 23, 0, 16, SWELL4, 98)
     S.add('kit', 'E', 24, 0, 12, SNARE_ROLL, 98)
 
-    # ---------------------------------------------------------- Ankündigung (1,25 s)
-    S.add('kit', 'tail', 0, 0, 2.5, TIMP_LO, 127)
-    S.add('kit', 'tail', 0, 0, 2.5, CLASH, 116)
-    S.add('boom', 'tail', 0, 0, 2.5, n('G1'), 112)
-    for p in close('Gm', n('G2'), 4):
-        S.add('trb_sus', 'tail', 0, 0, 1.2, p, 116)
-        S.add('tuba', 'tail', 0, 0, 1.2, p - 12, 108)
-    S.add('kit', 'tail', 0, 0, 1.2, TIMP_LO, 112)
+    # ---------------------------------------------------------- Ankündigung (1,25 s): Auftakt
+    # Kein Schlussakkord: Wirbel und Basshinführung münden auf dem nächsten Schlag in die
+    # Bossmusik (boss8, Grundton G), die genau dann mit der Ankunft des Bosses einsetzt.
+    leadin_spec = lead_in(S, 'G')
 
     mixspec = {
         'kit':      {'engine': 'sfz', 'inst': 'kit', 'gain': -0.5, 'rev': 0.18},
@@ -283,4 +279,5 @@ def build():
         'riser':    {'engine': 'cs', 'instr': 'riser', 'gain': -9.0, 'rev': 0.18},
         'boom':     {'engine': 'cs', 'instr': 'boom', 'gain': -5.0, 'rev': 0.12},
     }
+    mixspec.update(leadin_spec)
     return song, mixspec, {'file': 'level8', 'title': 'Level 8 – Maschinenherz', 'reverb': 2.3}

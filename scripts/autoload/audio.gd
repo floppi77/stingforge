@@ -26,6 +26,9 @@ const SYNC_TOLERANCE := 0.3
 var _music_hold := false
 ## Zeitpunkt (ms) des letzten Nachstellens: höchstens einmal pro Sekunde springen.
 var _last_seek_ms := -100000
+## Loopstart (s) je Musiktitel aus assets/audio/music/loops.json: Bosstracks spielen
+## ihre Ankunft einmal und loopen danach ab diesem Punkt.
+var _loop_points: Dictionary = {}
 var _voice_player: AudioStreamPlayer
 var _voice_cache: Dictionary = {}
 
@@ -80,12 +83,21 @@ func _load_music(name: String) -> AudioStream:
 			var loop := not _is_timed_stream(name, s)
 			if s is AudioStreamOggVorbis:
 				(s as AudioStreamOggVorbis).loop = loop
+				if loop and _loop_point(name) > 0.0:
+					(s as AudioStreamOggVorbis).loop_offset = _loop_point(name)
 			elif s is AudioStreamWAV:
 				(s as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD if loop else AudioStreamWAV.LOOP_DISABLED
 			_music_cache[name] = s
 			return s
 	_music_cache[name] = null
 	return null
+
+func _loop_point(name: String) -> float:
+	if _loop_points.is_empty():
+		var f := FileAccess.open(MUSIC_DIR + "loops.json", FileAccess.READ)
+		var parsed: Variant = JSON.parse_string(f.get_as_text()) if f != null else null
+		_loop_points = parsed if parsed is Dictionary else {"_": 0.0}
+	return float(_loop_points.get(name, 0.0))
 
 ## Leveltracks (level1 … level10), die lang genug sind, laufen ohne Loop durch.
 static func _is_timed_stream(name: String, s: AudioStream) -> bool:

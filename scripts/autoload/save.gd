@@ -60,6 +60,9 @@ func _default_profile() -> Dictionary:
 	return {
 		"version": VERSION,
 		"unlocked_evolutions": [],
+		"fusions_seen": [],
+		"tutorial_done": false,
+		"tutorial_offered": false,
 		"boss_rush_unlocked": false,
 		"campaigns_started": 0,
 		"best": {},          # key: mode|difficulty|level|seed -> score entry
@@ -102,6 +105,14 @@ func add_run_score(amount: int) -> void:
 		return
 	ensure_run_score()
 	campaign["run_score"] = int(campaign.run_score) + mini(amount, MAX_SCORE - int(campaign.run_score))
+
+## Werkstattkauf: ausgegebene Punkte schmälern den Highscore des Laufs
+## (Abwägung zwischen Stärke und Wertung). Nie unter null.
+func spend_run_score(amount: int) -> void:
+	if campaign.is_empty() or amount <= 0:
+		return
+	ensure_run_score()
+	campaign["run_score"] = maxi(0, int(campaign.run_score) - amount)
 
 func new_campaign(difficulty: String, seed_value: int) -> Dictionary:
 	campaign = {
@@ -360,6 +371,19 @@ func unlock_evolution(id: String) -> bool:
 	arr.append(id)
 	save_profile()
 	return true
+
+## Verschmelzungen im Profil: einmal entdeckt, bleiben sie in der Übersicht sichtbar.
+func discover_fusion(key: String) -> bool:
+	var arr: Array = profile.get("fusions_seen", [])
+	if arr.has(key):
+		return false
+	arr.append(key)
+	profile["fusions_seen"] = arr
+	save_profile()
+	return true
+
+func is_fusion_seen(key: String) -> bool:
+	return (profile.get("fusions_seen", []) as Array).has(key)
 
 func is_evolution_unlocked(id: String) -> bool:
 	return profile.unlocked_evolutions.has(id)

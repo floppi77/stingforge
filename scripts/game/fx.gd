@@ -370,43 +370,84 @@ func _draw_glass(h: Dictionary) -> void:
 		draw_rect(bar, Color(0.05, 0.1, 0.15, 0.8))
 		draw_rect(Rect2(bar.position, Vector2(bar.size.x * hp_frac, bar.size.y)), edge)
 
-## Wasserfontäne: Blasenringe als Vorwarnung, dann eine schäumende Säule.
-func _draw_geyser(h: Dictionary, elapsed: float) -> void:
+## Wasserfontäne als Brunnensäule. Geometrie (Höhe, Strahlbreite, Krone) kommt aus
+## geyser_shape(): dieselbe Form zeichnet der Renderer und prüft die Kollision.
+const GEYSER_HALF := 12.0
+const GEYSER_CROWN := 22.0
+
+static func geyser_shape(h: Dictionary) -> Dictionary:
 	var warn := float(h.get("warn", 0.7))
-	var base: Vector2 = h.get("base", Vector2(float((h.p as Vector2).x), App.PLAY_BOTTOM))
-	var rise := clampf(elapsed / warn, 0.0, 1.0)
+	var t := float(h.get("t", 0.0))
+	var life := float(h.get("life", 1.0))
 	var full := float(h.get("height", 80.0))
-	var height := full * rise
-	# Vorwarnung über die ganze spätere Säulenhöhe: auch weiter oben sichtbar.
-	if rise < 1.0:
-		var pulse := 0.10 + 0.08 * sin(_t * 16.0)
-		draw_rect(Rect2(base.x - 12, base.y - full, 24, full), Color(0.6, 0.9, 1.0, pulse))
-		for k in range(int(full / 18.0)):
-			var yy := base.y - fposmod(_t * 90.0 + k * 18.0, full)
-			draw_rect(Rect2(base.x - 1, yy, 2, 6), Color(0.85, 1.0, 1.0, 0.45))
+	# Der Strahl schießt im letzten Drittel der Vorwarnung hoch und fällt am Ende in sich zusammen.
+	var rise := smoothstep(warn * 0.6, warn, t)
+	var fall := clampf(life / 0.45, 0.0, 1.0)
+	var height := full * rise * fall
+	var base: Vector2 = h.get("base", Vector2(float((h.p as Vector2).x), App.PLAY_BOTTOM))
+	return {"base": base, "height": height, "top": base - Vector2(0, height), "half": GEYSER_HALF,
+		"crown": GEYSER_CROWN * clampf(height / 60.0, 0.0, 1.0), "active": t >= warn * 0.72 and height > 16.0}
+
+## Trefferprüfung passend zur Zeichnung: Strahl (Rechteck) plus Krone (Kreis) oben.
+static func geyser_hits(h: Dictionary, p: Vector2, radius: float) -> bool:
+	var g := geyser_shape(h)
+	if not bool(g.active):
+		return false
+	var base: Vector2 = g.base
+	var top: Vector2 = g.top
+	if absf(p.x - base.x) <= float(g.half) + radius and p.y >= top.y and p.y <= base.y + radius:
+		return true
+	return p.distance_to(top) <= float(g.crown) + radius
+
+func _draw_geyser(h: Dictionary, _elapsed: float) -> void:
+	var g := geyser_shape(h)
+	var base: Vector2 = g.base
+	var full := float(h.get("height", 80.0))
+	var height := float(g.height)
+	var half := float(g.half)
+	var warn := float(h.get("warn", 0.7))
+	var t := float(h.get("t", 0.0))
+	# Vorwarnung: brodelndes Becken und schwache Vorschau der ganzen Säule.
+	if t < warn:
+		var pulse := 0.08 + 0.07 * sin(_t * 16.0)
+		draw_rect(Rect2(base.x - half, base.y - full, half * 2.0, full), Color(0.6, 0.9, 1.0, pulse))
+		for k in range(5):
+			var bx := base.x - 14.0 + k * 7.0
+			draw_circle(Vector2(bx, base.y - 3 - absf(sin(_t * 11.0 + k * 1.3)) * 7.0), 1.8,
+				Color(0.85, 1.0, 1.0, 0.85), true, -1.0, false)
+	# Schaumring am Fuß
 	for k in range(3):
-		var r := fmod(_t * 26.0 + k * 9.0, 26.0)
-		draw_arc(base + Vector2(0, -2), r, PI, TAU, 16, Color(0.75, 0.95, 1.0, 0.7 * (1.0 - r / 26.0)), 1.5, false)
-	if rise < 1.0:
-		for k in range(4):
-			var bx := base.x - 12.0 + k * 8.0
-			draw_circle(Vector2(bx, base.y - 4 - absf(sin(_t * 10.0 + k)) * 6.0), 1.6, Color(0.85, 1.0, 1.0, 0.8), true, -1.0, false)
-	if height <= 0.5:
+		var r := 10.0 + fposmod(_t * 30.0 + k * 8.0, 24.0)
+		draw_arc(base + Vector2(0, -1), r, PI, TAU, 18, Color(0.85, 0.97, 1.0, 0.75 * (1.0 - (r - 10.0) / 24.0)), 2.0, false)
+	if height <= 2.0:
 		return
-	var top := base.y - height
-	for i in range(int(height / 4.0) + 1):
-		var y := base.y - float(i) * 4.0
-		var wob := sin(_t * 14.0 + i * 0.9) * 2.0
-		var w := 11.0 + sin(_t * 9.0 + i * 1.3) * 1.5 - float(i) * 0.04
-		draw_rect(Rect2(base.x - w + wob, y - 4, w * 2.0, 4), Color(0.28, 0.62, 0.86, 0.85))
-		var foam := fposmod(float(i) - _t * 18.0, 5.0) < 1.0
-		if foam:
-			draw_rect(Rect2(base.x - w + wob + 2, y - 4, w * 2.0 - 4, 2), Color(0.9, 1.0, 1.0, 0.85))
-	draw_rect(Rect2(base.x - 5, top, 10, height), Color(0.75, 0.95, 1.0, 0.35))
+	var top: Vector2 = g.top
+	# Strahl: leicht konisch, außen blau, innen heller Kern mit aufsteigenden Streifen.
+	var wob := sin(_t * 9.0) * 1.5
+	var outer := PackedVector2Array([base + Vector2(-half - 3, 0), top + Vector2(-half + 1 + wob, 0),
+		top + Vector2(half - 1 + wob, 0), base + Vector2(half + 3, 0)])
+	draw_colored_polygon(outer, Color(0.30, 0.62, 0.92, 0.72))
+	draw_polyline(PackedVector2Array([outer[0], outer[1]]), Color(0.75, 0.93, 1.0, 0.9), 1.5)
+	draw_polyline(PackedVector2Array([outer[3], outer[2]]), Color(0.75, 0.93, 1.0, 0.9), 1.5)
+	draw_rect(Rect2(base.x - 4 + wob * 0.5, top.y, 8, height), Color(0.86, 0.97, 1.0, 0.75))
+	var y := base.y - fposmod(_t * 220.0, 18.0)
+	while y > top.y + 4.0:
+		draw_rect(Rect2(base.x - half + 3 + wob * 0.6, y - 7, 3, 7), Color(1, 1, 1, 0.55))
+		draw_rect(Rect2(base.x + half - 6 + wob * 0.6, y - 12, 3, 6), Color(1, 1, 1, 0.45))
+		y -= 18.0
+	# Krone: Wasser quillt oben auf und fällt in Bögen zu beiden Seiten.
+	var crown := float(g.crown)
 	for k in range(7):
-		var a := -PI * 0.5 + (k - 3) * 0.35
-		var d := 6.0 + fmod(_t * 40.0 + k * 5.0, 16.0)
-		draw_circle(Vector2(base.x, top) + Vector2.from_angle(a) * d, 2.0, Color(0.9, 1.0, 1.0, 0.8), true, -1.0, false)
+		var ang := PI + PI * float(k) / 6.0
+		var off := Vector2.from_angle(ang) * crown * (0.55 + 0.15 * sin(_t * 12.0 + k))
+		draw_circle(top + off * Vector2(1.0, 0.6), 5.0, Color(0.55, 0.85, 1.0, 0.85), true, -1.0, false)
+	draw_circle(top, crown * 0.55, Color(0.92, 0.99, 1.0, 0.9), true, -1.0, false)
+	for k in range(14):
+		var side := -1.0 if k % 2 == 0 else 1.0
+		var ph := fposmod(_t * 1.4 + float(k) * 0.137, 1.0)
+		var dx := side * (8.0 + ph * (34.0 + float(k % 3) * 8.0))
+		var dy := -10.0 * ph + 90.0 * ph * ph
+		draw_circle(top + Vector2(dx, dy), 2.2 * (1.0 - ph * 0.5), Color(0.8, 0.95, 1.0, 0.85 * (1.0 - ph)), true, -1.0, false)
 
 ## Giftige Sporenwolke des Pilzwalds: wabernde Klumpen in Violett mit gelbgrünen
 ## Sporen, die nach außen treiben. Trefferkreis bleibt unverändert.
@@ -537,6 +578,18 @@ func _draw_hazard(h: Dictionary) -> void:
 					draw_rect(Rect2((pos + Vector2.from_angle(a2) * d2).round(), Vector2(2, 2)), Color(1.0, 0.95, 0.6, 0.8 * fade))
 		"reflect_panel":
 			_draw_glass(h)
+		"light_shaft":
+			# Lichtschacht durch die eingestürzte Decke: markiert die sichere Lücke.
+			var w := float(h.get("w", 140.0))
+			var top := pos.y
+			for k in range(6):
+				var a := 0.05 + 0.025 * sin(_t * 2.0 + k)
+				var shrink := float(k) * w * 0.07
+				draw_rect(Rect2(pos.x - w * 0.5 + shrink, top, w - shrink * 2.0, App.PLAY_BOTTOM - top), Color(1.0, 0.92, 0.65, a))
+			for k in range(10):
+				var yy := top + fposmod(_t * 30.0 + k * 47.0, App.PLAY_BOTTOM - top)
+				var xx := pos.x + sin(_t + k * 2.1) * w * 0.35
+				draw_rect(Rect2(xx, yy, 2, 2), Color(1.0, 0.95, 0.75, 0.6))
 		"ceiling_crack":
 			# Deckenriss: wachsende Spalte, rieselnder Staub, Warnfarbe kurz vor dem Fall.
 			var grow := 0.4 + 0.6 * frac

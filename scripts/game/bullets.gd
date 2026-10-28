@@ -5,7 +5,7 @@ extends Node2D
 ## Segment-Kollisionen, damit auch sehr schnelle Schüsse zuverlässig treffen.
 
 ## Reichweite der Zielsuche (Weltpunkte): weiter entfernte Ziele werden ignoriert.
-const HOMING_RANGE := 320.0
+const HOMING_RANGE := 240.0
 const MAX_PLAYER := 320
 const MAX_ENEMY := 420
 

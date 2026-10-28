@@ -66,7 +66,7 @@ var side_shade: Control
 
 var game: Node2D = null
 var hud: Control = null
-var mode: String = ""            # "", "campaign", "training", "rush"
+var mode: String = ""            # "", "campaign", "training", "rush", "tutorial"
 var run_level: int = 1
 var run_checkpoint: int = 0
 var campaign_snapshot: Dictionary = {}
@@ -683,7 +683,10 @@ func _record_run_highscore(completed: bool) -> void:
 func abandon_run() -> void:
 	_gameover_pending = false
 	_record_run_highscore(false)
-	# Training/Rush benutzen nur eine Kopie; den Originalsave niemals löschen.
+	# Training/Rush/Übungsflug benutzen nur eine Kopie; den Originalsave niemals löschen.
+	if mode == "tutorial":
+		_abort_tutorial()
+		return
 	if mode not in ["training", "rush"]:
 		Save.end_campaign()
 	menu_note = "Run beendet – die Evolutionen im Profil bleiben erhalten."
@@ -845,6 +848,14 @@ func _confirm_evolution(id: String) -> void:
 	var first_unlock := not Save.is_evolution_unlocked(id)
 	Save.unlock_evolution(id)
 	_apply_evolution(id)
+	var fusions: Array = []
+	var fusions_new: Array = []
+	for partner in Data.synergy_partners(id):
+		if _evo_level(String(partner)) > 0:
+			fusions.append([id, String(partner)])
+			var key := Data.fusion_key(id, String(partner))
+			if Save.discover_fusion(key):
+				fusions_new.append(key)
 	if not Save.campaign.rewarded_levels.has(lv):
 		Save.campaign.rewarded_levels.append(lv)
 	Save.campaign.pending = {}
@@ -862,6 +873,8 @@ func _confirm_evolution(id: String) -> void:
 		"level": lv,
 		"new_unlock": was_new,
 		"chosen": id,
+		"fusions": fusions,
+		"fusions_new": fusions_new,
 		"training": false,
 	}, 0.25)
 
@@ -892,6 +905,9 @@ func advance_after_level(lv: int) -> void:
 
 ## Aus der Werkstatt zurück ins Spiel (go_next) oder ins Hauptmenü.
 func shop_done(lv: int, go_next: bool) -> void:
+	if mode == "tutorial":
+		end_tutorial()
+		return
 	clear_screens()
 	if go_next and mode == "campaign":
 		_begin_level_with_story(lv + 1, 0)
@@ -914,6 +930,95 @@ func start_training(level: int, kind: String) -> void:
 	Save.campaign.nectar = maxi(int(Save.campaign.get("nectar", 0)), 120)
 	Save.active_campaign = false
 	_begin_level(level, 0)
+
+# ------------------------------------------------------------------- Tutorial
+## Übungsflug: eigenes kurzes Level in Welt 1 auf einer Kopie des Spielstands.
+func start_tutorial() -> void:
+	mode = "tutorial"
+	training_boss = false
+	run_level = 1
+	run_checkpoint = 0
+	_had_campaign = Save.active_campaign
+	campaign_snapshot = Save.campaign.duplicate(true) if Save.active_campaign else {}
+	var build := _default_build()
+	build.difficulty = "relaxed"
+	build.nectar = 0
+	build.points = 0
+	build.hp = 4
+	build.max_hp = 4
+	build.upgrades = {"base": 1}
+	build.shop = {}
+	build.run_score = 0
+	Save.campaign = build
+	Save.active_campaign = false
+	_begin_level(1, 0)
+
+## Erklärfenster: Spiel anhalten, Fenster zeigen, nach Bestätigen weiterlaufen lassen.
+func show_tutorial_tip(tip: Dictionary, on_close: Callable = Callable()) -> void:
+	var in_game := game != null and is_instance_valid(game)
+	if in_game:
+		get_tree().paused = true
+		Audio.set_music_hold(true)
+	var args := tip.duplicate(true)
+	args["on_close"] = func() -> void:
+		pop_screen(0.0)
+		if in_game and game != null and is_instance_valid(game):
+			get_tree().paused = false
+			game.start_resume_delay(0.3)
+		if on_close.is_valid():
+			on_close.call()
+	push_screen("res://scripts/screens/tutorial_tip_screen.gd", args, 0.0)
+
+## Levelende im Übungsflug: Umrechnung zeigen, dann Punkte/Highscore erklären
+## und die Werkstatt öffnen. Weiter führt zurück ins Hauptmenü.
+func finish_tutorial_level() -> void:
+	var rest := 0
+	if game != null and is_instance_valid(game) and game.player != null:
+		rest = int(game.player.nectar)
+	Save.campaign.nectar = rest
+	_cleanup_after_level()
+	clear_screens()
+	get_tree().paused = false
+	var tips: Dictionary = load("res://scripts/game/tutorial.gd").TIPS
+	var to_shop := func() -> void:
+		show_tutorial_tip(tips["points"], func() -> void:
+			clear_screens()
+			push_screen("res://scripts/screens/shop_screen.gd", {"level": 1, "tutorial": true}, 0.2))
+	if rest > 0:
+		push_screen("res://scripts/screens/nectar_convert_screen.gd", {"nectar": rest,
+			"on_done": func() -> void:
+				pop_screen()
+				to_shop.call()})
+	else:
+		to_shop.call()
+
+## Übungsflug abschließen: Spielstand wiederherstellen, Hinweis zu Evolutionen, Menü.
+## Übungsflug vorzeitig verlassen (Pausenmenü): Spielstand zurück, ohne Abschluss.
+func _abort_tutorial() -> void:
+	if _had_campaign and not campaign_snapshot.is_empty():
+		Save.campaign = campaign_snapshot.duplicate(true)
+		Save.active_campaign = true
+	else:
+		Save.campaign = {}
+		Save.active_campaign = false
+	campaign_snapshot = {}
+	mode = ""
+	menu_main()
+
+func end_tutorial() -> void:
+	Save.profile["tutorial_done"] = true
+	Save.save_profile()
+	if _had_campaign and not campaign_snapshot.is_empty():
+		Save.campaign = campaign_snapshot.duplicate(true)
+		Save.active_campaign = true
+	else:
+		Save.campaign = {}
+		Save.active_campaign = false
+	campaign_snapshot = {}
+	clear_screens()
+	var tips: Dictionary = load("res://scripts/game/tutorial.gd").TIPS
+	mode = ""
+	show_tutorial_tip(tips["evolution"], func() -> void: menu_main())
 
 func _default_build() -> Dictionary:
 	return {

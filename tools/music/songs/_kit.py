@@ -337,6 +337,21 @@ def drums(song: Song, part: str, sec: str, bar0: int, bars: int, style: str, vel
                 hit(b, 1, CHIMES_FAST, int(vel * 0.4), 0.3)
             for s in range(16):
                 hit(b, s * 0.25, SHAKE_A if s % 2 == 0 else SHAKE_B, int(vel * (0.42 if s % 4 == 0 else 0.24)))
+        elif style == 'boss':
+            # Bosskampf: doppeltes Tempo im Gefühl – Sechzehntel-Hats, Kick-Muster, Ghost-Notes
+            for kk in ((0, 1.0), (0.75, 0.7), (1.5, 0.8), (2, 0.95), (2.75, 0.7), (3.5, 0.75)):
+                if not (i % 2 == 1 and kk[0] == 3.5):
+                    hit(b, kk[0], KICK, int(vel * kk[1]))
+            hit(b, 1, SNARE, vel)
+            hit(b, 3, SNARE, vel)
+            for gn in (1.75, 3.25):
+                hit(b, gn, SNARE, int(vel * 0.32))
+            for s in range(16):
+                hit(b, s * 0.25, HAT, int(vel * (0.58 if s % 4 == 0 else (0.42 if s % 2 == 0 else 0.3))))
+            if i % 4 == 0:
+                hit(b, 0, CRASH, int(vel * 0.8), 1.5)
+            elif i % 2 == 1:
+                hit(b, 3.5, HAT_OPEN, int(vel * 0.55))
         elif style == 'power':
             for q in range(4):
                 hit(b, q, KICK, int(vel * (0.95 if q % 2 == 0 else 0.7)))
@@ -388,3 +403,19 @@ def take(harmony: list[str], bars: int) -> list[str]:
 def repeat_to(harmony: list[str], bars: int) -> list[str]:
     """Zellenliste auf genau `bars` Takte zyklisch auffüllen."""
     return [harmony[i % len(harmony)] for i in range(bars)]
+
+
+def lead_in(song: Song, boss_root: str, kit_part: str = 'kit') -> dict:
+    """Auftakt in den letzten 2,5 Schlägen (Bossankündigung): Wirbel-Crescendo,
+    Beckenwelle und eine Basshinführung auf den Grundton der Bossmusik, die genau
+    auf dem nächsten Schlag mit der Ankunft des Bosses einsetzt.
+    Liefert den Mischeintrag für die Hinführungsstimme zurück."""
+    sec = song.section('tail')
+    steps = int(sec.beats / 0.25)
+    for i in range(steps):
+        song.add(kit_part, 'tail', 0, i * 0.25, 0.25, SNARE, min(127, 56 + i * 7))
+    song.add(kit_part, 'tail', 0, 0, sec.beats, SWELL2, 96)
+    root = bass_note(boss_root)
+    for beat, iv, vel in ((sec.beats - 1.0, 7, 96), (sec.beats - 0.5, 11, 108)):
+        song.add('leadin', 'tail', 0, beat, 0.45, root - 12 + iv if root - 12 + iv >= n('E1') else root + iv, vel, bright=0.55)
+    return {'leadin': {'engine': 'cs', 'instr': 'bass', 'gain': -3.0, 'lp': 2400}}

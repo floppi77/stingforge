@@ -44,3 +44,7 @@ __pycache__/
 /tools/music/build/
 # Rohdateien der Sprachansagen (werden per tools/music/import_voice.py aufbereitet).
 /assets/audio/voice/eingang/
+
+# Piper-Sprachsynthese: lokale Umgebung und Stimmmodelle (werden per tools/tts/setup.sh geladen).
+/tools/tts/.venv/
+/tools/tts/voices/

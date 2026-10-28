@@ -9,7 +9,7 @@ Bossmusik (f-Moll) führt.
 from __future__ import annotations
 
 from score import Song, n
-from songs._kit import (CHIMES_UP, CRASH, Human, SNARE_ROLL, SWELL4, TIMP_LO, TIMP_ROLL_LO, arp, bar_slots,
+from songs._kit import (lead_in, CHIMES_UP, CRASH, Human, SNARE_ROLL, SWELL4, TIMP_LO, TIMP_ROLL_LO, arp, bar_slots,
                         bassline, close, crash, diatonic, drums, pad, phrase, transpose_name, voicing)
 
 BPM = 120
@@ -254,13 +254,10 @@ def build():
     S.add('riser', 'E', 20, 0, 16, n('C3'), 95)
     S.add('fx', 'E', 22, 0, 8, SWELL4, 100)
 
-    # ---------------------------------------------------------- Ankündigung (1,25 s): Abriss
-    S.add('kit', 'tail', 0, 0, 2.5, CRASH, 127)
-    S.add('kit', 'tail', 0, 0, 2.5, TIMP_LO, 127)
-    S.add('boom', 'tail', 0, 0, 2.5, n('C1'), 110)
-    for p in (n('C2'), n('C3'), n('G3'), n('C4')):
-        S.add('horn', 'tail', 0, 0, 1.2, p, 110)
-        S.add('strings', 'tail', 0, 0, 1.2, p + 12, 110)
+    # ---------------------------------------------------------- Ankündigung (1,25 s): Auftakt
+    # Kein Schlussakkord: Wirbel und Basshinführung münden auf dem nächsten Schlag in die
+    # Bossmusik (boss1, Grundton F), die genau dann mit der Ankunft des Bosses einsetzt.
+    leadin_spec = lead_in(S, 'F')
 
     mixspec = {
         'kit':      {'engine': 'sfz', 'inst': 'kit', 'gain': -1.0, 'rev': 0.12, 'duck_source': False},
@@ -282,4 +279,5 @@ def build():
         'riser':    {'engine': 'cs', 'instr': 'riser', 'gain': -11.0, 'rev': 0.2},
         'boom':     {'engine': 'cs', 'instr': 'boom', 'gain': -6.0, 'rev': 0.1},
     }
+    mixspec.update(leadin_spec)
     return song, mixspec, {'file': 'level1', 'title': 'Level 1 – Blütenmeer', 'reverb': 2.4}

@@ -191,11 +191,13 @@ func build_items() -> void:
 		{"kind": "action", "text": "menu.continue", "id": "continue", "disabled": not can_continue,
 			"value_text": "Level %02d" % int(Save.campaign.get("level", 1)) if has_campaign else ""},
 		{"kind": "action", "text": "menu.new_campaign", "id": "new"},
+		{"kind": "action", "text": "Tutorial", "id": "tutorial",
+			"value_text": "" if bool(Save.profile.get("tutorial_done", false)) else "Empfohlen"},
 		{"kind": "action", "text": "menu.training", "id": "training", "disabled": not _has_training()},
 		{"kind": "action", "text": "menu.boss_rush", "id": "rush", "disabled": not bool(Save.profile.get("boss_rush_unlocked", false)),
 			"secondary_text": "Nach Kampagnenabschluss" if not bool(Save.profile.get("boss_rush_unlocked", false)) else ""},
-		{"kind": "action", "text": "Werkstatt", "id": "shop", "disabled": not has_campaign},
 		{"kind": "action", "text": "menu.highscores", "id": "scores"},
+		{"kind": "action", "text": "Verschmelzungen", "id": "fusions"},
 		{"kind": "action", "text": "menu.settings", "id": "settings", "divider": true},
 		{"kind": "action", "text": "menu.credits", "id": "credits"},
 		{"kind": "action", "text": "menu.quit", "id": "quit"},
@@ -424,6 +426,9 @@ func on_activate(index: int) -> void:
 		"new":
 			Audio.sfx("ui_ok", -6.0, 1.0, true)
 			_open_new_campaign()
+		"tutorial":
+			Audio.sfx("ui_ok", -6.0, 1.0, true)
+			app.start_tutorial()
 		"continue":
 			if Save.active_campaign:
 				Audio.sfx("ui_ok", -6.0, 1.0, true)
@@ -437,10 +442,9 @@ func on_activate(index: int) -> void:
 		"scores":
 			Audio.sfx("ui_ok", -6.0, 1.0, true)
 			app.push_screen("res://scripts/screens/highscore_screen.gd", {})
-		"shop":
+		"fusions":
 			Audio.sfx("ui_ok", -6.0, 1.0, true)
-			app.push_screen("res://scripts/screens/shop_screen.gd",
-				{"from": "menu", "level": int(Save.campaign.get("level", 1))})
+			app.push_screen("res://scripts/screens/fusion_screen.gd", {})
 		"settings":
 			Audio.sfx("ui_ok", -6.0, 1.0, true)
 			app.push_screen("res://scripts/screens/settings_screen.gd", {"from": "main"})
@@ -466,6 +470,18 @@ func _open_new_campaign() -> void:
 		_choose_difficulty()
 
 func _choose_difficulty() -> void:
+	# Erster Start: den Übungsflug anbieten (einmalig, danach im Menü wählbar).
+	if not bool(Save.profile.get("tutorial_done", false)) and not bool(Save.profile.get("tutorial_offered", false)):
+		Save.profile["tutorial_offered"] = true
+		Save.save_profile()
+		app.push_screen("res://scripts/screens/confirm_screen.gd", {
+			"title": "Übungsflug zuerst?",
+			"message": "Ein kurzes Tutorial erklärt Steuerung, Blütenstaub, Waffenleiste, Werkstatt und Highscore.",
+			"yes": "Tutorial spielen", "no": "Direkt starten",
+			"on_yes": func(): app.start_tutorial(),
+			"on_no": func(): app.push_screen("res://scripts/screens/difficulty_screen.gd", {}),
+		})
+		return
 	app.push_screen("res://scripts/screens/difficulty_screen.gd", {})
 
 func do_back() -> void:

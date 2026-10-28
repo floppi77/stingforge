@@ -12,7 +12,7 @@ Takt 14 von C.
 from __future__ import annotations
 
 from score import Song, n
-from songs._kit import (CLASH, CRASH, FRAME_HI, FRAME_LO, GONG, Human, SNARE_ROLL, SWELL4,
+from songs._kit import (lead_in, CLASH, CRASH, FRAME_HI, FRAME_LO, GONG, Human, SNARE_ROLL, SWELL4,
                         TIMP_LO, TIMP_MID, TIMP_ROLL_LO, TOM_LO, WOOD, arp, bassline, close, crash,
                         drums, grid, pad, phrase, repeat_to, voicing)
 from songs._themes import augment, fragment, invert, leitmotiv, mechanize, second_theme
@@ -265,15 +265,10 @@ def build():
         S.add('kit', 'E', b, 2, .6, FRAME_LO, 96)
         S.add('sub', 'E', b, 2, 0.6, n('D1'), 92)
 
-    # ---------------------------------------------------------- Ankündigung (1,25 s)
-    S.add('kit', 'tail', 0, 0, 2.5, TIMP_LO, 127)
-    S.add('kit', 'tail', 0, 0, 2.5, CLASH, 120)
-    S.add('boom', 'tail', 0, 0, 2.5, n('D1'), 114)
-    for p in close('Dm', n('D2'), 4):
-        S.add('trb_sus', 'tail', 0, 0, 1.2, p, 118)
-        S.add('tuba', 'tail', 0, 0, 1.2, p - 12, 112)
-        S.add('organ', 'tail', 0, 0, 1.2, p, 108, bright=0.6)
-    S.add('choir', 'tail', 0, 0, 1.2, n('D4'), 118, bright=0.6, aux=0)
+    # ---------------------------------------------------------- Ankündigung (1,25 s): Auftakt
+    # Kein Schlussakkord: Wirbel und Basshinführung münden auf dem nächsten Schlag in die
+    # Bossmusik (boss10, Grundton D), die genau dann mit der Ankunft des Bosses einsetzt.
+    leadin_spec = lead_in(S, 'D')
 
     mixspec = {
         'kit':      {'engine': 'sfz', 'inst': 'kit', 'gain': -0.5, 'rev': 0.2},
@@ -291,6 +286,7 @@ def build():
         'riser':    {'engine': 'cs', 'instr': 'riser', 'gain': -9.0, 'rev': 0.2},
         'boom':     {'engine': 'cs', 'instr': 'boom', 'gain': -4.0, 'rev': 0.14},
     }
+    mixspec.update(leadin_spec)
     return song, mixspec, {'file': 'level10', 'title': 'Level 10 – Kern der Verwandlung', 'reverb': 2.9}
 
 

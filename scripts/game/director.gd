@@ -152,7 +152,8 @@ func update(delta: float) -> void:
 		return
 	time += delta
 	section_t += delta
-	if mode == "rush":
+	# Boss-Rush und Übungsflug: keine Abschnitte, Wellen, Hindernisse oder Bosse.
+	if mode == "rush" or mode == "tutorial":
 		return
 	if finish_wait > 0.0:
 		finish_wait -= delta

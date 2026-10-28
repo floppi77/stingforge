@@ -20,8 +20,10 @@ Jedes Level endet mit einem Boss, der sich wie sein Tier bewegt und in mehreren 
 
 | | |
 |---|---|
-| ![Hauptmenü](docs/media/hauptmenue.png) | ![Level 4 – Pilzwald](docs/media/level4-pilzwald.png) |
-| **Hauptmenü** – Pixel-Titelbild, Spielstand auf einen Blick | **Pilzwald** – wandernde Sporenwolken engen die Wege ein |
+| ![Hauptmenü](docs/media/hauptmenue.png) | ![Tutorial](docs/media/tutorial.png) |
+| **Hauptmenü** – Pixel-Titelbild, Spielstand auf einen Blick | **Tutorial** – das Spiel hält an und erklärt in Bildern |
+| ![Level 4 – Pilzwald](docs/media/level4-pilzwald.png) | ![Verschmelzungen](docs/media/verschmelzungen.png) |
+| **Pilzwald** – wandernde Sporenwolken engen die Wege ein | **Verschmelzungen** – entdeckte Paare, der Rest wartet ausgegraut |
 | ![Level 6 – Glas](docs/media/level6-glas.png) | ![Larven-Boss, Phase II](docs/media/boss-larve-phase2.png) |
 | **Gläsernes Gewächshaus** – Glasscheiben fangen Schüsse ab, bis sie zerspringen | **Grabende Riesenlarve** – Phasenwechsel mit Auftritt |
 | ![Boss Mantidenpaar](docs/media/boss-mantidenpaar.png) | ![Boss Kernorganismus](docs/media/boss-kernorganismus.png) |
@@ -36,17 +38,24 @@ Jedes Level endet mit einem Boss, der sich wie sein Tier bewegt und in mehreren 
 
 ## Was drinsteckt
 
-- **Zehn Level, zehn Bosse:** jeder Boss mit eigener Musik, eigenen Bewegungen und Angriffen
-  sowie einem Phasenwechsel mit Auftritt.
+- **Tutorial:** ein kurzer Übungsflug in der ersten Welt erklärt Steuerung, Blütenstaub,
+  Waffenleiste, Werkstatt und Highscore. Das Spiel hält dafür jeweils an und blendet ein Bildfenster ein.
+- **Zehn Level, zehn Bosse:** jeder Boss mit eigenen Bewegungen und Angriffen. Phasenwechsel
+  kommen mit Auftritt, und was angesagt wird, passiert auch.
 - **Taktische Waffenleiste:**
   - Basis-, Fächer-, Blitz- und Plasmawaffe, Drohne, Bomben, Schild und Tempo, gekauft mit Nektar.
   - Beim Blättern sagt eine Stimme das gewählte Upgrade an.
 - **Werkstatt:** 32 dauerhafte Upgrades in fünf Kategorien, mit Punkten gekauft, jedes mit einer
-  animierten Erklärszene.
-- **Evolutionen und Starttalente:** 20 Starttalente, drei davon zufällig zur Wahl;
-  nach jedem Level eine Evolution.
-- **Eigener Soundtrack:** Jedes Level hat einen durchkomponierten Track, exakt so lang wie der Weg
-  bis zum Boss und synchron zur Levelzeit. Pause und Checkpoints halten ihn im Takt.
+  animierten Erklärszene. Sie ist nur zwischen den Leveln erreichbar. Ausgegebene Punkte senken
+  den Highscore.
+- **Evolutionen und Starttalente:**
+  - 20 Starttalente, drei davon zufällig zur Wahl; nach jedem Level eine Evolution.
+  - Passende Evolutionen **verschmelzen** und werden gemeinsam stärker.
+  - Entdeckte Verschmelzungen sammelt das Hauptmenü.
+- **Eigener Soundtrack:**
+  - Jedes Level hat einen durchkomponierten Track, exakt so lang wie der Weg bis zum Boss und
+    synchron zur Levelzeit.
+  - Die Bossmusik setzt nahtlos im selben Tempo ein und loopt, solange der Kampf dauert.
 - **Pixellook in 1920 × 1080:** Ultrawide (21:9, 32:9) und 16:10, Pixelschriften, Menüs im Amiga-Stil.
 - **Modi:**
   - Kampagne mit Checkpoints
@@ -116,7 +125,9 @@ Die Sample-Bibliotheken werden nicht mitgeliefert, sondern bei Bedarf geladen.
 - **Samples:** [VSCO 2 Community Edition](https://github.com/sgossner/VSCO-2-CE) und
   [Versilian Community Sample Library](https://github.com/sgossner/VCSL) von Versilian Studios
   (CC0), für den Soundtrack.
-- **Sprachansagen:** erzeugt mit [ElevenLabs](https://elevenlabs.io).
+- **Sprachansagen:** erzeugt mit [Piper](https://github.com/rhasspy/piper) und der Stimme
+  *Thorsten* ([Thorsten-Voice](https://github.com/thorstenMueller/Thorsten-Voice), Datensatz CC0).
+- Made with Vibe, DeepSeek V4.1 Flash, GPT Sol 6.1, Claude Opus 5.5, Coffee and Love.
 - **Vorbild:** *Apidya* (Kaiko, 1992). Stingforge ist eine eigenständige Hommage, ohne
   Verbindung zu den Rechteinhabern.
 

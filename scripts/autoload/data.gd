@@ -32,7 +32,7 @@ const UPGRADES := [
 	{
 		"id": "fan", "name": "bar.fan", "short": "Fächer", "icon": "fan", "kind": "weapon",
 		"max": 3, "costs": [30, 70, 130],
-		"desc": "Breiter Fächer, mehr Trefferfläche, etwas weniger Schaden je Schuss.",
+		"desc": "Breiter Fächer aus 4/5/6 Stacheln – die größte Trefferfläche. Mit Kreisflug auf gestaffelten Ringen, mit Wellenschuss als breites Wellenband.",
 	},
 	{
 		"id": "lightning", "name": "bar.lightning", "short": "Blitz", "icon": "lightning", "kind": "weapon",
@@ -125,7 +125,7 @@ const EVOLUTIONS := [
 	 "desc": "Gegnerische Geschosse im Umkreis werden deutlich verlangsamt.",
 	 "effect": {"pollen_slow": 1}, "synergy": "pollen_trail", "req": []},
 	{"id": "pollen_economy", "family": "pollen", "name": "Sammelinstinkt", "max": 2, "start": false,
-	 "desc": "Sammeleinzug 60% größer, jede Blüte gibt einen Nektar mehr.",
+	 "desc": "Sammeleinzug 60% größer, jede Blüte gibt einen Blütenstaub mehr.",
 	 "effect": {"magnet": 0.6, "nectar_pickup": 1}, "synergy": "nectar_scent", "req": []},
 	{"id": "pollen_blind", "family": "pollen", "name": "Sichttrübung", "max": 1, "start": false,
 	 "desc": "Pollenwolken lassen gezielte Gegnerschüsse mit 40% Chance erlöschen.",
@@ -177,19 +177,19 @@ const EVOLUTIONS := [
 	 "desc": "Bei voller Waffenstufe geben Blüten zusätzlich Punkte und füllen einen freigeschalteten Schild.",
 	 "effect": {"nectar_overflow": 1}, "synergy": "nectar_gluttony", "req": []},
 	{"id": "nectar_convert", "family": "nectar", "name": "Umwandlung", "max": 1, "start": false,
-	 "desc": "Zehn Nektar werden alle 20 Sekunden automatisch zu einem Leben.",
+	 "desc": "Zehn Blütenstaub werden alle 20 Sekunden automatisch zu einem Leben.",
 	 "effect": {"nectar_convert": 10}, "synergy": "nectar_overflow", "req": []},
 	{"id": "nectar_scent", "family": "nectar", "name": "Duftspur", "max": 2, "start": true,
-	 "desc": "Gegner lassen einen Nektar mehr fallen.",
+	 "desc": "Gegner lassen einen Blütenstaub mehr fallen.",
 	 "effect": {"nectar_drop": 1}, "synergy": "pollen_economy", "req": []},
 	{"id": "nectar_gluttony", "family": "nectar", "name": "Völlerei", "max": 1, "start": false,
-	 "desc": "20% mehr Nektar, 10% langsamere Schussfolge.",
+	 "desc": "20% mehr Blütenstaub, 10% langsamere Schussfolge.",
 	 "effect": {"nectar_mult": 0.2, "fire_rate_mult": -0.1}, "synergy": "nectar_overflow", "req": []},
 	{"id": "nectar_bargain", "family": "nectar", "name": "Handel", "max": 1, "start": true,
-	 "desc": "Alle Verbesserungen kosten 15% weniger Nektar.",
+	 "desc": "Alle Verbesserungen kosten 15% weniger Blütenstaub.",
 	 "effect": {"cost_mult": -0.15}, "synergy": "nectar_gluttony", "req": []},
 	{"id": "nectar_font", "family": "nectar", "name": "Nektarquellé", "max": 1, "start": false,
-	 "desc": "Jeder Bossphasenwechsel spendet 15 Nektar.",
+	 "desc": "Jeder Bossphasenwechsel spendet 15 Blütenstaub.",
 	 "effect": {"nectar_phase": 15}, "synergy": "nectar_overflow", "req": []},
 ]
 
@@ -284,7 +284,7 @@ func _build_bosses() -> void:
 		"rose_beetle": {
 			"name": "Gepanzerter Rosenkäfer", "sprite": "boss_beetle", "hp": 3400,
 			"phases": [
-				{"hp": 1.0, "patterns": ["aimed_burst", "beetle_charge"], "interval": 1.35, "move": "beetle"}, {"hp": 0.55, "patterns": ["shell_open", "radial", "beetle_charge"], "interval": 1.0, "move": "beetle"},
+				{"hp": 1.0, "patterns": ["aimed_burst", "beetle_charge"], "interval": 1.35, "move": "beetle"}, {"hp": 0.55, "patterns": ["shell_open", "ember_spray", "beetle_charge", "ember_spray"], "interval": 1.0, "move": "beetle"},
 			],
 			"weak": "Öffnungsphase: Panzer klappt auf und gibt den Rücken frei.",
 		},
@@ -293,7 +293,7 @@ func _build_bosses() -> void:
 			"phases": [
 				{"hp": 1.0, "patterns": ["burrow", "tunnel_chase", "spit_arc", "rock_fall", "emerge_strike"], "interval": 1.45, "move": "larva"},
 				{"hp": 0.62, "patterns": ["tunnel_chase_fast", "brood", "rock_fall", "burrow_fast", "spit_arc"], "interval": 1.15, "move": "larva"},
-				{"hp": 0.3, "patterns": ["tunnel_chase_fast", "rock_fall_dense", "brood", "emerge_strike", "radial"], "interval": 0.95, "move": "larva"},
+				{"hp": 0.3, "patterns": ["tunnel_chase_fast", "brood", "spit_arc", "emerge_strike"], "interval": 1.05, "move": "larva"},
 			],
 			"weak": "Nach dem Durchbruch ist der Kopf ungeschützt.",
 		},
@@ -328,14 +328,14 @@ func _build_bosses() -> void:
 		"mutant_skater": {
 			"name": "Mutierter Wasserläufer", "sprite": "boss_skater", "hp": 5600,
 			"phases": [
-				{"hp": 1.0, "patterns": ["pump_slam", "skater_dash", "drain_gate", "aimed_burst"], "interval": 1.2, "move": "skater"}, {"hp": 0.55, "patterns": ["pump_slam", "skater_dash", "drain_gate", "radial", "sludge_wave"], "interval": 0.95, "move": "skater"},
+				{"hp": 1.0, "patterns": ["pump_slam", "skater_dash", "drain_gate", "aimed_burst"], "interval": 1.2, "move": "skater"}, {"hp": 0.55, "patterns": ["pump_slam", "skater_dash", "pump_slam", "sludge_wave", "drain_gate", "pump_slam"], "interval": 0.95, "move": "skater"},
 			],
 			"weak": "Zwischen den Pumpen ist der Panzer weich.",
 		},
 		"harvester": {
 			"name": "Insektenförmige Erntemaschine", "sprite": "boss_harvester", "hp": 6000,
 			"phases": [
-				{"hp": 1.0, "patterns": ["module_fire", "harvester_ram", "press_slam"], "interval": 1.15, "move": "harvester", "modules": 3}, {"hp": 0.65, "patterns": ["module_fire", "press_slam", "razor_arc"], "interval": 0.95, "move": "harvester", "modules": 2}, {"hp": 0.3, "patterns": ["razor_arc", "radial", "aimed_burst"], "interval": 0.8, "move": "harvester", "modules": 0},
+				{"hp": 1.0, "patterns": ["module_fire", "harvester_ram", "press_slam"], "interval": 1.15, "move": "harvester", "modules": 3}, {"hp": 0.65, "patterns": ["module_fire", "press_slam", "razor_arc"], "interval": 0.95, "move": "harvester", "modules": 4}, {"hp": 0.3, "patterns": ["razor_arc", "radial", "aimed_burst"], "interval": 0.8, "move": "harvester", "modules": 0},
 			],
 			"weak": "Module einzeln abtrennen; der Kern ist erst danach verwundbar.",
 		},
@@ -363,7 +363,7 @@ func _build_levels() -> void:
 		"palette": {"sky": Color("#f7c8d8"), "haze": Color("#ffd9e6"), "ground": Color("#3f7a3a"),
 					"accent": Color("#ffd34e"), "dark": Color("#22331f")},
 		"music": "level1", "cruise": 88.0, "bg": "l01",
-		"mechanic": "blossom", "mechanic_text": "Riesige Blüten geben Deckung und verstecken Nektar.",
+		"mechanic": "blossom", "mechanic_text": "Riesige Blüten geben Deckung und verstecken Blütenstaub.",
 		"enemy_pool": ["moth", "beetle_grunt", "aphid_swarm", "pollen_pod", "ladybug_turret"],
 		"sections": [
 			{"dur": 56, "pools": [["moth_line", "moth_arc"], ["aphid_cloud", "beetle_row"]]},
@@ -531,6 +531,57 @@ func _build_levels() -> void:
 	]
 
 # ------------------------------------------------------------------ Hilfsabfragen
+## Verschmelzung: Zwei Evolutionen, die als Synergiepaar eingetragen sind (in einer
+## der beiden Richtungen), verschmelzen, sobald beide besessen werden. Beide werden
+## dann stärker (siehe Player.evo_effect und fusion_boost).
+func synergy_partners(id: String) -> Array:
+	var out: Array = []
+	var own := evo(id)
+	if own.is_empty():
+		return out
+	var mine := String(own.get("synergy", ""))
+	if mine != "" and mine != id:
+		out.append(mine)
+	for e in EVOLUTIONS:
+		if String(e.get("synergy", "")) == id and String(e.id) != id and not out.has(String(e.id)):
+			out.append(String(e.id))
+	return out
+
+func fusion_key(a: String, b: String) -> String:
+	return a + "+" + b if a < b else b + "+" + a
+
+## Alle Verschmelzungspaare, jedes einmal, sortiert nach Familie und Name.
+func all_fusions() -> Array:
+	var seen := {}
+	var out: Array = []
+	for e in EVOLUTIONS:
+		for partner in synergy_partners(String(e.id)):
+			var key := fusion_key(String(e.id), String(partner))
+			if not seen.has(key):
+				seen[key] = true
+				var pair := key.split("+")
+				out.append([String(pair[0]), String(pair[1])])
+	return out
+
+func fusion_name(a: String, b: String) -> String:
+	return "%s × %s" % [String(evo(a).get("name", a)), String(evo(b).get("name", b))]
+
+## Zählwerte (+1), Schwellen mit "kleiner ist besser" (×0,75) und Vorteile, die
+## negativ notiert sind (×1,5). Alles andere Positive ×1,5; Nachteile bleiben.
+const FUSION_ADD := ["pierce", "splinter", "companion_add", "hp", "heal_checkpoint", "nectar_pickup",
+	"nectar_drop", "rhythm_chain"]
+const FUSION_LESS := ["swarm_mark", "swarm_call", "drone_shield", "nectar_convert", "rhythm"]
+const FUSION_NEG_GOOD := ["cost_mult", "hitbox"]
+
+static func fusion_boost(key: String, value: float) -> float:
+	if key in FUSION_ADD:
+		return value + 1.0 if value > 0.0 else value
+	if key in FUSION_LESS:
+		return maxf(1.0, round(value * 0.75))
+	if key in FUSION_NEG_GOOD:
+		return value * 1.5 if value < 0.0 else value
+	return value * 1.5 if value > 0.0 else value
+
 func evo(id: String) -> Dictionary:
 	for e in EVOLUTIONS:
 		if e.id == id:

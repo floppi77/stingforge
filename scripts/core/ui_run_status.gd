@@ -52,7 +52,7 @@ static func build(box: VBoxContainer, app: Node, headline: String, headline_colo
 		var rows := [
 			["Vital", "%d / %d" % [p.hp, p.max_hp], U.TEXT],
 			["Schild", shield, U.ACCENT2 if p.shield_active() else U.DIM],
-			["Nektar", _grouped(int(p.nectar)), U.ACCENT],
+			["Blütenstaub", _grouped(int(p.nectar)), U.ACCENT],
 			["Punkte", _grouped(int(p.points)), U.TEXT],
 			["Spielzeit", LevelProgress.clock(float(g.stats.get("time", 0.0))), U.TEXT],
 			["Schwierigkeit", Loc.t(String(g.difficulty.get("name", "Normal"))), U.DIM],

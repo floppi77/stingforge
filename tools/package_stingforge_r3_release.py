@@ -7,8 +7,8 @@ import hashlib
 import json
 import shutil
 
-## Anzahl der Regressionssuiten (R2-Bestand + R3/R4 + R5 Musik/Gameplay).
-SUITE_COUNT = 40
+## Anzahl der Regressionssuiten (R2-Bestand + R3/R4 + R5 Musik/Gameplay + R6).
+SUITE_COUNT = 41
 
 ROOT = Path(__file__).resolve().parents[1]
 RELEASE = ROOT / 'release'
@@ -80,6 +80,8 @@ neu gezeichnete Bosse. Der Zwischengegner bleibt jetzt in jedem Level, bis er
 besiegt ist. Spielstände werden übernommen.
 
 Neu in dieser Fassung:
+- Tutorial (Übungsflug) mit Erklärfenstern, Verschmelzungen von Evolutionen.
+- Neue Bossmusik je Level, nahtlos an die Levelmusik anschließend, im Kampf geloopt.
 - Ein eigener, durchkomponierter Soundtrack je Level, exakt bis zum Bosseinsatz.
 - Dreispaltige Werkstatt mit animierten Erklärgrafiken.
 - Upgrade-Ansage per Sprache.

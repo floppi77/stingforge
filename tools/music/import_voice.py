@@ -85,12 +85,17 @@ def split(x: np.ndarray, count: int) -> list[np.ndarray]:
 
 
 def write(uid: str, y: np.ndarray, label: str) -> None:
+    write_named(f'upgrade_{uid}', y, label)
+
+
+def write_named(name: str, y: np.ndarray, label: str) -> None:
+    """Clip aufbereiten und als assets/audio/voice/<name>.ogg ablegen."""
     y = trim(y)
     # Spitzenpegel -3 dBFS: deutlich über SFX/Musik hörbar, ohne zu übersteuern.
     y = y / (np.abs(y).max() + 1e-12) * 10 ** (-3 / 20)
-    tmp = OUT / f'_upgrade_{uid}.wav'
+    tmp = OUT / f'_{name}.wav'
     sf.write(tmp, y, SR, subtype='PCM_16')
-    out = OUT / f'upgrade_{uid}.ogg'
+    out = OUT / f'{name}.ogg'
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(tmp), '-c:a', 'libvorbis', '-q:a', '5', str(out)],
                    check=True)
     tmp.unlink()

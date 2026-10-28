@@ -37,6 +37,12 @@ var phase_banner_t := 0.0
 ## Wutfärbung, die mit jeder Phase zunimmt, und Restzeit des Leuchtbrüllens.
 var rage_tint := Color.WHITE
 var roar_t := 0.0
+## Larve, Phase 3: Dauerregen aus Felsbrocken mit einer wandernden Lücke.
+var _cave_t := 0.0
+var _cave_shaft: Dictionary = {}
+## Weitere angekündigte Phaseneffekte: glühender Käferpanzer, peitschender Hecht.
+var _ember_t := 0.0
+var _whip_t := 0.0
 var name_text := ""
 var weak_text := ""
 var damage_scale := 1.0
@@ -92,6 +98,8 @@ const PHASE_LINES := {
 	"core_organism": ["Der Kern schlägt schneller!", "Der Kern bricht auf!", "Alles oder nichts!"],
 }
 ## Dauer des Leuchtbrüllens beim Phasenwechsel (s).
+## Halbe Breite der sicheren Lücke im Felsregen (Weltpunkte).
+const CAVE_GAP_HALF := 70.0
 const ROAR_TIME := 1.1
 
 const STYLE_BY_BOSS := {
@@ -263,12 +271,17 @@ func _apply_phase(index: int, initial: bool = false) -> void:
 		if encounter_form != 2:
 			roar_t = ROAR_TIME
 			rage_tint = Color(1.0, 1.0 - 0.1 * phase, 1.0 - 0.17 * phase)
+			if id == "rose_beetle":
+				rage_tint = Color(1.35, 0.62, 0.45)  # "Der Panzer glüht rot"
 		else:
 			roar_t = 0.0
 			rage_tint = Color.WHITE
+		var old_parts := parts.duplicate()
 		phase_changed.emit(phase)
 		# Geschosse der vorherigen Phase bleiben im Bild und fliegen weiter.
 		_spawn_parts()
+		if encounter_form != 2:
+			_phase_entry(old_parts)
 
 func _physics_process(delta: float) -> void:
 	var game := get_parent()
@@ -292,6 +305,12 @@ func _physics_process(delta: float) -> void:
 	var show_hit := hit_flash > 0.0
 	if encounter_form == 2:
 		show_hit = show_hit and bool(Save.g("graphics.flashes", true)) and not bool(Save.g("access.reduce_effects", false))
+	if id == "giant_larva" and phase >= 2 and not dead:
+		_tick_cave_in(delta)
+	if id == "rose_beetle" and phase >= 1 and not dead:
+		_tick_embers(delta)
+	if id == "pike_beast" and phase >= 1 and not dead and not submerged:
+		_tick_whip(delta)
 	if roar_t > 0.0:
 		_tick_roar(delta)
 	else:
@@ -506,6 +525,7 @@ func _next_pattern() -> void:
 		"rock_fall": _p_rock_fall(false)
 		"rock_fall_dense": _p_rock_fall(true)
 		"brood": _p_brood()
+		"ember_spray": _p_ember_spray()
 		"pike_jump": _p_pike_jump(false)
 		"pike_jump_fast": _p_pike_jump(true)
 		"vortex": _p_vortex()
@@ -765,6 +785,108 @@ func _p_rock_fall(dense: bool) -> void:
 				g2.spawn_enemy_bullet(Vector2(x, App.PLAY_TOP + 6.0 - k * 26.0), Vector2(drift, 250.0 + k * 20.0), 1,
 					"ebullet_spore", {"scale": 1.8, "r": 8.0, "tint": Color(0.78, 0.58, 0.40)})
 		)
+
+## Was die Phasenansage verspricht, passiert auch (PHASE_LINES):
+##   Käfer   "Der Panzer glüht rot"        -> Glut, Funkenflug, Glutsalven
+##   Hecht   "peitscht das Wasser"          -> häufige, hohe Wassersäulen
+##   Pilz    "Die Knoten platzen auf"       -> verlorene Knoten zerplatzen in Sporen
+##   Königin "Der Hof schwärmt aus"         -> sofort ein ganzer Hofstaat
+##   Erntemaschine "Neue Module fahren aus" -> vier Module (siehe Data)
+func _phase_entry(old_parts: Array) -> void:
+	var g := get_parent()
+	if g == null:
+		return
+	match id:
+		"fungus_mind":
+			var keep := int(phase_defs[phase].get("nodes", 0))
+			for i in range(keep, old_parts.size()):
+				var p: Dictionary = old_parts[i]
+				if bool(p.get("dead", false)):
+					continue
+				var world: Vector2 = (p["offset"] as Vector2) + position
+				for k in range(12):
+					g.spawn_enemy_bullet(world, Vector2.RIGHT.rotated(k * TAU / 12.0) * 150.0, 1, "ebullet_spore")
+				if g.has_method("_on_hazard"):
+					g.fx.add_hazard({"kind": "spore_cloud", "p": world, "radius": 54.0, "t": 0.0, "life": 5.0,
+						"max_life": 5.0, "vel": Vector2(-50, 0), "dmg": 1, "hit_cd": 0.0, "color": Color(0.5, 1.0, 0.8, 0.3)})
+				g.fx.explode(world, 1.6, Color(0.7, 1.0, 0.6))
+			Audio.sfx("explosion_small", -6.0, 0.7)
+		"swarm_queen":
+			if phase == 1 and g.has_method("spawn_boss_minion"):
+				for i in range(5):
+					g.spawn_boss_minion("queen_acolyte", Vector2(960 + (i % 2) * 40, 110 + i * 70))
+		"pike_beast":
+			_whip_t = 0.6
+
+## Käfer ab Phase 2: Der Panzer glüht – Funken steigen auf, Glutsalven (ember_spray).
+func _tick_embers(delta: float) -> void:
+	_ember_t -= delta
+	if _ember_t > 0.0:
+		return
+	_ember_t = 0.12
+	var g := get_parent()
+	if g != null:
+		g.fx.add("spark", position + Vector2(_rng.randf_range(-40, 40), _rng.randf_range(-30, 10)),
+			{"life": 0.45, "scale": 0.8, "tint": Color(1.0, 0.45, 0.15), "grow": 0.5})
+
+func _p_ember_spray() -> void:
+	_telegraph(0.45)
+	for w in range(3):
+		schedule(0.45 + w * 0.28, func():
+			var g := get_parent()
+			if g == null or dead:
+				return
+			for k in range(9):
+				var a := PI + (float(k) - 4.0) * 0.17 + _rng.randf_range(-0.04, 0.04)
+				g.spawn_enemy_bullet(position + Vector2(-30, -10), Vector2.RIGHT.rotated(a) * (190.0 + w * 25.0), 1,
+					"ebullet_orb", {"tint": Color(1.0, 0.5, 0.2), "scale": 1.2})
+			Audio.sfx("shot_plasma", -14.0, 0.6)
+		)
+
+## Hecht ab Phase 2: Mit jedem Schwanzschlag schießen Wassersäulen hoch – in der
+## Nähe der Biene und doppelt so oft wie im Level, höher und länger.
+func _tick_whip(delta: float) -> void:
+	_whip_t -= delta
+	if _whip_t > 0.0:
+		return
+	_whip_t = 1.7
+	var g := get_parent()
+	if g == null or not g.has_method("spawn_geyser"):
+		return
+	var p: Vector2 = g.player_position()
+	var x := clampf(p.x + _rng.randf_range(-60.0, 60.0), 60.0, 900.0)
+	g.spawn_geyser(x, 300.0, 3.2, 0.75)
+	g.spawn_geyser(clampf(x + (150.0 if _rng.randf() < 0.5 else -150.0), 60.0, 900.0), 260.0, 3.0, 0.9)
+	if g.has_method("shake"):
+		g.shake(3.0)
+
+## Phase 3 der Larve: Die Höhle stürzt ein. Felsbrocken regnen ohne Pause in
+## Bahnen, eine Lücke (zwei Bahnen breit) wandert langsam hin und her und ist
+## mit einem Lichtschacht markiert. So bleibt immer ein sicherer Weg.
+func cave_gap_x() -> float:
+	return 470.0 + sin(age * 0.32) * 320.0
+
+func _tick_cave_in(delta: float) -> void:
+	var g := get_parent()
+	if g == null:
+		return
+	var gap := cave_gap_x()
+	if _cave_shaft.is_empty() or float(_cave_shaft.get("life", 0.0)) <= 0.0:
+		_cave_shaft = {"kind": "light_shaft", "p": Vector2(gap, App.PLAY_TOP), "t": 0.0,
+			"life": 9999.0, "max_life": 9999.0, "w": CAVE_GAP_HALF * 2.0}
+		g.fx.add_hazard(_cave_shaft)
+	_cave_shaft.p = Vector2(gap, App.PLAY_TOP)
+	_cave_t -= delta
+	if _cave_t > 0.0:
+		return
+	_cave_t = 0.32
+	# Drei bis vier Brocken pro Takt, nie in der Lücke.
+	for k in range(3 + _rng.randi_range(0, 1)):
+		var x := _rng.randf_range(30.0, 930.0)
+		if absf(x - gap) < CAVE_GAP_HALF + 12.0:
+			continue
+		g.spawn_enemy_bullet(Vector2(x, App.PLAY_TOP + 4.0), Vector2(_rng.randf_range(-8.0, 8.0), 240.0 + _rng.randf_range(0, 40.0)),
+			1, "ebullet_spore", {"scale": 1.8, "r": 8.0, "tint": Color(0.78, 0.58, 0.40), "life": 3.0})
 
 ## Brut: Riesenmaden kriechen am Boden auf die Biene zu (höchstens vier zugleich).
 func _p_brood() -> void:
@@ -1447,6 +1569,10 @@ func _clamp_playfield() -> void:
 		App.PLAY_BOTTOM - bounds.end.y - 2.0)
 
 # --------------------------------------------------------------- Schaden
+func _end_cave_in() -> void:
+	if not _cave_shaft.is_empty():
+		_cave_shaft.life = 0.0
+
 func take_damage(amount: float, src: Vector2 = Vector2.ZERO, hit_part: int = -1) -> void:
 	if dead or reviving or invuln > 0.0:
 		return
@@ -1628,6 +1754,7 @@ func _finish_reviving() -> void:
 		g.clear_enemy_bullets()
 
 func _die() -> void:
+	_end_cave_in()
 	if dead or reviving:
 		return
 	if encounter_form == 1 and _is_final_encounter():

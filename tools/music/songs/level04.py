@@ -10,7 +10,7 @@ Form: A 21 · B 23 · C 22 · D 20 · E 18 Takte.
 from __future__ import annotations
 
 from score import Song, n
-from songs._kit import (CRASH, GONG, Human, SHAKE_A, SHAKE_B, SHAKE_C, SNARE_ROLL, SWELL4,
+from songs._kit import (lead_in, CRASH, GONG, Human, SHAKE_A, SHAKE_B, SHAKE_C, SNARE_ROLL, SWELL4,
                         TIMP_LO, TIMP_ROLL_LO, TRI, WOOD, arp, bassline, close, crash, drums,
                         grid, pad, phrase, repeat_to, voicing)
 from songs._themes import fragment, invert, leitmotiv, mechanize, second_theme
@@ -225,13 +225,10 @@ def build():
     S.add('riser', 'E', 14, 0, 16, n('F#2'), 90)
     S.add('kit', 'E', 13, 0, 20, SWELL4, 96)
 
-    # ---------------------------------------------------------- Ankündigung (1,25 s)
-    S.add('kit', 'tail', 0, 0, 2.5, GONG, 118)
-    S.add('kit', 'tail', 0, 0, 2.5, TIMP_LO, 120)
-    S.add('choir', 'tail', 0, 0, 1.2, n('F#3'), 112, bright=0.6, aux=0)
-    S.add('boom', 'tail', 0, 0, 2.5, n('F#1'), 106)
-    for p in (n('F#2'), n('C#3'), n('F#3'), n('A3')):
-        S.add('piano', 'tail', 0, 0, 1.2, p, 112)
+    # ---------------------------------------------------------- Ankündigung (1,25 s): Auftakt
+    # Kein Schlussakkord: Wirbel und Basshinführung münden auf dem nächsten Schlag in die
+    # Bossmusik (boss4, Grundton F#), die genau dann mit der Ankunft des Bosses einsetzt.
+    leadin_spec = lead_in(S, 'F#')
 
     mixspec = {
         'kit':      {'engine': 'sfz', 'inst': 'kit', 'gain': -1.0, 'rev': 0.3},
@@ -247,6 +244,7 @@ def build():
         'riser':    {'engine': 'cs', 'instr': 'riser', 'gain': -10.0, 'rev': 0.24},
         'boom':     {'engine': 'cs', 'instr': 'boom', 'gain': -6.0, 'rev': 0.16},
     }
+    mixspec.update(leadin_spec)
     return song, mixspec, {'file': 'level4', 'title': 'Level 4 – Pilzwald', 'reverb': 3.0}
 
 

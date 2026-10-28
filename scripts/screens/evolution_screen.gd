@@ -16,6 +16,9 @@ var _restored := false
 func _ready() -> void:
 	_ensure_pending()
 	super._ready()
+	# "Angebote mischen" als schmaler, mittiger Knopf unter den Karten.
+	grid_extra.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	grid_extra.custom_minimum_size.x = UiTheme.size(250)
 	if _restored:
 		show_banner_hint()
 
@@ -40,7 +43,7 @@ func _ensure_pending() -> void:
 
 func build_items() -> void:
 	columns = 3
-	footer_text = Loc.t("evo.reset_note")
+	footer_text = ""
 	var list: Array = []
 	for id in offers:
 		var e := Data.evo(String(id))
@@ -60,9 +63,18 @@ func build_items() -> void:
 			var owned := int(Save.campaign.get("upgrades", {}).get(w, 0)) > 0
 			lines.append({"text": Loc.t("evo.weapon_dependent") % Loc.t("bar." + w), "size": 12,
 				"color": UiTheme.OK if owned else Color(1, 0.6, 0.5)})
-		var syn := String(e.get("synergy", ""))
-		if syn != "" and Data.evo(syn).size() > 0:
-			lines.append({"text": Loc.t("evo.synergy") % String(Data.evo(syn).name), "size": 12, "color": UiTheme.ACCENT2})
+		# Verschmelzung: besitzt man einen Partner bereits, verschmilzt die Wahl sofort.
+		var owned_partner := ""
+		var names: Array[String] = []
+		for partner in Data.synergy_partners(String(id)):
+			names.append(String(Data.evo(String(partner)).get("name", partner)))
+			for entry in Save.campaign.get("evolutions", []):
+				if String(entry.get("id", "")) == String(partner):
+					owned_partner = String(Data.evo(String(partner)).get("name", partner))
+		if owned_partner != "":
+			lines.append({"text": Loc.t("evo.synergy_now") % owned_partner, "size": 12, "color": UiTheme.OK})
+		elif not names.is_empty():
+			lines.append({"text": Loc.t("evo.synergy") % ", ".join(names), "size": 12, "color": UiTheme.ACCENT2})
 		if Save.is_evolution_unlocked(String(id)):
 			lines.append({"text": Loc.t("evo.active_campaign") if cur > 0 else Loc.t("evo.profile_only"),
 				"size": 12, "color": UiTheme.DIM})
@@ -79,7 +91,6 @@ func build_items() -> void:
 		"text": "evo.reroll" if not reroll_used else "evo.reroll_used",
 		"id": "reroll",
 		"disabled": reroll_used,
-		"value_text": "" if reroll_used else Loc.t("set.value_on"),
 	})
 	items = list
 
