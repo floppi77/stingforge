@@ -1,0 +1,87 @@
+extends "res://scripts/core/ui_screen.gd"
+
+const UiRunStatus := preload("res://scripts/core/ui_run_status.gd")
+
+var stats: Dictionary = {}
+var level := 1
+var training := false
+var new_unlock := false
+var chosen := ""
+
+func setup(args: Dictionary) -> void:
+	stats = args.get("stats", {})
+	level = int(args.get("level", stats.get("level", 1)))
+	training = bool(args.get("training", false))
+	new_unlock = bool(args.get("new_unlock", false))
+	chosen = String(args.get("chosen", ""))
+	title_key = "game.level_complete"
+	subtitle_key = ""
+
+func build_items() -> void:
+	side_builder = _build_summary
+	var list: Array = []
+	list.append({"kind": "label", "text": Loc.t("level." + str(level)), "size": 26, "color": UiTheme.ACCENT})
+	var rank := String(stats.get("rank", "C"))
+	list.append({"kind": "label", "text": "Wertung: %s – %s" % [rank, String(stats.get("rank_text", ""))],
+		"size": 22, "color": _rank_color(rank)})
+	list.append({"kind": "label", "text": "Schwierigkeit: %s   Saatwert: %d" % [
+		Loc.t(String(Data.DIFFICULTY[String(stats.get("difficulty", "normal"))].name)),
+		int(stats.get("seed", 0))], "size": 15, "color": UiTheme.DIM})
+	if chosen != "":
+		var e := Data.evo(chosen)
+		list.append({"kind": "sep"})
+		list.append({"kind": "label", "text": "Neue Evolution: %s" % String(e.get("name", chosen)),
+			"size": 18, "color": UiTheme.family_color(String(e.get("family", "sting")))})
+		if new_unlock:
+			list.append({"kind": "label", "text": Loc.t("evo.new_unlock"), "size": 14, "color": UiTheme.OK})
+	if training:
+		list.append({"kind": "sep"})
+		list.append({"kind": "label", "text": "game.training_note", "size": 15, "color": UiTheme.DIM})
+	list.append({"kind": "sep"})
+	list.append({"kind": "action", "text": "game.continue", "id": "next", "accent": true})
+	items = list
+
+static func _rank_color(rank: String) -> Color:
+	match rank:
+		"S": return UiTheme.ACCENT
+		"A": return UiTheme.ACCENT2
+		"B": return UiTheme.TEXT
+	return UiTheme.DIM
+
+## Rechte Spalte: große Wertung und die Kennzahlen des Levels.
+func _build_summary(box: VBoxContainer) -> void:
+	var rank := String(stats.get("rank", "C"))
+	var head := Label.new()
+	head.text = "WERTUNG"
+	head.add_theme_font_override("font", UiTheme.font_bold())
+	head.add_theme_font_size_override("font_size", UiTheme.size(11))
+	head.add_theme_color_override("font_color", UiTheme.ACCENT2)
+	box.add_child(head)
+	var big := Label.new()
+	big.text = rank
+	big.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	big.add_theme_font_override("font", UiTheme.font_display())
+	big.add_theme_font_size_override("font_size", UiTheme.size(84))
+	big.add_theme_color_override("font_color", _rank_color(rank))
+	big.add_theme_color_override("font_shadow_color", Color("#1a0d06"))
+	big.add_theme_constant_override("shadow_offset_x", UiTheme.pad(3))
+	big.add_theme_constant_override("shadow_offset_y", UiTheme.pad(3))
+	box.add_child(big)
+	var t := float(stats.get("time", 0.0))
+	for row in [
+		[Loc.t("game.score"), UiRunStatus._grouped(int(stats.get("score", 0))), UiTheme.ACCENT],
+		["Abschüsse", UiRunStatus._grouped(int(stats.get("kills", 0))), UiTheme.TEXT],
+		[Loc.t("game.hits_taken"), str(int(stats.get("hits", 0))), UiTheme.TEXT],
+		[Loc.t("game.time"), "%d:%02d" % [int(t) / 60, int(t) % 60], UiTheme.TEXT],
+	]:
+		UiRunStatus._pair(box, String(row[0]), String(row[1]), row[2])
+
+func on_activate(_index: int) -> void:
+	Audio.sfx("ui_ok", -6.0, 1.0, true)
+	if training:
+		app.menu_main()
+	else:
+		app.advance_after_level(level)
+
+func do_back() -> void:
+	on_activate(0)

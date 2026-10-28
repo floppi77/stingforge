@@ -1,0 +1,434 @@
+{
+ "acolyte": {
+  "w": 36,
+  "h": 32,
+  "frames": 4,
+  "fps": 9
+ },
+ "aphid": {
+  "w": 24,
+  "h": 20,
+  "frames": 3,
+  "fps": 10
+ },
+ "bee": {
+  "w": 40,
+  "h": 32,
+  "frames": 6,
+  "fps": 14
+ },
+ "beetle": {
+  "w": 40,
+  "h": 32,
+  "frames": 3,
+  "fps": 9
+ },
+ "blossom": {
+  "w": 16,
+  "h": 16,
+  "frames": 4,
+  "fps": 10
+ },
+ "bomb": {
+  "w": 20,
+  "h": 20,
+  "frames": 2,
+  "fps": 12
+ },
+ "borer": {
+  "w": 40,
+  "h": 32,
+  "frames": 4,
+  "fps": 10
+ },
+ "boss_beetle": {
+  "w": 176,
+  "h": 128,
+  "frames": 2,
+  "fps": 6
+ },
+ "boss_core": {
+  "w": 176,
+  "h": 144,
+  "frames": 2,
+  "fps": 6
+ },
+ "boss_fungus": {
+  "w": 176,
+  "h": 144,
+  "frames": 2,
+  "fps": 6
+ },
+ "boss_harvester": {
+  "w": 184,
+  "h": 128,
+  "frames": 2,
+  "fps": 6
+ },
+ "boss_larva": {
+  "w": 176,
+  "h": 120,
+  "frames": 2,
+  "fps": 6
+ },
+ "boss_mantis": {
+  "w": 192,
+  "h": 128,
+  "frames": 2,
+  "fps": 6
+ },
+ "boss_pike": {
+  "w": 192,
+  "h": 112,
+  "frames": 2,
+  "fps": 6
+ },
+ "boss_pollinator": {
+  "w": 176,
+  "h": 120,
+  "frames": 2,
+  "fps": 6
+ },
+ "boss_queen": {
+  "w": 176,
+  "h": 136,
+  "frames": 2,
+  "fps": 6
+ },
+ "boss_skater": {
+  "w": 192,
+  "h": 120,
+  "frames": 2,
+  "fps": 6
+ },
+ "bullet_base": {
+  "w": 12,
+  "h": 8,
+  "frames": 2,
+  "fps": 12
+ },
+ "bullet_fan": {
+  "w": 12,
+  "h": 8,
+  "frames": 2,
+  "fps": 12
+ },
+ "bullet_lightning": {
+  "w": 16,
+  "h": 8,
+  "frames": 2,
+  "fps": 12
+ },
+ "bullet_plasma": {
+  "w": 16,
+  "h": 16,
+  "frames": 2,
+  "fps": 12
+ },
+ "crawler": {
+  "w": 44,
+  "h": 32,
+  "frames": 3,
+  "fps": 9
+ },
+ "dragonfly": {
+  "w": 44,
+  "h": 28,
+  "frames": 3,
+  "fps": 11
+ },
+ "drone": {
+  "w": 20,
+  "h": 20,
+  "frames": 4,
+  "fps": 10
+ },
+ "ebullet_laser": {
+  "w": 24,
+  "h": 8,
+  "frames": 2,
+  "fps": 12
+ },
+ "ebullet_needle": {
+  "w": 14,
+  "h": 6,
+  "frames": 2,
+  "fps": 12
+ },
+ "ebullet_orb": {
+  "w": 12,
+  "h": 12,
+  "frames": 2,
+  "fps": 12
+ },
+ "ebullet_spore": {
+  "w": 10,
+  "h": 10,
+  "frames": 2,
+  "fps": 12
+ },
+ "explode": {
+  "w": 48,
+  "h": 48,
+  "frames": 6,
+  "fps": 18
+ },
+ "generator": {
+  "w": 40,
+  "h": 44,
+  "frames": 4,
+  "fps": 8
+ },
+ "glassdrone": {
+  "w": 36,
+  "h": 28,
+  "frames": 3,
+  "fps": 10
+ },
+ "grub": {
+  "w": 48,
+  "h": 32,
+  "frames": 4,
+  "fps": 8
+ },
+ "heart": {
+  "w": 14,
+  "h": 14,
+  "frames": 2,
+  "fps": 4
+ },
+ "hiveguard": {
+  "w": 44,
+  "h": 36,
+  "frames": 3,
+  "fps": 10
+ },
+ "hopper": {
+  "w": 32,
+  "h": 28,
+  "frames": 3,
+  "fps": 9
+ },
+ "icon": {
+  "w": 128,
+  "h": 128,
+  "frames": 1,
+  "fps": 8
+ },
+ "icon_autofire": {
+  "w": 16,
+  "h": 16,
+  "frames": 1,
+  "fps": 8
+ },
+ "icon_base": {
+  "w": 24,
+  "h": 24,
+  "frames": 1,
+  "fps": 8
+ },
+ "icon_bombs": {
+  "w": 24,
+  "h": 24,
+  "frames": 1,
+  "fps": 8
+ },
+ "icon_companion": {
+  "w": 24,
+  "h": 24,
+  "frames": 1,
+  "fps": 8
+ },
+ "icon_fan": {
+  "w": 24,
+  "h": 24,
+  "frames": 1,
+  "fps": 8
+ },
+ "icon_hp": {
+  "w": 16,
+  "h": 16,
+  "frames": 1,
+  "fps": 8
+ },
+ "icon_lightning": {
+  "w": 24,
+  "h": 24,
+  "frames": 1,
+  "fps": 8
+ },
+ "icon_nectar": {
+  "w": 16,
+  "h": 16,
+  "frames": 1,
+  "fps": 8
+ },
+ "icon_plasma": {
+  "w": 24,
+  "h": 24,
+  "frames": 1,
+  "fps": 8
+ },
+ "icon_repair": {
+  "w": 24,
+  "h": 24,
+  "frames": 1,
+  "fps": 8
+ },
+ "icon_shield": {
+  "w": 24,
+  "h": 24,
+  "frames": 1,
+  "fps": 8
+ },
+ "icon_shieldbar": {
+  "w": 16,
+  "h": 16,
+  "frames": 1,
+  "fps": 8
+ },
+ "icon_speed": {
+  "w": 24,
+  "h": 24,
+  "frames": 1,
+  "fps": 8
+ },
+ "ladybug": {
+  "w": 40,
+  "h": 32,
+  "frames": 3,
+  "fps": 10
+ },
+ "logo": {
+  "w": 480,
+  "h": 120,
+  "frames": 1,
+  "fps": 8
+ },
+ "mantis": {
+  "w": 44,
+  "h": 40,
+  "frames": 3,
+  "fps": 8
+ },
+ "mirrororb": {
+  "w": 32,
+  "h": 32,
+  "frames": 4,
+  "fps": 10
+ },
+ "mosquito": {
+  "w": 28,
+  "h": 20,
+  "frames": 3,
+  "fps": 12
+ },
+ "moth": {
+  "w": 40,
+  "h": 28,
+  "frames": 4,
+  "fps": 10
+ },
+ "mushroom": {
+  "w": 40,
+  "h": 36,
+  "frames": 3,
+  "fps": 8
+ },
+ "nectar": {
+  "w": 10,
+  "h": 10,
+  "frames": 2,
+  "fps": 10
+ },
+ "pike": {
+  "w": 44,
+  "h": 28,
+  "frames": 3,
+  "fps": 10
+ },
+ "piston": {
+  "w": 40,
+  "h": 32,
+  "frames": 3,
+  "fps": 10
+ },
+ "pod": {
+  "w": 32,
+  "h": 32,
+  "frames": 4,
+  "fps": 8
+ },
+ "pollen": {
+  "w": 40,
+  "h": 40,
+  "frames": 4,
+  "fps": 8
+ },
+ "ring": {
+  "w": 64,
+  "h": 64,
+  "frames": 6,
+  "fps": 14
+ },
+ "shard": {
+  "w": 28,
+  "h": 28,
+  "frames": 4,
+  "fps": 10
+ },
+ "sludge": {
+  "w": 40,
+  "h": 32,
+  "frames": 4,
+  "fps": 8
+ },
+ "spark": {
+  "w": 16,
+  "h": 16,
+  "frames": 4,
+  "fps": 16
+ },
+ "spore": {
+  "w": 32,
+  "h": 32,
+  "frames": 4,
+  "fps": 8
+ },
+ "vine": {
+  "w": 32,
+  "h": 40,
+  "frames": 4,
+  "fps": 8
+ },
+ "wasp": {
+  "w": 36,
+  "h": 24,
+  "frames": 3,
+  "fps": 12
+ },
+ "hornet": {
+  "w": 44,
+  "h": 32,
+  "frames": 2,
+  "fps": 8
+ },
+ "spider": {
+  "w": 40,
+  "h": 40,
+  "frames": 2,
+  "fps": 8
+ },
+ "ant_gunner": {
+  "w": 48,
+  "h": 34,
+  "frames": 2,
+  "fps": 8
+ },
+ "molecricket": {
+  "w": 40,
+  "h": 40,
+  "frames": 2,
+  "fps": 8
+ }
+}

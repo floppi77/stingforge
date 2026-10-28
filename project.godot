@@ -1,0 +1,60 @@
+; Engine configuration file.
+; Stingforge — Evolve. Adapt. Strike.
+config_version=5
+
+[application]
+
+config/name="Stingforge"
+config/description="Evolve. Adapt. Strike. — Ein horizontales Bienen-Shoot’em-up mit zehn Leveln und kombinierbaren Evolutionen."
+config/icon="res://assets/ui/menu/stingforge_icon.png"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+boot_splash/show_image=false
+
+[audio]
+
+general/text_to_speech=true
+
+[autoload]
+
+Loc="*res://scripts/autoload/loc.gd"
+Data="*res://scripts/autoload/data.gd"
+Save="*res://scripts/autoload/save.gd"
+Bindings="*res://scripts/autoload/bindings.gd"
+Audio="*res://scripts/autoload/audio.gd"
+App="*res://scripts/autoload/app.gd"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/resizable=true
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/vsync/vsync_mode=1
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=0
+environment/defaults/default_clear_color=Color(0.03, 0.04, 0.06, 1)
+anti_aliasing/quality/msaa_2d=0
+2d/snap/snap_2d_transforms_to_pixel=true
+
+[filesystem]
+
+import/blender/enabled=false
+
+[file_customization]
+
+folder_colors={
+"res://assets/": "orange",
+"res://scripts/": "blue",
+"res://tools/": "gray",
+"res://docs/": "green"
+}

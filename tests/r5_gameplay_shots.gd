@@ -1,0 +1,48 @@
+extends "res://tests/r3_shots.gd"
+## Bildnachweise R5: Phasenbanner, Larven-Angriffe, Fontäne, Glasscheibe.
+
+func _run() -> void:
+	await _level(2)
+	await _wait(1.0)
+	var g = app.game
+	_protect()
+	g._spawn_boss()
+	await _wait(3.0)
+	g.boss._p_rock_fall(false)
+	await _wait(0.55)
+	await _shot("r5_01_deckeneinsturz_warnung")
+	await _wait(0.6)
+	await _shot("r5_02_deckeneinsturz")
+	await _wait(1.2)
+	g.boss._p_tunnel_chase(false)
+	await _wait(1.9)
+	await _shot("r5_03_tunnelfahrt")
+	await _wait(2.5)
+	g.boss.take_damage(g.boss.max_hp * 0.45)
+	await _wait(0.35)
+	await _shot("r5_04_phase2_auftritt")
+	await _wait(0.6)
+	await _shot("r5_05_phase2_banner")
+	await _level(3)
+	await _wait(1.5)
+	_protect()
+	app.game._on_hazard("water_splash", {})
+	await _wait(0.35)
+	await _shot("r5_06_fontaene_warnung")
+	await _wait(0.8)
+	await _shot("r5_07_fontaene")
+	await _level(6)
+	await _wait(1.5)
+	_protect()
+	var g6 = app.game
+	g6._on_hazard("reflect_panel", {})
+	await _wait(0.5)
+	await _shot("r5_08_glas_warnung")
+	await _wait(1.4)
+	g6.player.autofire = true
+	var panel: Dictionary = g6.fx.hazards[g6.fx.hazards.size() - 1]
+	g6.player.position = Vector2(140, (panel.p as Vector2).y)
+	await _wait(1.6)
+	await _shot("r5_09_glas_risse")
+	await _wait(2.2)
+	await _shot("r5_10_glas_zersprungen")

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/r4_miniboss_probe.gd" id="1"]
+
+[node name="R4MinibossProbe" type="Node"]
+script = ExtResource("1")

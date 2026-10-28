@@ -1,0 +1,138 @@
+; Stingforge-Soundtrack: Csound-Instrumente (offline, 48 kHz, Stereo).
+; Partiturfelder: p4 = Tonhöhe (Hz), p5 = Lautstärke 0..1, p6 = Helligkeit 0..1,
+; p7 = Zusatz (je Instrument), p8 = Panorama -1..1.
+
+sr = 48000
+ksmps = 16
+nchnls = 2
+0dbfs = 1
+seed 7
+
+giSine ftgen 0, 0, 16384, 10, 1
+
+opcode Pan, aa, ak
+  ain, kpan xin
+  kp = (kpan + 1) * 0.5
+  xout ain * cos(kp * 1.5708), ain * sin(kp * 1.5708)
+endop
+
+; --- Pad: fünf leicht verstimmte Sägezähne, weicher Tiefpass, langsamer Ein-/Ausklang
+instr pad
+  ifrq = p4
+  iamp = p5 * 0.16
+  ibr = p6
+  iatk = min(p3 * 0.35, 0.9)
+  irel = 1.2
+  p3 = p3 + irel
+  kenv linsegr 0, iatk, 1, p3 - iatk - irel, 0.85, irel, 0
+  klfo lfo 0.18, 0.21
+  a1 vco2 1, ifrq * cent(-11 + klfo * 3)
+  a2 vco2 1, ifrq * cent(-4)
+  a3 vco2 1, ifrq
+  a4 vco2 1, ifrq * cent(5)
+  a5 vco2 1, ifrq * cent(12 - klfo * 3)
+  asub vco2 0.5, ifrq * 0.5, 12
+  aL = (a1 + a2 * 0.8 + a3 * 0.5 + asub * 0.6)
+  aR = (a5 + a4 * 0.8 + a3 * 0.5 + asub * 0.6)
+  kcut = 500 + ibr * 3400 + kenv * 900 + klfo * 300
+  aL moogladder aL, kcut, 0.12
+  aR moogladder aR, kcut, 0.12
+  outs aL * kenv * iamp, aR * kenv * iamp
+endin
+
+; --- Bass: Sägezahn + Sinus-Sub, Filterhüllkurve, kurz und rund
+instr bass
+  ifrq = p4
+  iamp = p5 * 0.42
+  ibr = p6
+  irel = 0.08
+  p3 = p3 + irel
+  kenv linsegr 0, 0.004, 1, 0.12, 0.75, p3, 0.6, irel, 0
+  kfenv expseg 1, 0.18, 0.25, p3, 0.2
+  asaw vco2 1, ifrq
+  asub oscili 1, ifrq, giSine
+  afilt moogladder asaw, 180 + ibr * 1600 * kfenv + 120, 0.25
+  aout = (afilt * 0.75 + asub * 0.55) * kenv * iamp
+  outs aout, aout
+endin
+
+; --- Summ-Lead (Biene): FM mit Vibrato, leichter Hauch, sanftes Gleiten
+instr lead
+  ifrq = p4
+  iamp = p5 * 0.2
+  ibr = p6
+  irel = 0.18
+  p3 = p3 + irel
+  kenv linsegr 0, 0.03, 1, 0.2, 0.8, p3, 0.7, irel, 0
+  kvdel linseg 0, 0.25, 0, 0.35, 1
+  kvib lfo 0.006 * kvdel, 5.6
+  kfrq = ifrq * (1 + kvib)
+  kidx = 1.2 + ibr * 2.2 * kenv
+  afm foscili 1, kfrq, 1, 2.001, kidx, giSine
+  abuzz vco2 0.25, kfrq, 2, 0.32
+  abuzz butterbp abuzz, kfrq * 3, kfrq * 2
+  anoise rand 0.03
+  anoise butterbp anoise, kfrq * 4, kfrq
+  asig = (afm + abuzz + anoise) * kenv * iamp
+  asig butterlp asig, 6500
+  aL, aR Pan asig, p8
+  outs aL, aR
+endin
+
+; --- Pluck: helles Zupfen (Pollenfunken)
+instr pluck
+  ifrq = p4
+  iamp = p5 * 0.22
+  ibr = p6
+  p3 = max(p3, 0.4) + 0.6
+  aenv expsegr 1, p3, 0.001, 0.3, 0.001
+  a1 vco2 1, ifrq, 10
+  a2 vco2 0.6, ifrq * 2.003, 10
+  kcut expseg 800 + ibr * 7000, 0.25, 600, p3, 400
+  asig moogladder a1 + a2, kcut, 0.2
+  asig = asig * aenv * iamp
+  aL, aR Pan asig, p8
+  outs aL, aR
+endin
+
+; --- Riser: gefiltertes Rauschen + steigender Ton, p3 = Dauer
+instr riser
+  iamp = p5 * 0.22
+  kenv expseg 0.001, p3 * 0.92, 1, p3 * 0.08, 0.001
+  kfrq expseg 300, p3, 7000
+  anoise rand 1
+  an butterbp anoise, kfrq, kfrq * 0.6
+  kp expseg p4, p3, p4 * 4
+  aston vco2 0.3, kp
+  aston butterlp aston, kfrq
+  asig = (an + aston) * kenv * iamp
+  aL = asig
+  aR delay asig, 0.007
+  outs aL, aR
+endin
+
+; --- Boom: tiefer Einschlag mit Tonhöhenfall und kurzem Rauschtransienten
+instr boom
+  iamp = p5 * 0.8
+  p3 = max(p3, 2.4)
+  kfrq expseg p4 * 2, 0.08, p4, p3, p4 * 0.6
+  aenv expseg 1, p3, 0.0005
+  asine oscili 1, kfrq, giSine
+  asine = tanh(asine * 1.6)
+  anoise rand 1
+  kntenv expseg 1, 0.06, 0.001, p3, 0.001
+  anoise butterlp anoise, 1800
+  asig = (asine * aenv + anoise * kntenv * 0.35) * iamp
+  outs asig, asig
+endin
+
+; --- Swell: Rauschwelle (umgekehrtes Becken), p3 = Dauer
+instr swell
+  iamp = p5 * 0.14
+  kenv expseg 0.001, p3 * 0.97, 1, p3 * 0.03, 0.001
+  anoise rand 1
+  aL butterhp anoise, 3000
+  anoise2 rand 1, 0.37
+  aR butterhp anoise2, 3000
+  outs aL * kenv * iamp, aR * kenv * iamp
+endin

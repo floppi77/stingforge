@@ -1,0 +1,46 @@
+# Fremdprojekt im selben Arbeitsordner – gehört nicht zu Stingforge.
+/Astra/
+
+# Godot: Importcache und lokale Daten-/Konfigurationsordner der Werkzeuge.
+# Nach dem Klonen einmal im Editor öffnen (oder tools/import_shuttle.sh nutzen).
+/.godot/
+/.godot_data/
+/.godot_cache/
+/.godot_config/
+/.godot_home/
+/.testdata/
+
+# Erzeugte Builds. Fertige Binärdateien gehören in GitHub-Releases, nicht ins Repo.
+/build/
+/release/
+*.x86_64
+*.exe
+*.pck
+
+# Hilfsprojekte und Ablagen der Testläufe (werden von den Werkzeugen neu erzeugt).
+/tests/*/
+/preview/
+
+# Zwischenstände des Audio-Renderers (Stems, Spektrogramme, Messberichte).
+/tools/audio/build/
+
+# Laufzeitdaten des Aseprite-MCP-Wrappers.
+/assets/aseprite/.aseprite-wrapper-*
+
+# Lokale Werkzeugkonfiguration mit Maschinenpfaden.
+/.mcp.json
+/.claude/settings.local.json
+
+# Protokolle und Fortschrittsdateien.
+*.log
+docs/_shots_progress.txt
+
+# Python
+__pycache__/
+*.pyc
+
+# CC0-Klangbibliotheken (Download, siehe docs/SOUNDTRACK_KONZEPT.md).
+/tools/audio/samples/
+/tools/music/build/
+# Rohdateien der Sprachansagen (werden per tools/music/import_voice.py aufbereitet).
+/assets/audio/voice/eingang/
