@@ -349,7 +349,8 @@ func _update_timers(delta: float) -> void:
 	if evo_has("pollen_trail"):
 		pollen_cd -= delta
 		if pollen_cd <= 0.0 and vel.length() > 40.0:
-			pollen_cd = 0.22 / fusion_factor("pollen_trail", 1.35)
+			# Seltener als früher: die Spur soll die Biene nicht zudecken.
+			pollen_cd = 0.4 / fusion_factor("pollen_trail", 1.35)
 			var g := get_parent()
 			if g != null and g.has_method("spawn_pollen"):
 				g.spawn_pollen(position, (1.0 + evo_level("pollen_trail") * 0.5) * fusion_factor("pollen_trail"))

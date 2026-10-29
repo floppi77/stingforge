@@ -66,6 +66,20 @@ const HIT_ALPHA := 0.2
 ## Ein Encounter, zwei Formen – nur der tatsächliche letzte Datenboss in Level10/Rush.
 const REBORN_VISUAL = preload("res://scripts/game/boss_reborn_visual.gd")
 var reborn_visual: Node2D
+## Mantidenpaar: zweite Mantis mit eigenem Körper, eigenem Leben und eigenen Angriffen.
+## Bis eine fällt, ist hp die Summe beider; danach kämpft die Überlebende allein weiter.
+const TWIN_PART := -2
+const ORCHID := Color(1.0, 0.72, 0.95)
+var twin: AnimatedSprite2D
+var twin_pos := Vector2(660, 150)
+var twin_hp := 0.0
+var twin_max := 0.0
+var primary_hp := 0.0
+var twin_dead := true
+var twin_act := 2.2
+var twin_index := 0
+var twin_flash := 0.0
+var twin_telegraph := 0.0
 const REBORN_HP_MULT := 1.75
 ## Scheinsieg und Wiedergeburt des Endbosses: Untergang (bis DEATH_END), Ruhe und
 ## Siegesgefühl (bis CALM_END), dann Grollen und Neubildung (bis REVIVE_TIME).
@@ -90,10 +104,10 @@ const PHASE_LINES := {
 	"giant_larva": ["Die Larve rast durch den Boden!", "Die Höhle stürzt ein!"],
 	"pike_beast": ["Der Hecht peitscht das Wasser!", "Blutrausch im Schilf!"],
 	"fungus_mind": ["Die Knoten platzen auf!", "Das Pilzwesen erwacht ganz!"],
-	"mantis_pair": ["Die Klingen werden schneller!", "Kreuzhieb ohne Pause!"],
+	"mantis_pair": ["Die Überlebende erbt die Klingen!", "Kreuzhieb ohne Pause!"],
 	"mech_pollinator": ["Überlast – die Rotoren heulen!", "Notbetrieb: alle Systeme feuern!"],
-	"mutant_skater": ["Die Pumpen laufen heiß!", "Die Kanäle fluten!"],
-	"harvester": ["Neue Module fahren aus!", "Die Ernte gerät außer Kontrolle!"],
+	"mutant_skater": ["Die Pumpen laufen heiß!", "Die Rohre platzen!", "Die Kanäle fluten!"],
+	"harvester": ["Neue Module fahren aus!", "Die Ernte gerät außer Kontrolle!", "Die Dreschtrommel läuft heiß!"],
 	"swarm_queen": ["Der Hof schwärmt aus!", "Die Königin entfesselt sich!"],
 	"core_organism": ["Der Kern schlägt schneller!", "Der Kern bricht auf!", "Alles oder nichts!"],
 }
@@ -201,6 +215,8 @@ func setup(boss_id: String, hp_mult: float = 1.0, level_no: int = 1) -> void:
 	target = home
 	_apply_phase(0, true)
 	_build_visuals()
+	if id == "mantis_pair":
+		_setup_twin()
 
 func _build_visuals() -> void:
 	var spr_name := String(def.get("sprite", "boss_beetle"))
@@ -237,8 +253,10 @@ func _spawn_parts() -> void:
 		spr.z_index = 3
 		spr.position = Vector2(-40.0 - i * 34.0, -70.0 + i * 70.0)
 		add_child(spr)
+		# Erntemaschine Phase 2: zähere Beschützer.
+		var part_hp := max_hp * (0.13 if id == "harvester" and phase == 1 else 0.08)
 		parts.append({
-			"node": spr, "hp": max_hp * 0.08, "max_hp": max_hp * 0.08,
+			"node": spr, "hp": part_hp, "max_hp": part_hp,
 			"offset": Vector2(-40.0 - i * 34.0, -70.0 + i * 70.0), "phase": float(i),
 			"fire_t": 1.2 + i * 0.4, "dead": false,
 		})
@@ -297,7 +315,11 @@ func _physics_process(delta: float) -> void:
 	if reviving:
 		_tick_reviving(delta)
 		return
+	var age_before := age
 	age += delta
+	# Pilzboss: Heilpilz samt Schirmlingen erscheint kurz nach dem Auftritt.
+	if id == "fungus_mind" and age_before < 2.5 and age >= 2.5:
+		_fungus_court()
 	hit_flash = maxf(0.0, hit_flash - delta)
 	telegraph = maxf(0.0, telegraph - delta)
 	invuln = maxf(0.0, invuln - delta)
@@ -311,6 +333,8 @@ func _physics_process(delta: float) -> void:
 		_tick_embers(delta)
 	if id == "pike_beast" and phase >= 1 and not dead and not submerged:
 		_tick_whip(delta)
+	if id == "mutant_skater" and phase >= 2 and not dead:
+		_tick_pipes(delta)
 	if roar_t > 0.0:
 		_tick_roar(delta)
 	else:
@@ -321,6 +345,8 @@ func _physics_process(delta: float) -> void:
 	core_glow.position = Vector2(-46, 0)
 	core_glow.visible = vulnerable
 	_move(delta)
+	if not twin_dead:
+		_tick_twin(delta)
 	_tick_timeline(delta)
 	_tick_parts(delta)
 	# Auch angekündigte Sprünge/Anstürme im Zeitplan dürfen nicht in den Header.
@@ -475,7 +501,17 @@ func _update_pose(delta: float) -> void:
 func _move_parts() -> void:
 	for p in parts:
 		if p.get("node", null) != null and is_instance_valid(p.node) and not p.dead:
-			p.node.position = (p["offset"] as Vector2) + Vector2(sin(age * 2.0 + float(p.phase)) * 8.0, cos(age * 1.4 + float(p.phase)) * 6.0)
+			var off: Vector2 = p["offset"]
+			if id == "harvester" and phase == 1:
+				# Phase 2: die Beschützer schwenken weit um die Maschine.
+				off = off.rotated(sin(age * 0.9 + float(p.phase) * 1.7) * 0.7) + Vector2(0, sin(age * 1.6 + float(p.phase)) * 30.0)
+			p.node.position = off + Vector2(sin(age * 2.0 + float(p.phase)) * 8.0, cos(age * 1.4 + float(p.phase)) * 6.0)
+
+## Weltposition eines Moduls (folgt der sichtbaren Bewegung).
+func _part_world(p: Dictionary) -> Vector2:
+	if p.get("node", null) != null and is_instance_valid(p.node):
+		return (p.node as Node2D).position + position
+	return (p["offset"] as Vector2) + position
 
 func _tick_parts(delta: float) -> void:
 	for p in parts:
@@ -484,7 +520,7 @@ func _tick_parts(delta: float) -> void:
 		p.fire_t -= delta
 		if p.fire_t <= 0.0:
 			p.fire_t = 1.6
-			var world: Vector2 = (p["offset"] as Vector2) + position
+			var world: Vector2 = _part_world(p)
 			var g := get_parent()
 			if g != null and g.has_method("spawn_enemy_bullet"):
 				var aim: Vector2 = (g.player_position() - world).normalized()
@@ -537,6 +573,9 @@ func _next_pattern() -> void:
 		"aimed_spread": _p_aimed_spread(5, 0.42)
 		"torpedo": _p_torpedo()
 		"node_pulse": _p_node_pulse()
+		"orchid_needles": _p_orchid_needles()
+		"orchid_scythe": _p_orchid_scythe()
+		"sprouts": _p_sprouts()
 		"spore_rain": _p_spore_rain()
 		"spore_rings": _p_spore_rings()
 		"mantis_sweep": _p_mantis_sweep(false)
@@ -553,6 +592,8 @@ func _next_pattern() -> void:
 		"module_fire": _p_module_fire()
 		"press_slam": _p_press_slam()
 		"razor_arc": _p_razor_arc()
+		"harvester_flank": _p_harvester_flank()
+		"harvest_storm": _p_harvest_storm()
 		"summon_guards": _p_summon_guards()
 		"queen_spiral": _p_queen_spiral(false)
 		"queen_spiral_fast": _p_queen_spiral(true)
@@ -565,11 +606,14 @@ func _next_pattern() -> void:
 		"mantis_pounce": _p_mantis_pounce()
 		"queen_dive": _p_queen_dive()
 		"skater_dash": _p_skater_dash()
+		"skim_strike": _p_skim_strike()
+		"ripple_ring": _p_ripple_ring()
 		"harvester_ram": _p_harvester_ram()
 		"reborn_crown": _p_reborn_crown()
 		"reborn_lance": _p_reborn_lance()
 		"reborn_wings": _p_reborn_wings()
 		"reborn_storm": _p_reborn_storm()
+		"safe_zone": _p_safe_zone()
 		_:
 			_p_radial(10, 0.85)
 	act_timer = interval
@@ -805,6 +849,8 @@ func _phase_entry(old_parts: Array) -> void:
 		return
 	match id:
 		"fungus_mind":
+			# Neue Phase: ein verlorener Heilpilz wächst nach.
+			_fungus_court()
 			var keep := int(phase_defs[phase].get("nodes", 0))
 			for i in range(keep, old_parts.size()):
 				var p: Dictionary = old_parts[i]
@@ -1013,6 +1059,173 @@ func _p_torpedo() -> void:
 		)
 	)
 
+## Pilzboss: Heilung durch den Heilpilz, höchstens bis zum Beginn der laufenden Phase.
+func heal(amount: float) -> void:
+	if dead or amount <= 0.0:
+		return
+	var cap := max_hp * float(phase_defs[phase].get("hp", 1.0))
+	if hp >= cap:
+		return
+	hp = minf(cap, hp + amount)
+	var g := get_parent()
+	if g != null and "fx" in g:
+		g.fx.add("spark", position + Vector2(randf_range(-30, 30), randf_range(-30, 30)),
+			{"life": 0.4, "scale": 1.4, "tint": Color(0.5, 1.0, 0.5)})
+
+## Pilzboss: Heilpilz mit drei kreisenden Schirmlingen hinter dem Boss.
+func _fungus_court() -> void:
+	var g := get_parent()
+	if g == null or not g.has_method("spawn_enemy"):
+		return
+	for e in g.enemies:
+		if is_instance_valid(e) and not e.dead and e.id == "fungus_healer":
+			return
+	var healer = g.spawn_enemy("fungus_healer", Vector2(980, 130), {})
+	if healer == null:
+		return
+	for i in range(3):
+		g.spawn_enemy("fungus_guard", healer.position, {"host": healer, "mirror": float(i)})
+	Audio.sfx("explosion_small", -8.0, 1.3)
+
+## Pilzlinge brechen an drei Stellen aus dem Waldboden.
+func _p_sprouts() -> void:
+	_telegraph(0.4)
+	var g := get_parent()
+	if g == null:
+		return
+	var live := 0
+	for e in g.enemies:
+		if is_instance_valid(e) and not e.dead and e.id == "fungus_sprout":
+			live += 1
+	for i in range(mini(3, 6 - live)):
+		var x := 320.0 + i * 150.0 + _rng.randf_range(-30, 30)
+		schedule(0.4 + i * 0.25, func():
+			var g2 := get_parent()
+			if g2 != null and not dead:
+				g2.spawn_enemy("fungus_sprout", Vector2(x, App.PLAY_BOTTOM - 22.0), {})
+		)
+
+# --------------------------------------------------------------- Mantidenpaar
+func _setup_twin() -> void:
+	twin = AnimatedSprite2D.new()
+	twin.sprite_frames = Art.sprite_frames(String(def.get("sprite", "boss_mantis")))
+	twin.play("default")
+	twin.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	twin.z_index = 4
+	twin.scale = Vector2(0.85, 0.85)
+	twin.modulate = ORCHID
+	add_child(twin)
+	primary_hp = max_hp * 0.5
+	twin_max = max_hp * 0.5
+	twin_hp = twin_max
+	twin_dead = false
+	twin_pos = Vector2(1040, 150)
+	twin.position = twin_pos - position
+
+## Die Orchideenmantis lauert spiegelbildlich zur grünen und greift im eigenen Takt an.
+func _tick_twin(delta: float) -> void:
+	var mirror_y := clampf(App.PLAY_BOTTOM + App.PLAY_TOP - position.y, 110.0, 430.0)
+	var goal := Vector2(650.0 + sin(age * 0.6) * 40.0, mirror_y + sin(age * 1.7) * 12.0)
+	twin_pos = twin_pos.lerp(goal, clampf(delta * 1.6, 0.0, 1.0))
+	twin.position = twin_pos - position
+	twin_flash = maxf(0.0, twin_flash - delta)
+	twin_telegraph = maxf(0.0, twin_telegraph - delta)
+	if twin_flash > 0.0:
+		twin.modulate = Color(2.0, 2.0, 2.0)
+	elif twin_telegraph > 0.0:
+		twin.modulate = Color(1.6, 0.7, 0.9)
+	else:
+		twin.modulate = ORCHID
+	if invuln > 0.0 or phase_banner_t > 0.0 or age < 2.0:
+		return
+	twin_act -= delta
+	if twin_act > 0.0:
+		return
+	twin_act = 1.8 * _rate()
+	var pats: Array = phase_defs[0].get("twin_patterns", ["orchid_needles"])
+	twin_index = (twin_index + 1) % pats.size()
+	match String(pats[twin_index]):
+		"orchid_needles": _p_orchid_needles()
+		"orchid_scythe": _p_orchid_scythe()
+
+## Treffer gehen an die getroffene Mantis; hp bleibt die Summe für Balken und Wertung.
+func _pair_damage(amount: float, hit_part: int) -> void:
+	var dmg := amount * damage_mult
+	if not vulnerable:
+		dmg *= 0.35
+	if hit_part == TWIN_PART:
+		twin_hp -= dmg
+		twin_flash = 0.06
+	else:
+		primary_hp -= dmg
+		hit_flash = 0.06
+	hp = maxf(0.0, primary_hp) + maxf(0.0, twin_hp)
+	hp_changed.emit(hp, max_hp)
+	if twin_hp <= 0.0:
+		_pair_falls(false)
+	elif primary_hp <= 0.0:
+		_pair_falls(true)
+
+## Eine Mantis fällt: die andere erbt ihre Angriffe (Phase II).
+func _pair_falls(primary_fell: bool) -> void:
+	var g := get_parent()
+	var fall_pos := position if primary_fell else twin_pos
+	if g != null and "fx" in g:
+		g.fx.explode(fall_pos, 3.0, Color(0.7, 1.0, 0.6) if primary_fell else ORCHID)
+	Audio.sfx("explosion_big", -2.0, 0.9)
+	if primary_fell:
+		# Die Orchideenmantis übernimmt den Platz und das Kommando.
+		position = twin_pos
+		hp = maxf(1.0, twin_hp)
+		body.scale = twin.scale
+	else:
+		hp = maxf(1.0, primary_hp)
+	twin.visible = false
+	twin_dead = true
+	_bounds_dirty = true
+	hp_changed.emit(hp, max_hp)
+	_apply_phase(1)
+	if primary_fell:
+		rage_tint = ORCHID * rage_tint
+
+## Ursprung der Orchideen-Angriffe: die zweite Mantis, nach ihrem Erbe die Überlebende.
+func _orchid_origin() -> Vector2:
+	return twin_pos if not twin_dead else position
+
+func _orchid_telegraph(t: float) -> void:
+	if not twin_dead:
+		twin_telegraph = t
+		Audio.sfx("boss_warn", -22.0, 1.7)
+	else:
+		_telegraph(t)
+
+## Nadelfächer: drei gezielte Salven aus je fünf Nadeln.
+func _p_orchid_needles() -> void:
+	_orchid_telegraph(0.4)
+	for v in range(3):
+		schedule(0.4 + v * 0.28, func():
+			var g := get_parent()
+			if g == null or dead:
+				return
+			var from := _orchid_origin() + Vector2(-40, 0)
+			var aim: Vector2 = (g.player_position() - from).normalized()
+			for k in range(5):
+				g.spawn_enemy_bullet(from, aim.rotated((k - 2) * 0.11) * 300.0, 1, "ebullet_needle")
+		)
+
+## Sensenwelle: ein Bogen aus Kugeln, der sich von oben nach unten auffächert.
+func _p_orchid_scythe() -> void:
+	_orchid_telegraph(0.5)
+	for k in range(11):
+		schedule(0.5 + k * 0.045, func():
+			var g := get_parent()
+			if g == null or dead:
+				return
+			var from := _orchid_origin() + Vector2(-30, 0)
+			var a := PI - 0.9 + float(k) * 0.18
+			g.spawn_enemy_bullet(from, Vector2.RIGHT.rotated(a) * 230.0, 1, "ebullet_orb")
+		)
+
 func _p_node_pulse() -> void:
 	var alive_parts := parts.filter(func(p): return not p.dead)
 	if alive_parts.is_empty():
@@ -1193,7 +1406,7 @@ func _p_module_fire() -> void:
 			var g := get_parent()
 			if g == null or dead or p.dead:
 				return
-			var world: Vector2 = (p["offset"] as Vector2) + position
+			var world: Vector2 = _part_world(p)
 			var aim: Vector2 = (g.player_position() - world).normalized()
 			for k in range(3):
 				g.spawn_enemy_bullet(world, aim.rotated((k - 1) * 0.2) * 240.0, 1, "ebullet_needle")
@@ -1215,18 +1428,70 @@ func _p_press_slam() -> void:
 			)
 	)
 
+## Erntemaschine: ab Phase 3 deutlich mehr Geschosse, in der kurzen Schlussphase noch mehr.
+func _harvest_density() -> int:
+	if id != "harvester":
+		return 0
+	return 0 if phase < 2 else (1 if phase == 2 else 2)
+
 func _p_razor_arc() -> void:
 	_telegraph(0.4)
-	for i in range(3):
-		schedule(0.4 + i * 0.28, func():
+	var extra := _harvest_density()
+	for i in range(3 + extra):
+		schedule(0.4 + i * 0.24, func():
 			var g := get_parent()
 			if g == null or dead:
 				return
 			var p: Vector2 = g.player_position()
 			var aim: Vector2 = (p - position).normalized()
-			for k in range(9):
-				g.spawn_enemy_bullet(position, aim.rotated((k - 4) * 0.14) * 320.0, 1, "ebullet_needle", {"r": 5.0})
+			var n := 9 + extra * 4
+			for k in range(n):
+				g.spawn_enemy_bullet(position, aim.rotated((float(k) - float(n - 1) * 0.5) * 0.12) * 320.0, 1, "ebullet_needle", {"r": 5.0})
 		)
+
+## Erntemaschine: Dreschsturm – rotierende Spirale aus der Trommel.
+func _p_harvest_storm() -> void:
+	_telegraph(0.4)
+	var arms := 3 + _harvest_density()
+	for i in range(28):
+		schedule(0.4 + i * 0.06, func():
+			var g := get_parent()
+			if g == null or dead:
+				return
+			for a in range(arms):
+				var ang := PI + float(i) * 0.23 + TAU * float(a) / float(arms)
+				g.spawn_enemy_bullet(position + Vector2(-30, -10), Vector2.RIGHT.rotated(ang) * 210.0, 1, "ebullet_orb")
+		)
+
+## Erntemaschine Phase 1: rollt rechts aus dem Bild, kommt links hinter der Biene herein,
+## feuert nach rechts, verschwindet links und rollt rechts wieder herein.
+func _p_harvester_flank() -> void:
+	var g := get_parent()
+	if g == null:
+		return
+	attack_in_progress = true
+	_telegraph(0.4)
+	var gy := _ground_y()
+	_motion(Vector2(1130.0, gy), 0.9, "smooth", 0.0, func():
+		position = Vector2(-170.0, gy)
+		Audio.sfx("boss_warn", -8.0, 0.8)
+		_motion(Vector2(110.0, gy), 0.9, "smooth", 0.0, func():
+			for v in range(4):
+				schedule(v * 0.4, func():
+					var g2 := get_parent()
+					if g2 == null or dead:
+						return
+					var from := position + Vector2(50, -20)
+					var aim: Vector2 = ((g2.player_position() as Vector2) - from).normalized()
+					if aim.x < 0.2:
+						aim = Vector2(1, aim.y).normalized()
+					for k in range(5):
+						g2.spawn_enemy_bullet(from, aim.rotated((k - 2) * 0.16) * 270.0, 1, "ebullet_needle")
+				)
+			_hold(1.9, func():
+				_motion(Vector2(-170.0, gy), 0.8, "smooth", 0.0, func():
+					position = Vector2(1130.0, gy)
+					_motion(Vector2(780.0, gy), 1.0, "smooth", 0.0, func(): attack_in_progress = false)))))
 
 func _p_summon_guards() -> void:
 	_telegraph(0.5)
@@ -1322,6 +1587,22 @@ func _p_final_fury() -> void:
 			)
 	)
 
+## Kernorganismus: hält inne, der ganze Schirm wird zur Warnfläche bis auf eine
+## Schutzzone. Höchstens alle SAFE_ZONE_COOLDOWN Sekunden, sonst ein Strahl.
+const SAFE_ZONE_COOLDOWN := 9.0
+var _safe_zone_last := -100.0
+
+func _p_safe_zone() -> void:
+	var g := get_parent()
+	if g == null or not g.has_method("begin_safe_zone") or age - _safe_zone_last < SAFE_ZONE_COOLDOWN:
+		_p_core_beam(true)
+		return
+	_safe_zone_last = age
+	var window: float = g.begin_safe_zone()
+	telegraph = window
+	telegraph_color = Color(1.0, 0.2, 0.15, 0.5)
+	_hold(window + 0.6)
+
 ## Neue Form: angekuendigte Kombinationen, alle Kugeln weiterhin zentral durch Game.
 func _p_reborn_crown() -> void:
 	_p_radial(14, 1.05)
@@ -1381,6 +1662,87 @@ func _p_queen_dive() -> void:
 	)
 
 ## Wasserläufer: blitzschnelles Gleiten über die Bahn, Wellen spritzen hinterher.
+## Wasserläufer: rast auf der Höhe der Biene quer durch die Arena und zurück; die
+## zurückgelassenen Blasen zerplatzen kurz darauf zu Spritzern.
+func _p_skim_strike() -> void:
+	var g := get_parent()
+	if g == null:
+		return
+	var lane := clampf((g.player_position() as Vector2).y, 130.0, 430.0)
+	var start := position
+	_telegraph(0.7)
+	telegraph_color = Color(0.5, 0.85, 1.0, 0.5)
+	_motion(_clamp_target(Vector2(position.x, lane)), 0.5, "smooth")
+	schedule(0.75, func():
+		if dead:
+			return
+		Audio.sfx("dash", -8.0, 0.8)
+		_motion(Vector2(120.0, lane), 0.75, "smooth", 0.0, func():
+			_hold(0.25, func(): _motion(_clamp_target(start), 0.8, "smooth")))
+		for i in range(8):
+			schedule(i * 0.09, func():
+				var g2 := get_parent()
+				if g2 == null or dead:
+					return
+				var at := position + Vector2(30, 0)
+				var bubble: Dictionary = g2.bullets.spawn_enemy(at, Vector2.ZERO, 1, "ebullet_orb",
+					{"life": 1.1, "scale": 1.3, "tint": Color(0.6, 0.85, 1.0), "aimed": false})
+				schedule(1.0, func():
+					var g3 := get_parent()
+					if g3 == null or dead:
+						return
+					for k in range(4):
+						g3.spawn_enemy_bullet(at, Vector2.UP.rotated(k * PI * 0.5 + 0.4) * 170.0, 1, "ebullet_spore",
+							{"tint": Color(0.6, 0.85, 1.0)})
+				)
+			)
+	)
+
+## Wellenringe: drei Ringe aus Kugeln, jeder mit einer Lücke in Richtung der Biene.
+func _p_ripple_ring() -> void:
+	_telegraph(0.45)
+	for r in range(3):
+		schedule(0.45 + r * 0.38, func():
+			var g := get_parent()
+			if g == null or dead:
+				return
+			var gap: float = ((g.player_position() as Vector2) - position).angle() + _rng.randf_range(-0.5, 0.5)
+			for k in range(18):
+				var a := TAU * float(k) / 18.0
+				if absf(wrapf(a - gap, -PI, PI)) < 0.42:
+					continue
+				g.spawn_enemy_bullet(position, Vector2.RIGHT.rotated(a) * 165.0, 1, "ebullet_orb",
+					{"tint": Color(0.6, 0.85, 1.0)})
+			Audio.sfx("hit", -12.0, 0.6)
+		)
+
+## Phase 3 "Die Rohre platzen": Dauerregen aus Wasserspritzern von oben, dazu Rohrbrüche.
+var _pipe_t := 0.0
+var _pipe_burst_t := 1.0
+
+func _tick_pipes(delta: float) -> void:
+	var g := get_parent()
+	if g == null or phase_banner_t > 0.0:
+		return
+	_pipe_t -= delta
+	_pipe_burst_t -= delta
+	var p: Vector2 = g.player_position()
+	while _pipe_t <= 0.0:
+		_pipe_t += 0.09
+		var x := _rng.randf_range(40.0, 920.0)
+		var drift := clampf((p.x - x) * 0.25, -70.0, 70.0)
+		g.spawn_enemy_bullet(Vector2(x, App.PLAY_TOP - 6.0), Vector2(drift, _rng.randf_range(250.0, 320.0)), 1,
+			"ebullet_spore", {"tint": Color(0.6, 0.85, 1.0)})
+	if _pipe_burst_t <= 0.0:
+		_pipe_burst_t = 1.4
+		var bx := clampf(p.x + _rng.randf_range(-160.0, 160.0), 60.0, 900.0)
+		for k in range(7):
+			g.spawn_enemy_bullet(Vector2(bx, App.PLAY_TOP - 6.0), Vector2.DOWN.rotated((k - 3) * 0.2) * 280.0, 1,
+				"ebullet_spore", {"tint": Color(0.6, 0.85, 1.0)})
+		if "fx" in g:
+			g.fx.water_splash(Vector2(bx, App.PLAY_TOP + 4.0), 1.2)
+		Audio.sfx("explosion_small", -12.0, 1.4)
+
 func _p_skater_dash() -> void:
 	_telegraph(0.4)
 	var g := get_parent()
@@ -1490,6 +1852,8 @@ func trace_hit(from: Vector2, to: Vector2, radius: float = 0.0) -> Dictionary:
 	if dead or reviving:
 		return {}
 	var targets: Array = [{"node": body, "part": -1}]
+	if not twin_dead and is_instance_valid(twin):
+		targets.append({"node": twin, "part": TWIN_PART})
 	for i in range(parts.size()):
 		var part: Dictionary = parts[i]
 		if not part.dead and is_instance_valid(part.get("node")):
@@ -1582,6 +1946,9 @@ func _end_cave_in() -> void:
 
 func take_damage(amount: float, src: Vector2 = Vector2.ZERO, hit_part: int = -1) -> void:
 	if dead or reviving or invuln > 0.0:
+		return
+	if not twin_dead:
+		_pair_damage(amount, hit_part)
 		return
 	var dmg := amount * damage_mult
 	if not vulnerable:
@@ -1736,8 +2103,8 @@ func _finish_reviving() -> void:
 	# Keine erneute Bedrohungsaufbereitung: diese Form besitzt GENAU drei Phasen.
 	phase_defs = [
 		{"hp": 1.0, "patterns": ["reborn_crown", "reborn_lance"], "interval": 1.15 * 0.8, "move": "orbit"},
-		{"hp": 0.66, "patterns": ["reborn_wings", "reborn_lance", "reborn_crown"], "interval": 0.9 * 0.8, "move": "weave"},
-		{"hp": 0.33, "patterns": ["reborn_storm", "reborn_wings", "reborn_lance"], "interval": 0.6 * 0.8, "move": "final"},
+		{"hp": 0.66, "patterns": ["reborn_wings", "reborn_lance", "safe_zone", "reborn_crown"], "interval": 0.9 * 0.8, "move": "weave"},
+		{"hp": 0.33, "patterns": ["reborn_storm", "safe_zone", "reborn_wings", "reborn_lance"], "interval": 0.6 * 0.8, "move": "final"},
 	]
 	name_text = "Kern · Wiedergeboren"
 	fake_dead = false

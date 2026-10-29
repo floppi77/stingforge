@@ -224,6 +224,7 @@ func _physics_process(delta: float) -> void:
 	_update_push(delta)
 	_update_pickups(delta)
 	_update_hazards(delta)
+	_tick_safe_zone(delta)
 	_update_collisions()
 	_update_pollens(delta)
 	masters.update(delta)
@@ -397,10 +398,12 @@ func _on_hazard(kind: String, data: Dictionary) -> void:
 			fx.add_hazard({"kind": "current", "p": Vector2.ZERO, "dir": float(data.dir),
 				"t": 0.0, "life": 4.5, "max_life": 4.5, "push": float(data.dir) * 90.0})
 		"gravity_pulse", "gravity_field":
+			if not safe_zone.is_empty():
+				return
 			# Kraft statt Schadensring. Der Player addiert gravity_pull() separat:
 			# kein Wind-Gegenfilter, auch im Präzisionsflug zehn Prozent Reserve.
 			fx.add_hazard({"kind": "gravity_field", "p": Vector2.ZERO,
-				"t": 0.0, "life": 3.4, "max_life": 3.4})
+				"t": 0.0, "life": 2.8, "max_life": 2.8})
 		"order_marker", "generator_relay":
 			_spawn_generator_relay()
 
@@ -527,6 +530,15 @@ func _bullet_hits_panel(b: Dictionary, panel: Rect2) -> bool:
 			return true
 	return false
 
+## Sichttrübung: Chance, dass ein gezieltes Geschoss in einer Pollenwolke erlischt.
+const BLIND_CHANCE := 0.15
+## Wind im Kernlevel (Anteil der Biene-Geschwindigkeit) und die Schutzzonen-Attacke.
+const GRAVITY_STRENGTH := 0.65
+const SAFE_ZONE_RADIUS := 34.0
+const SAFE_ZONE_REACTION := 0.35
+const SAFE_ZONE_DAMAGE := 3
+var safe_zone: Dictionary = {}
+
 func _apply_pollen_defenses(b: Dictionary) -> void:
 	if player == null or float(b.life) <= 0.0:
 		return
@@ -540,8 +552,11 @@ func _apply_pollen_defenses(b: Dictionary) -> void:
 		b.erase("pollen_base_slow")
 	if not player.evo_has("pollen_blind") or not bool(b.get("aimed", true)) or fx == null:
 		return
+	# Sichttrübung: nur eigene Pollenwolken, höchstens eine Chance je Geschoss.
+	if bool(b.get("blind_checked", false)):
+		return
 	for h in fx.hazards:
-		if String(h.kind) not in ["pollen_cloud", "spore_cloud"]:
+		if String(h.kind) != "pollen_cloud" or not bool(h.get("friendly", false)):
 			continue
 		if not _segment_hit(b, h.p, float(h.radius)):
 			continue
@@ -553,23 +568,66 @@ func _apply_pollen_defenses(b: Dictionary) -> void:
 			continue
 		seen[h.blind_id] = true
 		b["pollen_seen"] = seen
-		if rng.randf() < 0.4 * player.fusion_factor("pollen_blind", 1.5):
+		b["blind_checked"] = true
+		if rng.randf() < BLIND_CHANCE * player.fusion_factor("pollen_blind", 1.5):
 			b.life = 0.0
-			return
+		return
 
 func current_push() -> Vector2:
 	return push.limit_length(Player.BASE_SPEED * 0.62)
 
+## Kernorganismus: der ganze Schirm wird zur Warnfläche bis auf eine Schutzzone.
+## Das Zeitfenster reicht mit Grundgeschwindigkeit gerade von der fernsten Ecke.
+func begin_safe_zone() -> float:
+	var b: Rect2 = player.play_bounds
+	var margin := SAFE_ZONE_RADIUS + 10.0
+	var c := Vector2(rng.randf_range(b.position.x + margin, minf(b.end.x - margin, 700.0)),
+		rng.randf_range(b.position.y + margin, b.end.y - margin))
+	var far := 0.0
+	for corner in [b.position, Vector2(b.end.x, b.position.y), Vector2(b.position.x, b.end.y), b.end]:
+		far = maxf(far, (corner as Vector2).distance_to(c))
+	var window := maxf(0.0, far - SAFE_ZONE_RADIUS * 0.5) / Player.BASE_SPEED + SAFE_ZONE_REACTION
+	# Windstille: laufende Schwerkraftfelder klingen sofort ab.
+	for h in fx.hazards:
+		if String(h.kind) == "gravity_field":
+			h.life = minf(float(h.life), 0.25)
+	clear_enemy_bullets()
+	safe_zone = {"kind": "safe_zone", "p": c, "r": SAFE_ZONE_RADIUS, "t": 0.0,
+		"life": window, "max_life": window}
+	fx.add_hazard(safe_zone)
+	Audio.sfx("boss_warn", -6.0, 0.7)
+	_notify(Loc.tx("Rette dich in die Schutzzone!"), minf(window, 2.5))
+	return window
+
+func _tick_safe_zone(_delta: float) -> void:
+	if safe_zone.is_empty():
+		return
+	if boss == null or not is_instance_valid(boss) or boss.dead:
+		safe_zone.life = 0.0
+		safe_zone = {}
+		return
+	if float(safe_zone.life) > 0.0:
+		return
+	var c: Vector2 = safe_zone.p
+	var inside := player.position.distance_to(c) <= float(safe_zone.r)
+	safe_zone = {}
+	if inside:
+		Audio.sfx("shield_hit", -10.0, 1.4)
+		return
+	player.iframes = 0.0
+	player.take_damage(SAFE_ZONE_DAMAGE, c)
+	shake(9.0)
+
 ## Eigenständige Schwerkraft: Wind-Gegensteuerung darf diese Kraft nicht auf28%
 ## abschwächen. Mehrere Felder teilen sich die Obergrenze statt sich zu addieren.
 func gravity_pull() -> Vector2:
-	if fx == null or player == null:
+	if fx == null or player == null or not safe_zone.is_empty():
 		return Vector2.ZERO
 	var strength := 0.0
 	for h in fx.hazards:
 		if String(h.kind) == "gravity_field" and float(h.get("life", 0.0)) > 0.0:
 			strength = maxf(strength, clampf(float(h.life) / 0.6, 0.0, 1.0))
-	return Vector2.DOWN * player._speed() * 0.90 * strength
+	return Vector2.DOWN * player._speed() * GRAVITY_STRENGTH * strength
 
 func _update_pickups(delta: float) -> void:
 	var keep: Array = []
@@ -895,7 +953,7 @@ func spawn_pollen(pos: Vector2, strength: float, burst: bool = false) -> void:
 		"color": Color(0.7, 1.0, 0.6, 0.26)})
 	# Explosionswolken stapeln sich bei vielen Abschüssen: deutlich durchsichtiger,
 	# damit die Biene darin sichtbar bleibt.
-	fx.add("pollen", pos, {"life": 0.9, "scale": strength, "tint": Color(0.8, 1.0, 0.7, 0.35 if burst else 0.55)})
+	fx.add("pollen", pos, {"life": 0.9, "scale": strength, "tint": Color(0.9, 1.0, 0.8, 0.22 if burst else 0.32)})
 	if burst and masters != null:
 		masters.schedule_bloom(pos, radius)
 	if burst:
@@ -1188,6 +1246,10 @@ func _boss_hp_scale(for_level: int = 0) -> float:
 
 func _on_boss_phase(index: int) -> void:
 	player.on_boss_phase()
+	# Der Phasenwechsel friert alles ein: eine laufende Schutzzone verfällt ohne Schaden.
+	if not safe_zone.is_empty():
+		safe_zone.life = 0.0
+		safe_zone = {}
 	Bindings.rumble(0.4, 0.9, 0.5)
 	# Laufende Geschosse zerplatzen sichtbar, statt einfach zu verschwinden.
 	var sparks := 0

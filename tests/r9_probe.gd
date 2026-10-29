@@ -256,7 +256,7 @@ func _boss_jump() -> void:
 	_ok(d.enemies_spawned == spawned_before, "Debug-Sprung: keine neuen Wellen während des Bosskampfs")
 	# Pollenwolken: Explosionswolken deutlich durchsichtiger als zuvor (Deckkraft 0,22 → 0,077).
 	var src := FileAccess.get_file_as_string("res://scripts/game/fx.gd")
-	_ok(src.contains("fade *= 0.35 if bool(h.get(\"burst\", false)) else 0.5"), "Pollenwolken: Explosionswolken durchsichtiger")
+	_ok(src.contains("fade *= 0.25 if bool(h.get(\"burst\", false)) else 0.32"), "Pollenwolken: Explosionswolken durchsichtiger")
 	app.menu_main()
 	await _wait(0.2)
 

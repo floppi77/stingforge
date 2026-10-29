@@ -9,10 +9,21 @@ func _ready() -> void:
 	header_note = "Spiel pausiert · F4 oder Esc schließt · links/rechts stellt Stufen ein · Sperren der Werkstatt gelten hier nicht"
 	super._ready()
 
+## Gewählter Boss für den Direktsprung (Levelnummer).
+var boss_pick := 0
+
 func build_items() -> void:
+	if boss_pick <= 0:
+		boss_pick = clampi(int(app.run_level) if app != null else 1, 1, Data.levels.size())
 	var list: Array = []
 	list.append({"kind": "sep"})
 	list.append({"kind": "action", "text": "Zum Levelboss", "id": "boss", "compact": true, "accent": true})
+	var pick_boss := String(Data.level(boss_pick).get("boss", ""))
+	list.append({"kind": "choice", "id": "bossjump", "compact": true,
+		"text": "Boss wählen und bekämpfen",
+		"value_text": "L%02d %s" % [boss_pick, Loc.tx(String(Data.boss(pick_boss).get("name", pick_boss)))],
+		"value_color": UiTheme.ACCENT, "disabled": app != null and String(app.mode) != "campaign"})
+	list.append({"kind": "action", "text": "Abspann starten", "id": "credits", "compact": true})
 	list.append({"kind": "action", "text": "Zum nächsten Level", "id": "next", "compact": true})
 	list.append({"kind": "action", "text": "Vollheilen", "id": "heal", "compact": true})
 	list.append({"kind": "sep"})
@@ -67,7 +78,11 @@ func on_adjust(index: int, dir: int) -> void:
 	if index >= items.size():
 		return
 	var id := String(items[index].get("id", ""))
-	if id.begins_with("u:"):
+	if id == "bossjump":
+		boss_pick = wrapi(boss_pick + dir, 1, Data.levels.size() + 1)
+		Audio.sfx("ui_move", -10.0, 1.0, true)
+		_after_change()
+	elif id.begins_with("u:"):
 		_set_bar_level(id.substr(2), dir)
 	elif id.begins_with("s:"):
 		_set_shop_level(id.substr(2), dir)
@@ -84,6 +99,14 @@ func on_activate(index: int) -> void:
 		"next":
 			Audio.sfx("ui_ok", -6.0, 1.0, true)
 			app.debug_next_level()
+		"bossjump":
+			if app.debug_fight_boss(boss_pick):
+				Audio.sfx("ui_ok", -6.0, 1.0, true)
+			else:
+				Audio.sfx("deny", -12.0, 1.0, true)
+		"credits":
+			Audio.sfx("ui_ok", -6.0, 1.0, true)
+			app.debug_credits()
 		"heal":
 			Audio.sfx("purchase", -5.0, 1.0, true)
 			app.debug_full_heal()
@@ -224,6 +247,13 @@ func _fill_side() -> void:
 			_side_line("Preis im Spiel: %s Punkte" % _fmt(ShopData.cost(sid, lvl)), 13, UiTheme.DIM)
 		else:
 			_side_line("Vollständig ausgebaut.", 14, UiTheme.OK)
+	elif id == "bossjump":
+		_side_line("Boss wählen", 20, UiTheme.ACCENT, true)
+		_side_line("Links/rechts wählt den Boss, Bestätigen lädt dessen Level und startet sofort "
+			+ "den Bosskampf. Nur im Run.", 14, UiTheme.TEXT)
+	elif id == "credits":
+		_side_line("Abspann", 20, UiTheme.ACCENT, true)
+		_side_line("Zeigt das Abspann-Level als Vorschau. Der Run bleibt unverändert.", 14, UiTheme.TEXT)
 	else:
 		_side_line("Debug", 20, UiTheme.ACCENT, true)
 		_side_line("Aktionen zum Testen. Änderungen an Upgrades gelten sofort und werden "

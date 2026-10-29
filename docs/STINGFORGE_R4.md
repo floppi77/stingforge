@@ -297,6 +297,39 @@ Leveln rot ([Rotlog](../build/logs/r3/r4-miniboss-red.log)), jetzt 10 von 10 gr�
 - **Debug-Sprung zum Boss:** beendet jetzt Abschnitte, Wellen, Bodengegner und Zwischengegner;
   vorher lief das Level im Hintergrund weiter.
 
+## Achte Nachrunde: Bosse, Abspann, Ko-fi
+
+- **Pilzwesen:** 3000 statt 4600 HP. Pilzlinge springen aus dem Boden. Ein Heilpilz heilt
+  den Boss um 0,6 % je Sekunde, bis zur Grenze der laufenden Phase. Drei umkreisende
+  Schirmlinge schützen ihn: Solange einer lebt, nimmt er nur 10 % Schaden.
+- **Mantidenpaar:** zwei Körper in einem Bossknoten, je halbe Lebenspunkte. Die zweite
+  Mantis feuert Nadelfächer und Sichelbogen. Fällt eine, wechselt die Überlebende in
+  Phase II und hat alle Angriffe.
+- **Wasserläufer:** Gleitstoß auf der Spielerbahn mit platzenden Blasen, Wellenringe mit
+  Lücke. Ab Phase 3 („Die Rohre platzen!“) ständiger Wasserregen plus Fontänenfächer.
+- **Erntemaschine:**
+  - Phase 1 mit Flankenangriff: rechts hinaus, links herein, Salven nach rechts.
+  - Phase 2: Module schwingen und halten mehr aus.
+  - Phase 3 und 4: Dreschsturm und dichtere Sichelbögen.
+- **Kernorganismus:**
+  - Schutzzone in Phase 3 und in der Wiedergeburt: Zeitfenster gleich Weg von der fernsten
+    Ecke bei Grundtempo plus 0,35 s. Wer draußen ist, nimmt dreifachen Schaden.
+  - Wind währenddessen aus. Außerdem seltener (alle 10 statt 7 s) und schwächer
+    (65 statt 90 % des Bienentempos).
+- **Sichttrübung:** nur eigene Pollenwolken, 15 % und eine Chance je Geschoss
+  (vorher 40 % je Wolke).
+- **Pollenwolken:** blasser und nur noch alle 0,4 statt 0,22 s.
+- **Abspann-Level:**
+  - Nach Level 10 keine Evolutionswahl mehr, sondern Wertung und dann das Abspann-Level.
+  - Die Biene fliegt von selbst durch befriedete Welten.
+  - Glückwunsch, Ko-fi-Karte und Hinweis auf *Apidya Special* (Steam) mit eigener
+    Disketten-Illustration. Nach 20 s rollt der Abspann.
+  - Links öffnen über `App.open_link` im Browser.
+- **Ko-fi:** kleiner Knopf oben rechts im Hauptmenü, zusätzlich als Eintrag in den Credits
+  (Tastatur und Controller).
+- **Debug:** Boss wählen und sofort bekämpfen; Abspann als Vorschau ohne Runabschluss.
+- Neue Prüfsuite `tests/r10_probe` (45 Suiten).
+
 ## Prüfung
 
 * `python3 tools/verify_stingforge_r3.py`: alle Suiten einschließlich Pause-, Zwischengegner-

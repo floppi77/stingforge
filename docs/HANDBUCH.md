@@ -400,13 +400,13 @@ Bewegungsmuster und eigene Angriffe:
 | 1 | Gepanzerter Rosenkäfer | Pendelbahn | Panzer klappt auf, dann ist der Rücken verwundbar |
 | 2 | Grabende Riesenlarve | gräbt sich ein und bricht an anderer Stelle durch | Kopf nach dem Durchbruch ungeschützt. Erdsäulen-Tunnelfahrt, Deckeneinsturz mit freier Lücke, Madenbrut; drei Phasen |
 | 3 | Schilfhecht | prescht in einer Bahn | Lanzenstoß, danach kurze Erholung |
-| 4 | Parasitäres Pilzwesen | drifet in weiter Kreisbahn | setzt Sporenwolken, die den Sichtbereich einnebeln |
-| 5 | Mantidenpaar | zwei Körper, schnelle Wechsel | beide Hälften müssen fallen |
+| 4 | Parasitäres Pilzwesen | driftet in weiter Kreisbahn | Sporenwolken und kleine Pilzlinge als Helfer. Ein Heilpilz heilt den Boss langsam; erst wenn seine drei umkreisenden Schirmlinge fallen, ist er verwundbar |
+| 5 | Mantidenpaar | zwei Mantiden mit eigenen Lebenspunkten und eigenen Angriffen | fällt eine, erbt die andere ihre Angriffe |
 | 6 | Mechanischer Bestäuber | kreist um einen Ankerpunkt | Panzerphasen wechseln mit Spiegelvolleys |
-| 7 | Mutierter Wasserläufer | gleitet über eine Bahn | Wassermechanik: Strömung drückt dich mit |
-| 8 | Insektenförmige Erntemaschine | prescht vor und zurück | Scanlinie, danach Sperrfeuer |
+| 7 | Mutierter Wasserläufer | gleitet über eine Bahn, schießt auf deiner Höhe über das Wasser | Blasenspur und Wellenringe; ab „Die Rohre platzen!“ prasseln Wasserspritzer von oben |
+| 8 | Insektenförmige Erntemaschine | Phase 1: verschwindet rechts und greift links hinter dir an | Phase 2 mit beweglichen, zäheren Modulen; Phase 3 und 4 mit immer dichterem Sperrfeuer |
 | 9 | Schwarmkönigin | Achterbahn | ruft Wächter, Spiralfeuer |
-| 10 | Kernorganismus | erste Form, dann Wiedergeburt mit drei eigenen Phasen | neue Gestalt, 175 % der ersten Maximal-HP, kürzere Angriffspausen |
+| 10 | Kernorganismus | erste Form, dann Wiedergeburt mit drei eigenen Phasen | ab Phase 3 hält er inne: der ganze Schirm wird zur Warnfläche bis auf eine Schutzzone. Wer sie nicht rechtzeitig erreicht, nimmt dreifachen Schaden. Der Wind ruht so lange |
 
 **Mit jedem Level steigen Verhalten und Lebenspunkte.** Zusätzlich zu den
 verschiedenen Boss-Grundwerten wächst der unabhängige Boss-HP-Faktor bis etwa

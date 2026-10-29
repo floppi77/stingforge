@@ -133,7 +133,7 @@ const EVOLUTIONS := [
 	 "desc": "Sammeleinzug 60% größer, jede Blüte gibt einen Blütenstaub mehr.",
 	 "effect": {"magnet": 0.6, "nectar_pickup": 1}, "synergy": "nectar_scent", "req": []},
 	{"id": "pollen_blind", "family": "pollen", "name": "Sichttrübung", "max": 1, "start": false,
-	 "desc": "Pollenwolken lassen gezielte Gegnerschüsse mit 40% Chance erlöschen.",
+	 "desc": "Gezielte Gegnerschüsse erlöschen in deinen Pollenwolken mit 15% Chance (einmal je Geschoss).",
 	 "effect": {"pollen_blind": 1}, "synergy": "pollen_shield", "req": ["pollen_trail"], "req_level": 1},
 	{"id": "wind_rider", "family": "pollen", "name": "Windreiter", "max": 1, "start": true,
 	 "desc": "12% mehr Tempo, Pollenwolken driften mit der Biene.",
@@ -265,6 +265,14 @@ const ENEMIES := {
 			 "behavior": "mirror", "speed": 170, "fire": 2.8, "shots": "aimed1", "dmg": 1},
 	"reed_jumper": {"name": "Schilfspringer", "hp": 22, "score": 110, "nectar": 3, "sprite": "hopper", "r": 9,
 			 "behavior": "leap", "speed": 200, "fire": 0.0, "shots": "", "dmg": 1},
+	# Pilzboss-Helfer: Pilzlinge wachsen aus dem Boden, der Heilpilz heilt den Boss und
+	# ist nur verwundbar, wenn seine kreisenden Schirmlinge besiegt sind.
+	"fungus_sprout": {"name": "Pilzling", "hp": 16, "score": 60, "nectar": 1, "sprite": "mushroom", "r": 8,
+			 "behavior": "sprout", "speed": 45, "fire": 2.8, "shots": "aimed1", "dmg": 1, "scale": 0.6},
+	"fungus_healer": {"name": "Heilpilz", "hp": 150, "score": 400, "nectar": 6, "sprite": "mushroom", "r": 13,
+			 "behavior": "healer", "speed": 60, "fire": 0.0, "shots": "", "dmg": 1, "tint": Color(1.0, 0.75, 1.0)},
+	"fungus_guard": {"name": "Schirmling", "hp": 45, "score": 120, "nectar": 2, "sprite": "spore", "r": 9,
+			 "behavior": "orbit_host", "speed": 0, "fire": 3.4, "shots": "aimed1", "dmg": 1, "scale": 0.75},
 	"leap_fish": {"name": "Springbarsch", "hp": 24, "score": 120, "nectar": 3, "sprite": "leapfish", "r": 10,
 			 "behavior": "fish_leap", "speed": 0, "fire": 0.0, "shots": "", "dmg": 1},
 	"pike_fry": {"name": "Hechtbrut", "hp": 20, "score": 100, "nectar": 3, "sprite": "pike", "r": 10,
@@ -342,18 +350,23 @@ func _build_bosses() -> void:
 			"weak": "Nach dem Sprung liegt die Kiemenseite offen.",
 		},
 		"fungus_mind": {
-			"name": "Parasitäres Pilzwesen", "sprite": "boss_fungus", "hp": 4600,
+			"name": "Parasitäres Pilzwesen", "sprite": "boss_fungus", "hp": 3000,
 			"phases": [
-				{"hp": 1.0, "patterns": ["node_pulse", "spore_rain"], "interval": 1.2, "move": "fungus", "nodes": 3}, {"hp": 0.6, "patterns": ["node_pulse", "spore_rain", "spore_rings"], "interval": 0.95, "move": "fungus", "nodes": 2}, {"hp": 0.25, "patterns": ["spore_rings", "radial", "aimed_burst"], "interval": 0.8, "move": "fungus", "nodes": 0},
+				{"hp": 1.0, "patterns": ["node_pulse", "spore_rain", "sprouts"], "interval": 1.2, "move": "fungus", "nodes": 3}, {"hp": 0.6, "patterns": ["node_pulse", "spore_rain", "spore_rings", "sprouts"], "interval": 0.95, "move": "fungus", "nodes": 2}, {"hp": 0.25, "patterns": ["spore_rings", "radial", "aimed_burst", "sprouts"], "interval": 0.8, "move": "fungus", "nodes": 0},
 			],
-			"weak": "Angriffsknoten müssen einzeln zerstört werden.",
+			"weak": "Angriffsknoten einzeln zerstören – und den Heilpilz hinter ihm, sobald seine Schirmlinge fallen.",
 		},
 		"mantis_pair": {
-			"name": "Mantidenpaar", "sprite": "boss_mantis", "hp": 4800,
+			"name": "Mantidenpaar", "sprite": "boss_mantis", "hp": 5200,
+			# Zwei Mantiden mit je halbem Leben. Phase II beginnt, wenn die erste fällt:
+			# Die Überlebende erbt deren Angriffe (Phasenwechsel nicht über die Lebensschwelle).
 			"phases": [
-				{"hp": 1.0, "patterns": ["mantis_sweep", "mantis_pounce", "twin_aim"], "interval": 1.25, "move": "mantis"}, {"hp": 0.5, "patterns": ["mantis_sweep_fast", "mantis_pounce", "twin_aim", "cross_cut"], "interval": 0.9, "move": "mantis"},
+				{"hp": 1.0, "patterns": ["mantis_sweep", "mantis_pounce", "twin_aim"], "interval": 1.35, "move": "mantis",
+				 "twin_patterns": ["orchid_needles", "orchid_scythe"]},
+				{"hp": 0.5, "patterns": ["mantis_sweep_fast", "orchid_needles", "mantis_pounce", "orchid_scythe", "cross_cut"],
+				 "interval": 0.95, "move": "mantis"},
 			],
-			"weak": "Beide Klingen teilen sich einen Lebensbalken – Konter nur nach dem Kreuzhieb.",
+			"weak": "Zwei Mantiden, zwei Lebensbalken: Fällt eine, erbt die andere ihre Angriffe.",
 		},
 		"mech_pollinator": {
 			"name": "Mechanischer Bestäuber", "sprite": "boss_pollinator", "hp": 5200,
@@ -363,16 +376,23 @@ func _build_bosses() -> void:
 			"weak": "Nur die ungepanzerte Seite nimmt vollen Schaden.",
 		},
 		"mutant_skater": {
-			"name": "Mutierter Wasserläufer", "sprite": "boss_skater", "hp": 5600,
+			"name": "Mutierter Wasserläufer", "sprite": "boss_skater", "hp": 4400,
+			# Phase 3 "Die Rohre platzen": Dauerregen aus Wasserspritzern (Boss._tick_pipes).
 			"phases": [
-				{"hp": 1.0, "patterns": ["pump_slam", "skater_dash", "drain_gate", "aimed_burst"], "interval": 1.2, "move": "skater"}, {"hp": 0.55, "patterns": ["pump_slam", "skater_dash", "pump_slam", "sludge_wave", "drain_gate", "pump_slam"], "interval": 0.95, "move": "skater"},
+				{"hp": 1.0, "patterns": ["skim_strike", "ripple_ring", "drain_gate", "aimed_burst"], "interval": 1.3, "move": "skater"},
+				{"hp": 0.62, "patterns": ["skim_strike", "pump_slam", "ripple_ring", "sludge_wave", "drain_gate"], "interval": 1.0, "move": "skater"},
+				{"hp": 0.32, "patterns": ["pump_slam", "skim_strike", "ripple_ring", "sludge_wave"], "interval": 1.0, "move": "skater"},
 			],
 			"weak": "Zwischen den Pumpen ist der Panzer weich.",
 		},
 		"harvester": {
-			"name": "Insektenförmige Erntemaschine", "sprite": "boss_harvester", "hp": 6000,
+			"name": "Insektenförmige Erntemaschine", "sprite": "boss_harvester", "hp": 5400,
+			# Phase 1 mit Flankenangriff von hinten, Phase 2 mit schwenkenden, zäheren Modulen,
+			# ab Phase 3 dichteres Sperrfeuer (Boss._harvest_density).
 			"phases": [
-				{"hp": 1.0, "patterns": ["module_fire", "harvester_ram", "press_slam"], "interval": 1.15, "move": "harvester", "modules": 3}, {"hp": 0.65, "patterns": ["module_fire", "press_slam", "razor_arc"], "interval": 0.95, "move": "harvester", "modules": 4}, {"hp": 0.3, "patterns": ["razor_arc", "radial", "aimed_burst"], "interval": 0.8, "move": "harvester", "modules": 0},
+				{"hp": 1.0, "patterns": ["module_fire", "harvester_flank", "press_slam", "harvester_ram"], "interval": 1.15, "move": "harvester", "modules": 3},
+				{"hp": 0.72, "patterns": ["module_fire", "press_slam", "razor_arc"], "interval": 0.95, "move": "harvester", "modules": 4},
+				{"hp": 0.32, "patterns": ["razor_arc", "harvest_storm", "radial", "aimed_burst"], "interval": 0.8, "move": "harvester", "modules": 0},
 			],
 			"weak": "Module einzeln abtrennen; der Kern ist erst danach verwundbar.",
 		},
@@ -386,9 +406,9 @@ func _build_bosses() -> void:
 		"core_organism": {
 			"name": "Kernorganismus", "sprite": "boss_core", "hp": 8200,
 			"phases": [
-				{"hp": 1.0, "patterns": ["core_beam", "ring_barrage", "spawn_shards"], "interval": 1.15, "move": "core"}, {"hp": 0.62, "patterns": ["core_beam_fast", "ring_barrage", "twin_orbit", "spawn_shards"], "interval": 0.9, "move": "core"}, {"hp": 0.32, "patterns": ["final_fury", "core_beam_fast", "twin_orbit", "ring_barrage"], "interval": 0.6, "move": "core"},
+				{"hp": 1.0, "patterns": ["core_beam", "ring_barrage", "spawn_shards"], "interval": 1.15, "move": "core"}, {"hp": 0.62, "patterns": ["core_beam_fast", "ring_barrage", "twin_orbit", "spawn_shards"], "interval": 0.9, "move": "core"}, {"hp": 0.32, "patterns": ["final_fury", "safe_zone", "core_beam_fast", "twin_orbit", "ring_barrage"], "interval": 0.6, "move": "core"},
 			],
-			"weak": "Die Schlussphase öffnet den Kern dauerhaft, verstärkt aber jeden Angriff.",
+			"weak": "Die Schlussphase öffnet den Kern dauerhaft. Hält er inne, rette dich in die freie Schutzzone.",
 		},
 	}
 

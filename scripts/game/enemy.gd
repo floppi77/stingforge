@@ -45,6 +45,10 @@ const FISH_GRAVITY := 560.0
 ## Blickrichtung des Barsch-Sprites (nach links oben), damit er der Flugbahn folgt.
 const FISH_BASE_ANGLE := -2.72
 var _fish_wait := 0.0
+## Pilzboss-Helfer: Wirt der Schirmlinge, Schirmlinge des Heilpilzes, Heiltakt.
+var host: Node2D
+var guards: Array = []
+var _heal_t := 1.0
 var _fish_jumps := 0
 var _fish_spat := false
 var body_half_height := 0.0
@@ -94,6 +98,13 @@ func setup(point_id: String, pos: Vector2, options: Dictionary = {}) -> void:
 	if behavior == "fish_leap":
 		_fish_wait = float(options.get("delay", 0.3))
 		sprite.visible = false
+	if def.has("scale"):
+		sprite.scale = Vector2.ONE * float(def.scale)
+	if def.has("tint"):
+		tint = def.tint
+	host = options.get("host", null)
+	if host != null and is_instance_valid(host) and "guards" in host:
+		host.guards.append(self)
 
 func _build_sprite() -> void:
 	sprite = AnimatedSprite2D.new()
@@ -125,6 +136,14 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
+	if behavior == "healer" and not dead:
+		var b := _boss()
+		if b != null:
+			# Heilstrahl zum Boss, pulsierend.
+			var a := 0.35 + 0.25 * sin(age * 6.0)
+			draw_line(Vector2.ZERO, b.position - position, Color(0.6, 1.0, 0.6, a), 2.0)
+		if shielded():
+			draw_arc(Vector2.ZERO, 30.0, 0.0, TAU, 24, Color(0.85, 0.7, 1.0, 0.55), 2.0)
 	if behavior == "descend" and not dead:
 		# Spinnfaden bis zum oberen Bildrand.
 		draw_line(Vector2(0, -position.y), Vector2(0, -10), Color(0.92, 0.92, 1.0, 0.65), 1.0, false)
@@ -239,6 +258,30 @@ func _move(delta: float) -> void:
 			position.y = base_y + sin(age * 8.0) * 3.0
 		"fish_leap":
 			_fish_leap(delta, p)
+		"sprout":
+			# Wächst aus dem Boden und hüpft dann langsam auf die Biene zu.
+			if age < 0.6:
+				position.y = lerpf(App.PLAY_BOTTOM + 20.0, base_y, smoothstep(0.0, 0.6, age))
+			else:
+				position.x = move_toward(position.x, p.x + 120.0, speed * delta)
+				position.y = base_y - absf(sin(age * 4.0)) * 22.0
+		"healer":
+			# Schwebt hinter dem Boss und heilt ihn langsam.
+			var b := _boss()
+			var anchor := Vector2(minf(b.position.x + 120.0, 905.0), 130.0) if b != null else Vector2(880, 130)
+			position = position.lerp(anchor + Vector2(0, sin(age * 1.3) * 40.0), clampf(delta * 1.5, 0.0, 1.0))
+			_heal_t -= delta
+			if _heal_t <= 0.0:
+				_heal_t = 1.0
+				if b != null and b.has_method("heal"):
+					b.heal(float(b.max_hp) * 0.006)
+		"orbit_host":
+			# Schirmling: kreist um seinen Heilpilz; ohne Wirt treibt er nach links ab.
+			if host != null and is_instance_valid(host) and not host.dead:
+				var a := age * 2.4 + mirror * TAU / 3.0
+				position = host.position + Vector2(cos(a), sin(a)) * 38.0
+			else:
+				position.x -= 90.0 * delta
 		"sweep":
 			vx = -speed * 0.55
 			position.x += vx * delta
@@ -320,7 +363,7 @@ func _fish_splash() -> void:
 
 func _clamp_playfield() -> void:
 	# Abseil-, Auftauch-, Sprung- und Abflugbewegungen führen bewusst über den Feldrand.
-	if behavior in ["descend", "pop_up", "fish_leap"] or (behavior == "from_behind" and age > 4.6):
+	if behavior in ["descend", "pop_up", "fish_leap", "sprout"] or (behavior == "from_behind" and age > 4.6):
 		return
 	position.y = clampf(position.y, App.PLAY_TOP + body_half_height + 2.0,
 		App.PLAY_BOTTOM - body_half_height - 2.0)
@@ -430,9 +473,25 @@ func _shoot() -> void:
 func audio_fire() -> void:
 	pass
 
+## Lebender Boss im selben Spiel (für den Heilpilz).
+func _boss() -> Node2D:
+	var g := get_parent()
+	if g != null and "boss" in g and g.boss != null and is_instance_valid(g.boss) and not g.boss.dead:
+		return g.boss
+	return null
+
+## Heilpilz: solange ein Schirmling lebt, prallt fast jeder Schaden ab.
+func shielded() -> bool:
+	for gd in guards:
+		if is_instance_valid(gd) and not gd.dead:
+			return true
+	return false
+
 func take_damage(amount: float, _src: Vector2 = Vector2.ZERO) -> bool:
 	if dead:
 		return false
+	if behavior == "healer" and shielded():
+		amount *= 0.1
 	hp -= amount
 	hit_flash = 0.08
 	if hp <= 0.0:

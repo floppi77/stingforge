@@ -506,6 +506,33 @@ func debug_next_level() -> void:
 	reset_upgrades_for_new_level()
 	_begin_level_with_story(lv + 1, 0)
 
+## Debug: Level eines Bosses laden und sofort den Bosskampf starten (nur im Run).
+func debug_fight_boss(lv: int) -> bool:
+	if mode != "campaign":
+		return false
+	lv = clampi(lv, 1, Data.levels.size())
+	if is_in_game() and game.player != null:
+		Save.campaign.points = game.player.points
+		Save.campaign.nectar = game.player.nectar
+		Save.campaign.hp = game.player.hp
+		Save.campaign.upgrades = game.player.upgrades.duplicate(true)
+		Save.campaign.shop = game.player.shop_levels.duplicate(true)
+		Save.campaign.weapon = game.player.weapon
+		Save.save_campaign()
+	debug_close()
+	_begin_level(lv, 0)
+	if is_in_game() and game.director != null:
+		game.director.start_boss_now()
+	return true
+
+## Debug: Abspann-Level als Vorschau, ohne den Run abzuschließen.
+func debug_credits() -> void:
+	_cleanup_game()
+	clear_screens()
+	get_tree().paused = false
+	paused = false
+	push_screen("res://scripts/screens/ending_screen.gd", {"preview": true})
+
 ## Debug: volle Leben und Schild.
 func debug_full_heal() -> void:
 	if not is_in_game() or game.player == null:
@@ -768,7 +795,8 @@ func on_level_complete(stats: Dictionary) -> void:
 	Save.campaign.completed = lv >= 10
 	Save.campaign.level_stats[str(lv)] = stats
 	_record_level_score(lv, stats)
-	if not Save.campaign.rewarded_levels.has(lv):
+	# Nach dem letzten Boss gibt es nichts mehr zu wählen: das Spiel ist zu Ende.
+	if lv < 10 and not Save.campaign.rewarded_levels.has(lv):
 		Save.campaign.pending = {
 			"level": lv,
 			"offers": _roll_offers(3),
@@ -786,18 +814,50 @@ func on_level_complete(stats: Dictionary) -> void:
 		_cleanup_after_level()
 		# Restlicher Blütenstaub wird mittig umgerechnet, danach kommt die Evolution
 		var rest := int(Save.campaign.get("nectar", 0))
+		var next_step := func() -> void:
+			if lv >= 10:
+				_finish_final_level(lv)
+			else:
+				show_evolution_screen(false)
 		if rest > 0:
 			var after_convert := func() -> void:
 				if is_inside_tree():
 					pop_screen()
-					show_evolution_screen(false)
+					next_step.call()
 			push_screen("res://scripts/screens/nectar_convert_screen.gd", {
 				"nectar": rest,
 				"on_done": after_convert,
 			})
 		else:
-			show_evolution_screen(false)
+			next_step.call()
 	)
+
+## Letzter Boss besiegt: ohne Evolutionswahl zur Levelwertung, danach das Abspann-Level.
+func _finish_final_level(lv: int) -> void:
+	if not Save.campaign.rewarded_levels.has(lv):
+		Save.campaign.rewarded_levels.append(lv)
+	Save.campaign.pending = {}
+	Save.campaign.level = lv
+	Save.campaign.checkpoint = 0
+	Save.campaign.completed = true
+	Save.save_campaign()
+	_record_run_highscore(true)
+	clear_screens()
+	push_screen("res://scripts/screens/level_result_screen.gd", {
+		"stats": Save.campaign.level_stats.get(str(lv), {}),
+		"level": lv,
+		"training": false,
+	}, 0.25)
+
+## Externe Links (Ko-fi, Store) im Browser öffnen; Tests und Headless-Läufe merken sie nur.
+var last_opened_url := ""
+var links_dry_run := false
+
+func open_link(url: String) -> void:
+	last_opened_url = url
+	if links_dry_run or DisplayServer.get_name() == "headless":
+		return
+	OS.shell_open(url)
 
 func _record_level_score(lv: int, stats: Dictionary) -> void:
 	var key := "%s|%s|%d|%d|%s" % [mode, Save.campaign.difficulty, lv, int(Save.campaign.seed),

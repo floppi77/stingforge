@@ -5,6 +5,8 @@ const HERO := preload("res://assets/ui/title/hero_px.png")
 const GOLD_TITLE := preload("res://assets/ui/title/logo_px.png")
 const LOCK := preload("res://scripts/core/main_menu_lock.gd")
 const Backdrop := preload("res://scripts/core/ui_backdrop.gd")
+const KofiCup := preload("res://scripts/core/kofi_cup.gd")
+const KOFI_URL := "https://ko-fi.com/floppi77"
 const GOLD := Color("#ffd666")
 const INK := Color("#fff4dc")
 const MUTED := Color("#8f92b4")
@@ -15,6 +17,8 @@ var _background: TextureRect
 var _readability: TextureRect
 var _footer_rule: TextureRect
 var _motes: Control
+## Kleiner Ko-fi-Knopf oben rechts (Maus); per Tastatur/Controller über die Credits.
+var _kofi: PanelContainer
 var _t := 0.0
 
 func _ready() -> void:
@@ -140,11 +144,38 @@ func _build_base() -> void:
 	_footer_rule.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_footer_rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_footer_rule)
+	_build_kofi()
 	prompt_bar = HFlowContainer.new()
 	prompt_bar.size = Vector2(1760, 74)
 	prompt_bar.add_theme_constant_override("h_separation", 36)
 	prompt_bar.add_theme_constant_override("v_separation", 10)
 	add_child(prompt_bar)
+
+func _build_kofi() -> void:
+	_kofi = PanelContainer.new()
+	_kofi.name = "KofiBadge"
+	_kofi.add_theme_stylebox_override("panel", UiTheme.chip_style(false))
+	_kofi.mouse_filter = Control.MOUSE_FILTER_STOP
+	_kofi.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_kofi.tooltip_text = KOFI_URL
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_kofi.add_child(row)
+	var cup := KofiCup.new()
+	cup.custom_minimum_size = Vector2(34, 34)
+	row.add_child(cup)
+	var label := _text(Loc.tx("Kaffee spendieren"), 11, INK, true)
+	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(label)
+	_kofi.mouse_entered.connect(func(): _kofi.add_theme_stylebox_override("panel", UiTheme.chip_style(true)))
+	_kofi.mouse_exited.connect(func(): _kofi.add_theme_stylebox_override("panel", UiTheme.chip_style(false)))
+	_kofi.gui_input.connect(func(ev: InputEvent):
+		if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+			Audio.sfx("ui_ok", -6.0, 1.0, true)
+			app.open_link(KOFI_URL))
+	add_child(_kofi)
 
 ## Komposition im 1920 × 1080-Raster; bei Ultrawide wächst nur die Bildbreite.
 func _layout_reference() -> void:
@@ -178,6 +209,9 @@ func _layout_reference() -> void:
 	side_panel.size = Vector2(card_width, card_height)
 	_footer_rule.position = Vector2(round(80.0 * k), round(958.0 * k))
 	_footer_rule.size = Vector2(round(620.0 * k), 8)
+	var kofi := _kofi.get_combined_minimum_size()
+	_kofi.size = kofi
+	_kofi.position = Vector2(round(size.x - 40.0 * k - kofi.x), round(30.0 * k))
 	prompt_bar.position = Vector2(round(80.0 * k), round(984.0 * k))
 	prompt_bar.size = Vector2(1760.0 * k, 74.0 * k)
 

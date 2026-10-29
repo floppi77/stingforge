@@ -387,13 +387,13 @@ pattern and its own attacks:
 | 1 | Armoured Rose Chafer | pendulum path | the shell folds open, then the back is vulnerable |
 | 2 | Burrowing Giant Larva | burrows in and breaks through elsewhere | head unprotected after breaking through. Pillars of earth while tunnelling, cave-in with a free gap, larva brood; three phases |
 | 3 | Reed Pike | dashes along a lane | lunge, then a short recovery |
-| 4 | Parasitic Fungal Mind | drifts in a wide circle | releases spore clouds that fog your view |
-| 5 | Mantis Pair | two bodies, quick switches | both halves must fall |
+| 4 | Parasitic Fungal Mind | drifts in a wide circle | spore clouds and small sproutlings as helpers. A healing mushroom slowly heals the boss; it only becomes vulnerable once its three orbiting guards fall |
+| 5 | Mantis Pair | two mantises with their own health and their own attacks | when one falls, the other inherits its attacks |
 | 6 | Mechanical Pollinator | circles an anchor point | armour phases alternate with mirror volleys |
-| 7 | Mutant Pond Skater | glides along a lane | water mechanic: the current pushes you along |
-| 8 | Insectoid Harvester | dashes back and forth | scan line, then a barrage |
+| 7 | Mutant Pond Skater | glides along a lane, skims across the water at your height | bubble trail and ripple rings; from “The pipes are bursting!” water splashes rain down from above |
+| 8 | Insectoid Harvester | phase 1: leaves to the right and attacks from behind on the left | phase 2 with moving, tougher modules; phases 3 and 4 with ever denser barrages |
 | 9 | Swarm Queen | figure-eight | summons guards, spiral fire |
-| 10 | Core Organism | first form, then rebirth with three phases of its own | new shape, 175 % of the first form's max HP, shorter attack pauses |
+| 10 | Core Organism | first form, then rebirth with three phases of its own | from phase 3 it pauses: the whole screen becomes a danger zone except one safe zone. Miss it and you take triple damage. The wind rests meanwhile |
 
 **Behaviour and health rise with every level.** On top of each boss's own base values
 there is an independent boss HP factor that grows to about 2.53 on level 10. The

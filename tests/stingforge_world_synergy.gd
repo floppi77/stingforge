@@ -203,7 +203,7 @@ func _test_aura_homing_miniboss() -> void:
 				g._update_hazards(0.0)
 				if float(bullet.life) <= 0.0:
 					changed_after_retry = true
-	check(dissolved > 350 and dissolved < 450, "Sichttrübung wirkt beim Eintritt mit40Prozent (%d/1000)" % dissolved)
+	check(dissolved > 110 and dissolved < 190, "Sichttrübung wirkt beim Eintritt mit 15 Prozent (%d/1000)" % dissolved)
 	check(not changed_after_retry, "Sichttrübung würfelt jeKugel/Wolke nur einmal statt auf100Prozent aufzuschaukeln")
 	g.bullets.enemy_bullets.clear()
 	bullet = g.bullets.spawn_enemy(Vector2(600, 200), Vector2.ZERO, 1, "ebullet_orb", {"aimed": false})

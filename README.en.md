@@ -47,7 +47,8 @@ boss that moves like its animal and escalates over several phases.
 - **Tutorial:** a short training flight in the first world explains controls, pollen, the weapon
   bar, the workshop and the highscore. The game pauses each time and shows a picture window.
 - **Ten levels, ten bosses:** every boss with its own movement and attacks. Phase changes come with
-  a grand entrance, and what is announced actually happens.
+  a grand entrance, and what is announced actually happens. After the final boss the bee flies
+  through the pacified world in a credits level.
 - **Tactical weapon bar:**
   - Basic, Spread, Lightning and Plasma weapons, Drone, Bombs, Shield and Speed, bought with pollen.
   - A voice announces the selected upgrade while you browse.
@@ -104,7 +105,7 @@ export XDG_DATA_HOME="$PWD/.godot_data" XDG_CONFIG_HOME="$PWD/.godot_config" XDG
 godot --headless --path . --export-release Linux build/linux/Stingforge.x86_64
 godot --headless --path . --export-release Windows build/windows/Stingforge.exe
 godot --headless --path . --export-release macOS build/macos/Stingforge-macOS.zip
-python3 tools/verify_stingforge_r3.py     # 44 regression suites
+python3 tools/verify_stingforge_r3.py     # 45 regression suites
 ```
 
 Details (German): [build guide](docs/BUILD.md).

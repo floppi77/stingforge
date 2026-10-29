@@ -56,7 +56,7 @@ const HAZARDS := {
 	"currents": {"interval": 9.0, "kind": "current"},
 	"order": {"interval": 9.0, "kind": "generator_relay"},
 	"combined": {"interval": 6.0, "kind": "wind_zone"},
-	"core": {"interval": 7.0, "kind": "gravity_field"},
+	"core": {"interval": 10.0, "kind": "gravity_field"},
 }
 
 var level_data: Dictionary = {}

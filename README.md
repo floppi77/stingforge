@@ -47,7 +47,8 @@ Jedes Level endet mit einem Boss, der sich wie sein Tier bewegt und in mehreren 
 - **Tutorial:** ein kurzer Übungsflug in der ersten Welt erklärt Steuerung, Blütenstaub,
   Waffenleiste, Werkstatt und Highscore. Das Spiel hält dafür jeweils an und blendet ein Bildfenster ein.
 - **Zehn Level, zehn Bosse:** jeder Boss mit eigenen Bewegungen und Angriffen. Phasenwechsel
-  kommen mit Auftritt, und was angesagt wird, passiert auch.
+  kommen mit Auftritt, und was angesagt wird, passiert auch. Nach dem Endboss fliegt die Biene
+  im Abspann-Level durch die wieder befriedete Welt.
 - **Taktische Waffenleiste:**
   - Basis-, Fächer-, Blitz- und Plasmawaffe, Drohne, Bomben, Schild und Tempo, gekauft mit Nektar.
   - Beim Blättern sagt eine Stimme das gewählte Upgrade an.
@@ -106,7 +107,7 @@ export XDG_DATA_HOME="$PWD/.godot_data" XDG_CONFIG_HOME="$PWD/.godot_config" XDG
 godot --headless --path . --export-release Linux build/linux/Stingforge.x86_64
 godot --headless --path . --export-release Windows build/windows/Stingforge.exe
 godot --headless --path . --export-release macOS build/macos/Stingforge-macOS.zip
-python3 tools/verify_stingforge_r3.py     # 44 Regressionssuiten
+python3 tools/verify_stingforge_r3.py     # 45 Regressionssuiten
 ```
 
 Details: [Build-Anleitung](docs/BUILD.md).

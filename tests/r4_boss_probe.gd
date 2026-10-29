@@ -57,7 +57,9 @@ func _boss(level: int) -> void:
 			break
 		frames += 1
 		var step: Vector2 = b.position - last
-		var visible: bool = not b.submerged and b.position.y < App.PLAY_BOTTOM + 40.0
+		# Außerhalb des Bildes (Erntemaschinen-Flanke) zählt kein Versatz als Sprung.
+		var on_screen: bool = last.x > -40.0 and last.x < 1000.0 and b.position.x > -40.0 and b.position.x < 1000.0
+		var visible: bool = not b.submerged and b.position.y < App.PLAY_BOTTOM + 40.0 and on_screen
 		# Zittern: winzige Hin-und-her-Schritte in y oder x direkt hintereinander.
 		for axis in [0, 1]:
 			var a: float = step[axis]

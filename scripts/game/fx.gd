@@ -625,6 +625,34 @@ func _draw_gravity(h: Dictionary, life: float, max_life: float) -> void:
 		var p := Vector2(x, top + fall)
 		draw_rect(Rect2(p.round(), Vector2(2, 4)), Color(0.85, 0.62, 1.0, 0.7 * a))
 
+## Schutzzone: ganzer Schirm als pulsierende Warnfläche, nur ein Kreis bleibt frei.
+## Zeilenweise in 2px-Streifen, damit das Loch pixelig und exakt rund bleibt.
+func _draw_safe_zone(h: Dictionary, life: float, max_life: float) -> void:
+	var c: Vector2 = h.p
+	var r := float(h.r)
+	var urgency := 1.0 - clampf(life / maxf(0.001, max_life), 0.0, 1.0)
+	var pulse := 0.5 + 0.5 * sin(_t * (8.0 + 14.0 * urgency))
+	var col := Color(0.30, 0.0, 0.02, 0.34 + 0.22 * urgency + 0.08 * pulse)
+	var top := float(App.PLAY_TOP)
+	var bottom := float(App.PLAY_BOTTOM)
+	draw_rect(Rect2(0, top, 960, maxf(0.0, c.y - r - top)), col)
+	draw_rect(Rect2(0, c.y + r, 960, maxf(0.0, bottom - c.y - r)), col)
+	var y := c.y - r
+	while y < c.y + r:
+		var dy := y + 1.0 - c.y
+		var half := sqrt(maxf(0.0, r * r - dy * dy))
+		draw_rect(Rect2(0, y, maxf(0.0, c.x - half), 2), col)
+		draw_rect(Rect2(c.x + half, y, maxf(0.0, 960.0 - c.x - half), 2), col)
+		y += 2.0
+	# Diagonale Warnstreifen wandern über die Fläche.
+	for k in range(14):
+		var x := fposmod(k * 76.0 - _t * 90.0, 1064.0) - 52.0
+		draw_line(Vector2(x, bottom), Vector2(x + 52.0, top), Color(1.0, 0.25, 0.15, 0.16 + 0.12 * pulse), 4.0)
+	# Rand der Schutzzone: hell, mit schrumpfendem Zeitbogen.
+	draw_arc(c, r, 0.0, TAU, 40, Color(0.7, 1.0, 0.75, 0.95), 3.0)
+	draw_arc(c, r + 5.0, -PI * 0.5, -PI * 0.5 + TAU * (1.0 - urgency), 40, Color(1.0, 1.0, 1.0, 0.85), 2.0)
+	draw_circle(c, r - 2.0, Color(0.6, 1.0, 0.7, 0.08 + 0.06 * pulse))
+
 ## Strömung: lange wellige Wasserschlieren mit mitgerissenen Bläschen.
 func _draw_current(h: Dictionary, life: float, max_life: float) -> void:
 	var dir := signf(float(h.get("dir", -1.0)))
@@ -662,13 +690,14 @@ func _draw_hazard(h: Dictionary) -> void:
 			var r: float = float(h.radius)
 			var fade := clampf(life / maxf(0.3, max_life), 0.0, 1.0) * 0.8 + 0.2
 			# Durchsichtig genug, dass die Biene auch in mehreren Wolken sichtbar bleibt.
-			fade *= 0.35 if bool(h.get("burst", false)) else 0.5
+			fade *= 0.25 if bool(h.get("burst", false)) else 0.32
+			# Blasses Pollengelb statt kräftigem Gold.
 			for k in range(6):
 				var ang := TAU * float(k) / 6.0 + _t * 0.5
-				draw_circle(pos + Vector2.from_angle(ang) * r * 0.35, r * 0.42, Color(1.0, 0.78, 0.30, 0.22 * fade), true, -1.0, false)
-			draw_circle(pos, r * 0.38, Color(1.0, 0.88, 0.45, 0.28 * fade), true, -1.0, false)
+				draw_circle(pos + Vector2.from_angle(ang) * r * 0.35, r * 0.42, Color(1.0, 0.92, 0.66, 0.22 * fade), true, -1.0, false)
+			draw_circle(pos, r * 0.38, Color(1.0, 0.95, 0.75, 0.28 * fade), true, -1.0, false)
 			if density > 0.5:
-				for k in range(10):
+				for k in range(6):
 					var a2 := TAU * _h01(k, 51) + _t * 0.9
 					var d2 := r * (0.2 + 0.7 * _h01(k, 52))
 					draw_rect(Rect2((pos + Vector2.from_angle(a2) * d2).round(), Vector2(2, 2)), Color(1.0, 0.95, 0.6, minf(0.8, 1.6 * fade)))
@@ -707,6 +736,8 @@ func _draw_hazard(h: Dictionary) -> void:
 			_draw_wind(h, life, max_life)
 		"gravity_field":
 			_draw_gravity(h, life, max_life)
+		"safe_zone":
+			_draw_safe_zone(h, life, max_life)
 		"water_line":
 			var yy4: float = float(h.get("y", 470.0))
 			draw_rect(Rect2(0, yy4, 960, 540 - yy4), Color(0.10, 0.35, 0.45, 0.45))
