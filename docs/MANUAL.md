@@ -42,8 +42,9 @@ choose the language with the flags (German or English).
     buying and levels, return fire, shield and bomb, the conversion at the end of a
     level, the workshop and the highscore.
   - It is offered the first time you start a run. Your save is not touched.
-- **Fusions:** shows every pair of evolutions that grow stronger together.
-  Pairs you have not discovered yet are greyed out.
+- **Fusions:** collection of the twelve master evolutions (gold, ★) and the fusions
+  (teal, ◆). Discovered recipes show an animated illustration, undiscovered ones are greyed
+  out as “???”.
 - **Workshop:** it only opens between levels.
 Only the selected row glows gold. Locked entries show a padlock;
 without a save, *New Run* is preselected.
@@ -251,6 +252,18 @@ own both parents in the same run and at least one of them is at its highest leve
 master card** appears as the first offer at the end of the next level. If you choose it, both
 parents keep their effects and the master evolution is added on top. The collection in the main
 menu (*Fusions*) shows every recipe; undiscovered ones appear as “???” with their parents.
+Discovered recipes show an animated illustration on the right – across runs, once discovered
+always discovered.
+
+**Recipes on the evolution cards:** at the bottom of every card a small line shows what it
+belongs to, e.g. `★ Precise Sting + Target Marking = ???`.
+
+- **Gold with ★** means master evolution, **teal with ◆** means fusion.
+- What you already own in the run is **green**; what is missing is **grey**.
+- If the offered card completes a recipe, its name **pulses**, and the card gets a coloured
+  stripe and the tag *★ MASTER RECIPE* or *◆ FUSION* at the top.
+- Instead of “???” the name appears once you have discovered the recipe.
+- Every card also shows a small animated illustration of its effect.
 
 | Master evolution | Parents | Effect |
 |---|---|---|

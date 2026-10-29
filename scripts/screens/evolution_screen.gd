@@ -1,5 +1,7 @@
 extends "res://scripts/core/ui_screen.gd"
 
+const Recipes := preload("res://scripts/core/evo_recipes.gd")
+
 var offers: Array = []
 var level := 1
 var reroll_used := false
@@ -56,16 +58,15 @@ func build_items() -> void:
 		var lines: Array = []
 		lines.append({"text": String(e.desc), "color": UiTheme.TEXT, "size": 15})
 		if bool(e.get("master", false)):
-			var pa := Data.evo(String(e.parents[0]))
-			var pb := Data.evo(String(e.parents[1]))
-			lines.append({"text": Loc.tx("Aus %s und %s – beide bleiben erhalten.") % [Loc.tx(String(pa.name)), Loc.tx(String(pb.name))],
-				"size": 13, "color": UiTheme.ACCENT2})
 			if String(e.get("weapon", "")) != "":
 				lines.append({"text": Loc.t("evo.weapon_dependent") % Loc.t("bar." + String(e.weapon)), "size": 12,
 					"color": UiTheme.DIM})
+			lines.append({"text": Recipes.master_line(String(id), Recipes.owned_ids()), "size": 13, "bbcode": true})
+			lines.append({"text": Loc.tx("Beide Eltern bleiben erhalten."), "size": 12, "color": UiTheme.DIM})
 			list.append({
 				"kind": "card", "text": String(e.name), "family": String(e.family), "id": String(id),
 				"value_text": Loc.tx("MEISTER"), "compact": true, "master": true, "lines": lines,
+				"illustration": String(id), "stripe": Recipes.MASTER,
 			})
 			continue
 		var downside := _downside_text(e)
@@ -76,33 +77,29 @@ func build_items() -> void:
 			var owned := int(Save.campaign.get("upgrades", {}).get(w, 0)) > 0
 			lines.append({"text": Loc.t("evo.weapon_dependent") % Loc.t("bar." + w), "size": 12,
 				"color": UiTheme.OK if owned else Color(1, 0.6, 0.5)})
-		# Verschmelzung: besitzt man einen Partner bereits, verschmilzt die Wahl sofort.
-		var owned_partner := ""
-		var names: Array[String] = []
-		for partner in Data.synergy_partners(String(id)):
-			names.append(Loc.tx(String(Data.evo(String(partner)).get("name", partner))))
-			for entry in Save.campaign.get("evolutions", []):
-				if String(entry.get("id", "")) == String(partner):
-					owned_partner = Loc.tx(String(Data.evo(String(partner)).get("name", partner)))
-		for link in Data.master_links(String(id)):
-			var pm := Data.master(String(link[1]))
-			if Save.campaign.get("evolutions", []).any(func(en): return String(en.get("id", "")) == String(link[0])):
-				lines.append({"text": Loc.tx("Mit %s bereit für die Meisterevolution %s") % [
-					Loc.tx(String(Data.evo(String(link[0])).name)), Loc.tx(String(pm.name)) if Save.is_master_seen(String(link[1])) else "???"],
-					"size": 12, "color": UiTheme.ACCENT})
-		if owned_partner != "":
-			lines.append({"text": Loc.t("evo.synergy_now") % owned_partner, "size": 12, "color": UiTheme.OK})
-		elif not names.is_empty():
-			lines.append({"text": Loc.t("evo.synergy") % ", ".join(names), "size": 12, "color": UiTheme.ACCENT2})
 		if Save.is_evolution_unlocked(String(id)):
 			lines.append({"text": Loc.t("evo.active_campaign") if cur > 0 else Loc.t("evo.profile_only"),
 				"size": 12, "color": UiTheme.DIM})
 		else:
 			lines.append({"text": Loc.t("evo.new_unlock"), "size": 12, "color": UiTheme.OK})
+		# Rezepte unten klein: grün vorhanden, grau fehlend, diese Karte pulsiert, wenn sie
+		# ein Rezept vervollständigt. Kennzeichen und Farbstreifen zeigen das auf einen Blick.
+		var recipe := Recipes.for_offer(String(id))
+		for line in recipe.lines:
+			lines.append({"text": line, "size": 13, "bbcode": true})
+		var badges: Array = []
+		var stripe := Color(0, 0, 0, 0)
+		if bool(recipe.master):
+			badges.append({"text": Loc.tx("★ MEISTERREZEPT"), "color": Recipes.MASTER})
+			stripe = Recipes.MASTER
+		if bool(recipe.fusion):
+			badges.append({"text": Loc.tx("◆ VERSCHMELZUNG"), "color": Recipes.FUSION})
+			if stripe.a <= 0.0:
+				stripe = Recipes.FUSION
 		list.append({
 			"kind": "card", "text": String(e.name), "family": String(e.family), "id": String(id),
 			"value_text": Loc.tx("Stufe %d/%d") % [cur + 1, int(e.max)], "compact": true,
-			"lines": lines,
+			"lines": lines, "illustration": String(id), "badges": badges, "stripe": stripe,
 		})
 	list.append({"kind": "sep"})
 	list.append({

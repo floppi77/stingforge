@@ -271,7 +271,7 @@ func _collection() -> void:
 	for it in scr.items:
 		if String(it.get("id", "")).begins_with("master:"):
 			masters += 1
-			if String(it.text).begins_with("???"):
+			if String(it.get("value_text", "")) == "???":
 				unknown += 1
 	_ok(masters == 12 and unknown == 11, "Sammelbuch: zwölf Meister, unentdeckte als ??? (%d/%d)" % [masters, unknown])
 	app.menu_main()

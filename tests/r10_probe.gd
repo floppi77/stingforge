@@ -22,6 +22,7 @@ func _ready() -> void:
 	await _final_flow()
 	await _menu_and_debug()
 	_debug_scores()
+	await _recipes_and_art()
 	for f in fails:
 		print("R10_FEHLER: " + f)
 	print("R10_OK" if fails.is_empty() else "R10_FAILED")
@@ -417,3 +418,86 @@ func _debug_scores() -> void:
 	app.debug_god = false
 	_ok(not _ids(Save.get_highscores("campaign", "normal", 50)).has(god_id), "Run mit aktivem Godmode erscheint nicht in den Highscores")
 	app.pending_name = {}
+
+# ------------------------------------------------------------------ Rezepte und Hilfsgrafiken
+const Recipes := preload("res://scripts/core/evo_recipes.gd")
+const EvoIll := preload("res://scripts/core/evo_illustration.gd")
+
+func _find_named(node: Node, wanted: String) -> Array:
+	var out: Array = []
+	for c in node.get_children():
+		if String(c.name).begins_with(wanted):
+			out.append(c)
+		out.append_array(_find_named(c, wanted))
+	return out
+
+func _recipes_and_art() -> void:
+	Save.new_campaign("normal", 7171)
+	Save.profile["masters_seen"] = []
+	Save.profile["fusions_seen"] = []
+	# Ohne Partner: Rezepte grau, keine Kennzeichnung, nichts pulsiert.
+	var plain := Recipes.for_offer("crit")
+	_ok(not bool(plain.master) and not bool(plain.fusion) and (plain.lines as Array).size() == 2
+		and not String(plain.lines[0]).contains("pulse") and String(plain.lines[0]).contains("???"),
+		"Rezept ohne Partner: grau, unentdeckt ???")
+	# Zielmarkierung vorhanden: Gezielter Stich schließt das Meisterrezept, pulsiert, Partner grün.
+	Save.campaign.evolutions = [{"id": "swarm_mark", "level": 1}]
+	var rec := Recipes.for_offer("crit")
+	var line := String(rec.lines[0])
+	_ok(bool(rec.master) and line.contains("pulse") and line.contains(Recipes.hex(Recipes.HAVE) + "]" + Loc.tx("Zielmarkierung")),
+		"Meisterrezept: Partner grün, angebotene Karte pulsiert, Kennzeichen gesetzt")
+	Save.discover_master("m_death_mark")
+	_ok(String(Recipes.for_offer("crit").lines[0]).contains(Loc.tx("Todesmal")), "Entdeckter Meister zeigt seinen Namen statt ???")
+	# Jede Evolution, jeder Meister und jede Verschmelzung hat eine eigene Hilfsgrafik.
+	var missing: Array = []
+	var keys: Array = []
+	for e in Data.EVOLUTIONS:
+		keys.append(String(e.id))
+	for m in Data.MASTERS:
+		keys.append(String(m.id))
+	for p in Data.all_fusions():
+		keys.append(Data.fusion_key(String(p[0]), String(p[1])))
+	for k in keys:
+		var ill = EvoIll.new()
+		ill.show_evo(String(k))
+		if String(ill.item_id) == "default" or not ill.has_method("_s_" + String(ill.item_id)):
+			missing.append(k)
+		if String(k).contains("+"):
+			ill._apply(String(k).split("+")[1], true)
+			if String(ill.item_id) == "default":
+				missing.append(k + " (2)")
+		ill.free()
+	_ok(missing.is_empty() and keys.size() == 64, "Hilfsgrafiken für 36 Evolutionen, 12 Meister, 16 Verschmelzungen (fehlend: %s)" % str(missing))
+	# Evolutionswahl: Karte mit Hilfsgrafik, Rezeptzeile, Farbstreifen und Kennzeichen.
+	Save.campaign.pending = {"level": 2, "offers": ["crit", "pollen_trail", "chitin_plate"], "reroll_used": false}
+	Save.campaign.level = 2
+	app.mode = "campaign"
+	app.clear_screens()
+	var scr = app.push_screen("res://scripts/screens/evolution_screen.gd", {"on_choose": func(_id): pass}, 0.0)
+	await _wait(0.2)
+	_ok(_find_named(scr, "Illustration").size() == 3, "Jede Angebotskarte zeigt ihre Hilfsgrafik")
+	var recipes: Array = scr.find_children("*", "RichTextLabel", true, false).filter(func(n): return not n.is_queued_for_deletion())
+	var stripes: Array = _find_named(scr, "Stripe").filter(func(n): return not n.is_queued_for_deletion())
+	_ok(recipes.size() >= 4 and stripes.size() == 1,
+		"Rezeptzeilen auf den Karten, Farbstreifen nur an der Karte, die ein Rezept schließt (%d/%d)" % [recipes.size(), stripes.size()])
+	var crit_card: Dictionary = scr.items[0]
+	_ok((crit_card.get("badges", []) as Array).size() == 1 and (crit_card.badges[0].color as Color) == Recipes.MASTER,
+		"Gezielter Stich mit Zielmarkierung trägt das goldene Meisterrezept-Kennzeichen")
+	# Sammelbuch: Hilfsgrafik erst nach Entdeckung, runübergreifend aus dem Profil.
+	app.clear_screens()
+	Save.new_campaign("normal", 7272)
+	var book = app.push_screen("res://scripts/screens/fusion_screen.gd", {}, 0.0)
+	await _wait(0.2)
+	var shown := {}
+	for wanted in ["master:m_death_mark", "master:m_gold_rush"]:
+		for i in range(book.items.size()):
+			if String(book.items[i].get("id", "")) == wanted:
+				book.focus = i
+		book._fill_side()
+		await get_tree().process_frame
+		var ills := _find_named(book.side_box, "Illustration")
+		shown[wanted] = String(ills[-1].key) if not ills.is_empty() else ""
+	_ok(shown["master:m_death_mark"] == "m_death_mark" and shown["master:m_gold_rush"] == "locked",
+		"Sammelbuch: entdeckter Meister mit Grafik, unentdeckter gesperrt (%s)" % str(shown))
+	app.menu_main()
+	await _wait(0.2)

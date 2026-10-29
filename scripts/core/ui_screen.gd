@@ -7,6 +7,7 @@ const UiPrompts := preload("res://scripts/core/ui_prompts.gd")
 const UiBackdrop := preload("res://scripts/core/ui_backdrop.gd")
 const UiVeil := preload("res://scripts/core/ui_veil.gd")
 const Flags := preload("res://scripts/core/flags.gd")
+const EvoIllustration := preload("res://scripts/core/evo_illustration.gd")
 
 signal closed(result: Variant)
 
@@ -611,8 +612,21 @@ func _make_card(it: Dictionary, idx: int) -> Control:
 		m.add_theme_constant_override("margin_" + side, UiTheme.pad(14))
 	panel.add_child(m)
 	var vb := VBoxContainer.new()
-	vb.add_theme_constant_override("separation", UiTheme.pad(8))
+	var rich := it.has("illustration")
+	vb.add_theme_constant_override("separation", UiTheme.pad(6 if rich else 8))
 	m.add_child(vb)
+
+	# Farbstreifen auf der Oberkante: gold für Meister, türkis für Verschmelzung (auf einen
+	# Blick). Liegt über dem Rahmen und nimmt dem Inhalt keinen Platz.
+	var stripe_color: Color = it.get("stripe", Color(0, 0, 0, 0))
+	if stripe_color.a > 0.0:
+		var stripe := ColorRect.new()
+		stripe.color = stripe_color
+		stripe.custom_minimum_size = Vector2(0, UiTheme.pad(4))
+		stripe.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		stripe.name = "Stripe"
+		panel.add_child(stripe)
 
 	var head := HBoxContainer.new()
 	vb.add_child(head)
@@ -650,11 +664,54 @@ func _make_card(it: Dictionary, idx: int) -> Control:
 	name_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vb.add_child(name_l)
 
+	# Kennzeichen: z. B. „★ MEISTERREZEPT“ oder „◆ VERSCHMELZUNG“.
+	var badges: Array = it.get("badges", [])
+	if not badges.is_empty():
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", UiTheme.pad(6))
+		vb.add_child(row)
+		for badge in badges:
+			var chip := PanelContainer.new()
+			var sb := StyleBoxFlat.new()
+			sb.bg_color = Color(badge.get("color", UiTheme.ACCENT), 0.18)
+			sb.border_color = badge.get("color", UiTheme.ACCENT)
+			sb.set_border_width_all(2)
+			for side in ["left", "right"]: sb.set("content_margin_" + side, UiTheme.pad(6))
+			for side in ["top", "bottom"]: sb.set("content_margin_" + side, UiTheme.pad(1))
+			chip.add_theme_stylebox_override("panel", sb)
+			var bl := Label.new()
+			bl.text = String(badge.get("text", ""))
+			bl.add_theme_font_override("font", UiTheme.font_bold())
+			bl.add_theme_font_size_override("font_size", UiTheme.size(10))
+			bl.add_theme_color_override("font_color", badge.get("color", UiTheme.ACCENT))
+			chip.add_child(bl)
+			row.add_child(chip)
+
+	if String(it.get("illustration", "")) != "":
+		var ill := EvoIllustration.new()
+		ill.custom_minimum_size = Vector2(0, UiTheme.pad(int(it.get("illustration_h", 76))))
+		ill.name = "Illustration"
+		ill.show_evo(String(it.illustration))
+		vb.add_child(ill)
+
 	for line in it.get("lines", []):
+		var fs := UiTheme.size(int(line.get("size", 16)) - (2 if compact else 0))
+		if bool(line.get("bbcode", false)):
+			var r := RichTextLabel.new()
+			r.bbcode_enabled = true
+			r.fit_content = true
+			r.scroll_active = false
+			r.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			r.add_theme_font_override("normal_font", UiTheme.font_regular())
+			r.add_theme_font_size_override("normal_font_size", fs)
+			r.text = String(line.get("text", ""))
+			r.name = "Recipe"
+			vb.add_child(r)
+			continue
 		var l := Label.new()
 		l.text = String(line.get("text", ""))
 		l.add_theme_font_override("font", UiTheme.font_regular())
-		l.add_theme_font_size_override("font_size", UiTheme.size(int(line.get("size", 16)) - (2 if compact else 0)))
+		l.add_theme_font_size_override("font_size", fs)
 		l.add_theme_color_override("font_color", line.get("color", UiTheme.DIM))
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		vb.add_child(l)

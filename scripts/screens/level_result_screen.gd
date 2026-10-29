@@ -89,6 +89,18 @@ func _build_summary(box: VBoxContainer) -> void:
 		[Loc.t("game.time"), "%d:%02d" % [int(t) / 60, int(t) % 60], UiTheme.TEXT],
 	]:
 		UiRunStatus._pair(box, String(row[0]), String(row[1]), row[2])
+	# Gewählte Evolution bzw. neu entstandene Verschmelzung als Hilfsgrafik.
+	var show := ""
+	if not fusions.is_empty():
+		show = Data.fusion_key(String(fusions[0][0]), String(fusions[0][1]))
+	elif chosen != "":
+		show = chosen
+	if show != "":
+		var ill := EvoIllustration.new()
+		ill.custom_minimum_size = Vector2(0, UiTheme.pad(64))
+		ill.name = "Illustration"
+		ill.show_evo(show)
+		box.add_child(ill)
 
 func on_activate(_index: int) -> void:
 	Audio.sfx("ui_ok", -6.0, 1.0, true)

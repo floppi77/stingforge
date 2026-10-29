@@ -44,8 +44,9 @@ und *Spiel beenden*. Unter dem Menü wählst du mit den Flaggen die Sprache
     Kauf und Stufen, Gegenfeuer, Schild und Bombe, Umrechnung am Levelende, Werkstatt und
     Highscore.
   - Beim ersten Start eines Runs wird es angeboten. Dein Spielstand bleibt dabei unberührt.
-- **Verschmelzungen:** Zeigt alle Evolutionspaare, die gemeinsam stärker werden.
-  Noch nicht entdeckte Paare stehen ausgegraut da.
+- **Verschmelzungen:** Sammelbuch der zwölf Meisterevolutionen (gold, ★) und der
+  Verschmelzungen (türkis, ◆). Entdeckte Rezepte zeigen eine animierte Hilfsgrafik,
+  noch nicht entdeckte stehen ausgegraut als „???“ da.
 - **Werkstatt:** Sie öffnet sich nur zwischen den Leveln.
 Nur die gewählte Zeile leuchtet gold. Gesperrte Einträge haben ein Schloss;
 ohne Spielstand ist *Neuer Run* vorausgewählt.
@@ -260,7 +261,18 @@ Mechanik. Besitzt du beide Eltern im selben Run und steht mindestens eine davon 
 Höchststufe, erscheint am nächsten Levelende eine **goldene Meisterkarte** als erstes Angebot.
 Wählst du sie, bleiben beide Eltern mit ihrer Wirkung erhalten; die Meisterevolution kommt
 dazu. Das Sammelbuch im Hauptmenü (*Verschmelzungen*) zeigt alle Rezepte; unentdeckte stehen
-als „???“ mit ihren Eltern da.
+als „???“ mit ihren Eltern da. Entdeckte Rezepte zeigen rechts eine animierte Hilfsgrafik –
+das gilt runübergreifend, einmal entdeckt bleibt entdeckt.
+
+**Rezepte auf den Evolutionskarten:** Unten auf jeder Karte steht klein, wozu sie gehört, etwa
+`★ Gezielter Stich + Zielmarkierung = ???`.
+
+- **Gold mit ★** steht für Meisterevolutionen, **Türkis mit ◆** für Verschmelzungen.
+- Was du im Run schon besitzt, ist **grün**; was fehlt, ist **grau**.
+- Schließt die angebotene Karte ein Rezept, **pulsiert** ihr Name, und oben auf der Karte
+  erscheinen ein farbiger Streifen und das Kennzeichen *★ MEISTERREZEPT* bzw. *◆ VERSCHMELZUNG*.
+- Statt „???“ steht der Name, sobald du das Rezept einmal entdeckt hast.
+- Jede Karte zeigt außerdem eine kleine animierte Hilfsgrafik ihrer Wirkung.
 
 | Meisterevolution | Eltern | Wirkung |
 |---|---|---|
