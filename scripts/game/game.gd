@@ -581,8 +581,19 @@ func current_push() -> Vector2:
 func begin_safe_zone() -> float:
 	var b: Rect2 = player.play_bounds
 	var margin := SAFE_ZONE_RADIUS + 10.0
-	var c := Vector2(rng.randf_range(b.position.x + margin, minf(b.end.x - margin, 700.0)),
-		rng.randf_range(b.position.y + margin, b.end.y - margin))
+	var c := Vector2(b.position.x + margin, (b.position.y + b.end.y) * 0.5)
+	# Nie im oder direkt am Boss: die Zone muss mit Abstand neben seinem Körper liegen.
+	var avoid := Rect2()
+	if boss != null and is_instance_valid(boss):
+		avoid = boss._stable_bounds()
+		avoid.position += boss.position
+		avoid = avoid.grow(SAFE_ZONE_RADIUS + 24.0)
+	for attempt in range(40):
+		var pick := Vector2(rng.randf_range(b.position.x + margin, minf(b.end.x - margin, 700.0)),
+			rng.randf_range(b.position.y + margin, b.end.y - margin))
+		if not avoid.has_point(pick):
+			c = pick
+			break
 	var far := 0.0
 	for corner in [b.position, Vector2(b.end.x, b.position.y), Vector2(b.position.x, b.end.y), b.end]:
 		far = maxf(far, (corner as Vector2).distance_to(c))

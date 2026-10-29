@@ -194,7 +194,9 @@ func _test_attack_admission(g: Game, b: Boss, stage: int) -> void:
 	check(b.telegraph > 0.0 and g.bullets.enemy_bullets.is_empty(), "stage%d combo is announced before bullets fire" % (stage + 1))
 	for frame in range(180):
 		b._physics_process(1.0 / 60.0)
-	check(not g.bullets.enemy_bullets.is_empty(), "stage%d executes a real scheduled new combo" % (stage + 1))
+	# Die Schutzzone ist ebenfalls ein echter Angriff, feuert aber bewusst keine Geschosse.
+	check(not g.bullets.enemy_bullets.is_empty() or not g.safe_zone.is_empty(), "stage%d executes a real scheduled new combo" % (stage + 1))
+	g.safe_zone = {}
 	check(g.bullets.enemy_bullets.size() <= 420, "reborn barrage respects unchanged enemy cap420")
 	b.timeline.clear()
 	b.attack_in_progress = false
@@ -221,6 +223,10 @@ func _test_other_bosses() -> void:
 		var count := [0]
 		b.defeated.connect(func(): count[0] += 1)
 		var hp_before := b.max_hp
+		if not b.twin_dead:
+			# Mantidenpaar: zwei Lebensbalken, beide müssen fallen.
+			b.take_damage(hp_before * 10.0, Vector2.ZERO, b.TWIN_PART)
+			b.invuln = 0.0
 		b.take_damage(hp_before * 10.0)
 		check(b.dead and not b.reviving and b.encounter_form == 1 and count[0] == 1,
 			"normal boss%d still finishes immediately in first form" % level)

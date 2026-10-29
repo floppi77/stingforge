@@ -119,8 +119,15 @@ func _test_player_gravity() -> void:
 					g.player._physics_process(1.0 / 60.0)
 					check(g.player.vel.y < 0.0 and g.player.position.y < 270.0,
 						"echter Player steigt beiGravity: Präzision%s Tempo%d Input%s Wind%.0f" % [precision, speed_level, input, wind])
-					var requested: float = -input.y * 252.0 * (1.0 + 0.1 * float(speed_level)) * (0.45 if precision else 1.0)
-					check(is_equal_approx(-g.player.vel.y, requested * 0.10), "Gravity lässt genau10Prozent der angeforderten Aufwärtsbewegung")
+					var spd: float = 252.0 * (1.0 + 0.1 * float(speed_level)) * (0.45 if precision else 1.0)
+					var requested: float = -input.y * spd
+					# Schwerkraft 65 % des Bienentempos, gedeckelt: mindestens 10 % Aufstieg bleiben.
+					var calm: float = requested - minf(0.65 * spd, 0.90 * requested)
+					var rise: float = -g.player.vel.y
+					if wind == 0.0:
+						check(is_equal_approx(rise, calm), "Gravity: Aufstieg %.2f statt erwartet %.2f" % [rise, calm])
+					else:
+						check(rise >= requested * 0.10 - 0.001 and rise <= calm + 0.001, "Gravity plus Wind lässt mindestens 10 Prozent Aufstieg")
 	Bindings.test_move_active = false
 	Bindings.test_move = Vector2.ZERO
 	Bindings._cur["precision"] = false
@@ -311,13 +318,13 @@ func _test_gravity() -> void:
 	check(g.player.hp == hp_before, "Gravitation ist Kraftfeld und kein unverständlicher Kontaktschaden")
 	check(g.has_method("gravity_pull"), "Game bietet separaten ungefilterten Gravity-Vertrag")
 	if g.has_method("gravity_pull"):
-		check((g.gravity_pull() as Vector2).is_equal_approx(Vector2(0, 226.8)),
-			"normaler Grundflug: Gravity226.8 lässt25.2px/s Aufstieg")
+		check((g.gravity_pull() as Vector2).is_equal_approx(Vector2(0, 163.8)),
+			"normaler Grundflug: Gravity163.8 lässt88.2px/s Aufstieg")
 		g.player.precision = true
-		check((g.gravity_pull() as Vector2).is_equal_approx(Vector2(0, 102.06)),
-			"Präzisionsflug: Gravity102.06 lässt11.34px/s Aufstieg")
+		check((g.gravity_pull() as Vector2).is_equal_approx(Vector2(0, 73.71)),
+			"Präzisionsflug: Gravity73.71 lässt39.69px/s Aufstieg")
 		g._on_hazard("gravity_pulse", {})
-		check((g.gravity_pull() as Vector2).y <= 102.061, "überlagerte Gravitationsfelder addieren sich nicht zur Falle")
+		check((g.gravity_pull() as Vector2).y <= 73.711, "überlagerte Gravitationsfelder addieren sich nicht zur Falle")
 	check(g.fx.has_method("field_geometry"), "Renderer liefert gemeinsame vertikale Feldgeometrie")
 	if g.fx.has_method("field_geometry"):
 		for line in g.fx.field_geometry({"kind": "gravity_field", "t": 0.0}):

@@ -140,9 +140,9 @@ func _test_run_endings() -> void:
 	check(int(Save.campaign.run_score) == 1050 and int(Save.campaign.nectar) == 0, "Umrechnung erhöht Runscore einmalig")
 	conversion._finish()
 	for i in range(3): await get_tree().process_frame
-	var offers: Array = Save.campaign.pending.get("offers", [])
-	check(not offers.is_empty(), "Evolutionsangebote bleiben trotz Taktikreset vorhanden")
-	if not offers.is_empty(): app._confirm_evolution(String(offers[0]))
+	# Nach dem letzten Boss gibt es keine Evolutionswahl mehr: direkt Wertung und Sieg.
+	check(Save.campaign.pending.is_empty(), "Nach Level 10 keine Evolutionswahl")
+	check(String(app.screens[-1].get_script().resource_path).ends_with("level_result_screen.gd"), "Nach Level 10 direkt die Wertung")
 	rows = Save.get_highscores("campaign", "normal", 20)
 	check(rows.size() == 1, "Vollständiger Abschluss veröffentlicht einen Sieg")
 	if not rows.is_empty():

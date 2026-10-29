@@ -95,6 +95,28 @@ func _play_level(app, lv: int) -> void:
 	if not g.level_over:
 		_fail("Level %d: Boss lässt sich nicht besiegen (%d Bilder)" % [lv, guard])
 		return
+	if lv == 10:
+		# Nach dem letzten Boss keine Evolutionswahl: Wertung, danach das Abspann-Level.
+		var result = null
+		for i in range(600):
+			if app.screens.size() > 0:
+				var top = app.screens[app.screens.size() - 1]
+				if top != null and is_instance_valid(top) and top.get_script() != null:
+					var path := String(top.get_script().resource_path)
+					if path.ends_with("evolution_screen.gd"):
+						_fail("Level 10: Evolutionsangebot nach dem letzten Boss")
+						return
+					if path.ends_with("level_result_screen.gd"):
+						result = top
+						break
+			await get_tree().process_frame
+		if result == null:
+			_fail("Level 10: keine Wertung nach dem letzten Boss")
+			return
+		if not (Save.campaign.get("rewarded_levels", []) as Array).has(lv) or not bool(Save.campaign.get("completed", false)):
+			_fail("Level 10: Run nicht abgeschlossen")
+		print("CAMPAIGN level %d ok boss=%s ohne Evolutionswahl" % [lv, str(names)])
+		return
 	# Evolutionsbildschirm abwarten und erste Wahl nehmen
 	var ev = null
 	for i in range(600):

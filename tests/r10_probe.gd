@@ -202,6 +202,25 @@ func _core() -> void:
 	var need := (far - float(zone.r)) / Player.BASE_SPEED
 	_ok(window >= need and window <= need + 0.8, "Zeitfenster reicht gerade ohne Tempo-Upgrade (%.2f s, nötig %.2f s)" % [window, need])
 	_ok(g.gravity_pull() == Vector2.ZERO, "Während der Schutzzone ist der Wind aus")
+	var body: Rect2 = b._stable_bounds()
+	body.position += b.position
+	var clear := true
+	for i in range(60):
+		g.safe_zone = {}
+		g.begin_safe_zone()
+		var zc: Vector2 = g.safe_zone.p
+		clear = clear and not body.grow(float(g.safe_zone.r)).has_point(zc)
+	_ok(clear, "Schutzzone liegt nie im Boss (60 Würfe)")
+	g.safe_zone = {}
+	for h in g.fx.hazards:
+		if String(h.kind) == "safe_zone":
+			h.life = 0.0
+	g.fx.update(0.0)
+	window = g.begin_safe_zone()
+	zone = g.safe_zone
+	far = 0.0
+	for corner in [b_rect.position, Vector2(b_rect.end.x, b_rect.position.y), Vector2(b_rect.position.x, b_rect.end.y), b_rect.end]:
+		far = maxf(far, (corner as Vector2).distance_to(zone.p))
 	# Biene in der Zone: kein Schaden.
 	g.player.iframes = 0.0
 	g.player.shield_hits = 0

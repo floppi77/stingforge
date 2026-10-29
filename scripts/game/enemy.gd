@@ -363,7 +363,8 @@ func _fish_splash() -> void:
 
 func _clamp_playfield() -> void:
 	# Abseil-, Auftauch-, Sprung- und Abflugbewegungen führen bewusst über den Feldrand.
-	if behavior in ["descend", "pop_up", "fish_leap", "sprout"] or (behavior == "from_behind" and age > 4.6):
+	if behavior in ["descend", "pop_up", "fish_leap"] or (behavior == "from_behind" and age > 4.6) \
+			or (behavior == "sprout" and age < 0.6):
 		return
 	position.y = clampf(position.y, App.PLAY_TOP + body_half_height + 2.0,
 		App.PLAY_BOTTOM - body_half_height - 2.0)
