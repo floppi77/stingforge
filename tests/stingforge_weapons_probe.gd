@@ -206,8 +206,10 @@ func _check_persisted_health_and_companions() -> void:
 
 func _check_economy() -> void:
 	build("base", {}, [{"id": "pollen_economy", "level": 2}])
-	player.add_nectar(1)
+	player.add_nectar(1, true, true)
 	check(player.nectar == 3, "Sammelinstinkt2 gibt pro Blüte zwei zusätzliche Nektar")
+	player.add_nectar(1, true, false)
+	check(player.nectar == 4, "Sammelinstinkt wirkt nicht auf Beutetropfen von Gegnern")
 	build("base", {}, [{"id": "pollen_economy", "level": 2}, {"id": "nectar_font", "level": 1}])
 	player.on_boss_phase()
 	check(player.nectar == 15, "Bossphasengeschenk ist keine Blüte und bekommt keinen Pickup-Bonus")
@@ -243,8 +245,8 @@ func _check_fractional_evolutions() -> void:
 	check(player.nectar == 6, "Völlerei: fünf gewöhnliche Einzeldrops ergeben sechs Nektar")
 	build("base", {}, [{"id": "nectar_gluttony", "level": 1}, {"id": "pollen_economy", "level": 2}])
 	for i in range(5):
-		player.add_nectar(1)
-	check(player.nectar == 18, "Völlerei+Sammelinstinkt: fünf Einzeldrops ergeben18 statt15 Nektar")
+		player.add_nectar(1, true, true)
+	check(player.nectar == 18, "Völlerei+Sammelinstinkt: fünf Blüten ergeben18 statt15 Nektar")
 	build("base", {}, [{"id": "nectar_gluttony", "level": 1}, {"id": "nectar_font", "level": 1}, {"id": "pollen_economy", "level": 2}])
 	player.on_boss_phase()
 	check(player.nectar == 15, "Bossphasengeschenk bleibt15 ohne Blüten-/Völlerei-Pickupboni")

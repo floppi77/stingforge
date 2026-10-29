@@ -333,6 +333,22 @@ Leveln rot ([Rotlog](../build/logs/r3/r4-miniboss-red.log)), jetzt 10 von 10 gr�
   Abspann als Vorschau ohne Runabschluss.
 - Neue Prüfsuite `tests/r10_probe` (45 Suiten).
 
+## Neunte Nachrunde: Fähigkeiten-Prüfung
+
+Neue Suite `tests/r11_abilities` (46 Suiten): jede der 36 Evolutionen wird im echten Spiel mit
+und ohne Evolution verglichen, dazu die Verrechnung aller Nektar-Boni.
+
+- **Splittstachel:** Splitter flogen beide schräg nach unten, auf Stufe 2 lagen je zwei
+  übereinander, und sie sahen aus wie normale Schüsse. Jetzt fliegen sie schräg nach oben und
+  unten (Stufe 2: vier Richtungen), hell bernsteinfarben, mit Funken beim Aufbrechen.
+- **Sammelinstinkt:** +1 galt für jeden Beutetropfen statt nur für Blüten (ein Gegner mit fünf
+  Tropfen gab +5). Jetzt nur je Blüte.
+- **Nektar-Boni:** Duftspur und „Reichere Beute“ würfeln unabhängig (Erwartungswerte addieren
+  sich), Völlerei multipliziert das Eingesammelte; geprüft über 4000 Abschüsse.
+- **Duftspur:** 10 % Chance je Stufe statt fester Zusatztropfen.
+- **Stakkato-Stachel / Schnellfeuer:** verständliche Beschreibung des Überschusses am Höchsttempo.
+- **Springbarsch (Level 3):** 10 statt 24 Grund-Lebenspunkte.
+
 ## Prüfung
 
 * `python3 tools/verify_stingforge_r3.py`: alle Suiten einschließlich Pause-, Zwischengegner-

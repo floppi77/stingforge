@@ -864,9 +864,11 @@ func add_max_hp(n: int) -> void:
 	hp = mini(max_hp, hp + n)
 	hp_changed.emit(hp, max_hp)
 
-func add_nectar(n: int, pickup: bool = true) -> void:
+## pickup: eingesammelt (Völlerei wirkt), blossom: eine Blüte (Sammelinstinkt +1 je Blüte).
+func add_nectar(n: int, pickup: bool = true, blossom: bool = false) -> void:
 	if pickup:
-		n += int(evo_effect("nectar_pickup"))
+		if blossom:
+			n += int(evo_effect("nectar_pickup"))
 		var due := float(n) * (1.0 + evo_effect("nectar_mult")) + _nectar_carry
 		n = int(floor(due + 0.000001))
 		_nectar_carry = maxf(0.0, due - float(n))

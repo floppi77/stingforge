@@ -695,7 +695,8 @@ func _update_pickups(delta: float) -> void:
 					player.heal(1)
 					Audio.sfx("pickup_heart", -5.0, 1.0)
 				_:
-					player.add_nectar(p.value)
+					# Sammelinstinkt (+1) gilt nur für Blüten, nicht für jeden Beutetropfen.
+					player.add_nectar(p.value, true, p.kind == "blossom")
 					Audio.sfx_var("pickup_nectar", -8.0)
 			p.queue_free()
 			continue
@@ -956,12 +957,19 @@ func _proc_splinters(b: Dictionary, pos: Vector2, dmg: float) -> void:
 	if player.shop_mod("splinter_chance") > 0.0 and randf() < minf(1.0, player.shop_mod("splinter_chance")):
 		_spawn_splinter(pos, dmg * 0.6, 2, b.hit)
 
+## Splitter fliegen schräg nach oben und unten aus dem Ziel (zwei: ±60°, vier: zusätzlich
+## ±30°), bernsteinfarben, damit man sie von den eigenen Schüssen unterscheidet.
+const SPLINTER_ANGLES := [-1.05, 1.05, -0.5, 0.5, -1.45, 1.45]
+const SPLINTER_TINT := Color(2.2, 1.25, 0.45)
+
 func _spawn_splinter(pos: Vector2, dmg: float, amount: int = 2, hit_ids: Dictionary = {}, depth: int = 1) -> void:
 	var lance: bool = masters != null and masters.has("m_splinter_lance")
-	for i in range(amount):
-		var a := PI * 0.5 + (0.5 if i % 2 == 0 else -0.5)
+	fx.add("spark", pos, {"life": 0.18, "scale": 1.1, "tint": SPLINTER_TINT})
+	for i in range(mini(amount, SPLINTER_ANGLES.size())):
+		var a := float(SPLINTER_ANGLES[i])
 		var child := bullets.spawn_player(pos, Vector2.RIGHT.rotated(a) * 420.0, dmg * 0.35, "bullet_fan",
-			{"r": 4.0, "life": 0.8 if lance else 0.5, "pierce": 2 if lance else 1, "proc_depth": depth})
+			{"r": 4.0, "life": 0.8 if lance else 0.55, "pierce": 2 if lance else 1, "proc_depth": depth,
+				"tint": SPLINTER_TINT, "scale": 0.85, "rot": true})
 		if not child.is_empty():
 			child["proc_depth"] = depth
 			child["lance"] = lance and depth == 1
