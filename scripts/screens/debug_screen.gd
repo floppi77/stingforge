@@ -6,7 +6,7 @@ extends "res://scripts/core/ui_screen.gd"
 func _ready() -> void:
 	list_width = 440
 	overlay_in_game = true
-	header_note = "Spiel pausiert · F4 oder Esc schließt · links/rechts stellt Stufen ein · Sperren der Werkstatt gelten hier nicht"
+	header_note = "Spiel pausiert · F4 oder Esc schließt · links/rechts stellt Stufen ein · Debug-Aktionen nehmen den Run aus der Highscore-Wertung"
 	super._ready()
 
 ## Gewählter Boss für den Direktsprung (Levelnummer).
@@ -83,6 +83,8 @@ func on_adjust(index: int, dir: int) -> void:
 	var id := String(items[index].get("id", ""))
 	if id == "god":
 		app.debug_god = not bool(app.debug_god)
+		if app.debug_god:
+			app.mark_debug_run()
 		Audio.sfx("ui_ok", -8.0, 1.0, true)
 		_after_change()
 	elif id == "bossjump":
@@ -148,6 +150,7 @@ func _set_bar_level(id: String, dir: int) -> void:
 		Audio.sfx("deny", -14.0, 1.2, true)
 		_after_change()
 		return
+	app.mark_debug_run()
 	if p != null:
 		p.upgrades[id] = lvl
 		if String(u.get("kind", "")) == "weapon" and lvl > 0:
@@ -180,6 +183,7 @@ func _set_shop_level(id: String, dir: int) -> void:
 		Audio.sfx("deny", -14.0, 1.2, true)
 		_after_change()
 		return
+	app.mark_debug_run()
 	if p != null:
 		if lvl <= 0:
 			p.shop_levels.erase(id)

@@ -480,6 +480,7 @@ func debug_close() -> void:
 func debug_to_boss() -> void:
 	if not is_in_game():
 		return
+	mark_debug_run()
 	var g := game
 	debug_close()
 	if g == null or not is_instance_valid(g):
@@ -489,6 +490,7 @@ func debug_to_boss() -> void:
 
 ## Debug: laufendes Level überspringen und das nächste starten.
 func debug_next_level() -> void:
+	mark_debug_run()
 	var lv := int(Save.campaign.get("level", run_level))
 	if is_in_game() and game.player != null:
 		Save.campaign.points = game.player.points
@@ -509,11 +511,23 @@ func debug_next_level() -> void:
 ## Debug: Godmode – die Biene nimmt keinen Schaden (nur für diese Sitzung).
 var debug_god := false
 
+## Debug-Aktionen, die den Spielstand verändern, markieren den laufenden Run: Er zählt
+## danach weder für die Highscore-Liste noch für Bestwerte. Das Spiel selbst bleibt gleich.
+func mark_debug_run() -> void:
+	if Save.campaign.is_empty() or bool(Save.campaign.get("debug", false)):
+		return
+	Save.campaign["debug"] = true
+	Save.save_campaign()
+
+func is_debug_run() -> bool:
+	return bool(Save.campaign.get("debug", false)) or debug_god
+
 ## Debug: Level eines Bosses laden und sofort den Bosskampf starten (nur im Run).
 func debug_fight_boss(lv: int) -> bool:
 	if mode != "campaign":
 		return false
 	lv = clampi(lv, 1, Data.levels.size())
+	mark_debug_run()
 	if is_in_game() and game.player != null:
 		Save.campaign.points = game.player.points
 		Save.campaign.nectar = game.player.nectar
@@ -540,6 +554,7 @@ func debug_credits() -> void:
 func debug_full_heal() -> void:
 	if not is_in_game() or game.player == null:
 		return
+	mark_debug_run()
 	var p: Player = game.player
 	p.hp = p.max_hp
 	p.shield_hits = p.shield_max
@@ -679,6 +694,8 @@ func _begin_level(level: int, checkpoint: int) -> void:
 		Save.campaign.level = level
 		Save.campaign.checkpoint = checkpoint
 		Save.save_campaign()
+	if debug_god:
+		mark_debug_run()
 	var g: Node2D = load("res://scripts/game/game.gd").new()
 	g.name = "Game"
 	viewport.add_child(g)
@@ -753,6 +770,8 @@ func continue_after_death() -> void:
 func _record_run_highscore(completed: bool) -> void:
 	if mode not in ["campaign", "rush"] or Save.campaign.is_empty():
 		return
+	if is_debug_run():
+		return
 	Save.ensure_run_score()
 	var reached := 10 if completed else clampi(int(Save.campaign.get("level", run_level)), 1, 10)
 	if mode == "rush" and not completed and game != null and is_instance_valid(game):
@@ -786,7 +805,8 @@ func abandon_run() -> void:
 func on_level_complete(stats: Dictionary) -> void:
 	if mode == "rush":
 		_record_run_highscore(true)
-		Save.record_best("rush|%s|%d" % [String(Save.campaign.get("difficulty", "normal")),
+		if not is_debug_run():
+			Save.record_best("rush|%s|%d" % [String(Save.campaign.get("difficulty", "normal")),
 			int(Save.campaign.get("seed", 0))], stats)
 		push_screen("res://scripts/screens/level_result_screen.gd", {
 			"stats": stats, "training": true, "rush": true, "level": 10,
@@ -863,6 +883,8 @@ func open_link(url: String) -> void:
 	OS.shell_open(url)
 
 func _record_level_score(lv: int, stats: Dictionary) -> void:
+	if is_debug_run():
+		return
 	var key := "%s|%s|%d|%d|%s" % [mode, Save.campaign.difficulty, lv, int(Save.campaign.seed),
 		"zug" if bool(Save.g("access.reduce_effects", false)) else "std"]
 	var entry := {

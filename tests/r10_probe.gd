@@ -21,6 +21,7 @@ func _ready() -> void:
 	await _core()
 	await _final_flow()
 	await _menu_and_debug()
+	_debug_scores()
 	for f in fails:
 		print("R10_FEHLER: " + f)
 	print("R10_OK" if fails.is_empty() else "R10_FAILED")
@@ -377,3 +378,42 @@ func _menu_and_debug() -> void:
 	_ok(not bool(Save.campaign.completed) and not app.is_in_game(), "Debug-Abspann schließt den Run nicht ab")
 	app.menu_main()
 	await _wait(0.2)
+
+# ------------------------------------------------------------------ Debug und Highscores
+func _ids(rows: Array) -> Array:
+	return rows.map(func(r): return String(r.get("run_id", "")))
+
+func _debug_scores() -> void:
+	app.mode = "campaign"
+	app.debug_god = false
+	# Ohne Debug: der Run landet in der Liste und in den Bestwerten.
+	Save.new_campaign("normal", 6161)
+	Save.ensure_run_score()
+	Save.campaign.run_score = 4321
+	var clean_id := String(Save.campaign.run_id)
+	app._record_run_highscore(true)
+	_ok(_ids(Save.get_highscores("campaign", "normal", 50)).has(clean_id), "Regulärer Run erscheint in den Highscores")
+	app.pending_name = {}
+	# Mit Debug-Aktion: weder Highscore noch Bestwert.
+	Save.new_campaign("normal", 6262)
+	Save.ensure_run_score()
+	Save.campaign.run_score = 999999
+	var debug_id := String(Save.campaign.run_id)
+	app.mark_debug_run()
+	_ok(bool(Save.campaign.get("debug", false)), "Debug-Aktion markiert den Run")
+	app._record_run_highscore(true)
+	_ok(not _ids(Save.get_highscores("campaign", "normal", 50)).has(debug_id) and app.pending_name.is_empty(),
+		"Debug-Run erscheint nicht in den Highscores")
+	var best_before: Dictionary = (Save.profile.best as Dictionary).duplicate(true)
+	app._record_level_score(3, {"score": 999999, "rank": "S", "hits": 0})
+	_ok(Save.profile.best == best_before, "Debug-Run setzt keine Bestwerte")
+	# Godmode zählt auch dann, wenn der Run selbst noch unmarkiert ist.
+	Save.new_campaign("normal", 6363)
+	Save.ensure_run_score()
+	Save.campaign.run_score = 888888
+	var god_id := String(Save.campaign.run_id)
+	app.debug_god = true
+	app._record_run_highscore(true)
+	app.debug_god = false
+	_ok(not _ids(Save.get_highscores("campaign", "normal", 50)).has(god_id), "Run mit aktivem Godmode erscheint nicht in den Highscores")
+	app.pending_name = {}

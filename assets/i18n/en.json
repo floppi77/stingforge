@@ -662,6 +662,7 @@
  "Spiel": "Game",
  "Spiel beenden": "Quit Game",
  "Spiel beenden? Der letzte Checkpoint wird gespeichert.": "Quit the game? The last checkpoint is saved.",
+ "Spiel pausiert · F4 oder Esc schließt · links/rechts stellt Stufen ein · Debug-Aktionen nehmen den Run aus der Highscore-Wertung": "Game paused · F4 or Esc closes · left/right sets levels · debug actions remove the run from the highscore ranking",
  "Spielzeit": "Play Time",
  "Spiralschuss": "Spiral Shot",
  "Splitter fliegen weiter, durchschlagen zwei Ziele und zerbrechen bei jedem Treffer erneut in zwei Splitter.": "Splinters fly further, pierce two targets and break into two more splinters on every hit.",
