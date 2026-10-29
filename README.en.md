@@ -117,8 +117,12 @@ Details (German): [build guide](docs/BUILD.md).
 files for all three platforms, checksums and a draft GitHub release. Security checks run on every
 push, see [SECURITY.md](SECURITY.md).
 
+Before tagging, raise the version in `export_presets.cfg` (`application/version` and
+`application/short_version`) and commit it; CI stops if tag and version do not match.
+Published releases are immutable, fixes get a new version.
+
 ```bash
-git tag v0.5.0 && git push origin v0.5.0
+git tag vX.Y.Z && git push origin vX.Y.Z
 ```
 
 ## Soundtrack pipeline

@@ -119,8 +119,13 @@ Details: [Build-Anleitung](docs/BUILD.md).
 die Dateien für alle drei Plattformen, Prüfsummen und einen Entwurf des GitHub-Releases.
 Sicherheitsprüfungen laufen bei jedem Push, siehe [SECURITY.md](SECURITY.md).
 
+Vor dem Tag die Versionsnummer in `export_presets.cfg` (`application/version` und
+`application/short_version`) anheben und committen; die CI bricht ab, wenn Tag und Version
+nicht zusammenpassen. Veröffentlichte Releases sind unveränderlich, Korrekturen bekommen
+eine neue Version.
+
 ```bash
-git tag v0.5.0 && git push origin v0.5.0
+git tag vX.Y.Z && git push origin vX.Y.Z
 ```
 
 ## Soundtrack-Pipeline

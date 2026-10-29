@@ -9,8 +9,9 @@
 | macOS (Intel und Apple Silicon) | `Stingforge-macOS.zip` | entpacken, `Stingforge.app` nach „Programme“ ziehen |
 
 Die Mac-App ist ad-hoc signiert, aber nicht von Apple notarisiert. Beim ersten Start daher im
-Finder Rechtsklick › „Öffnen“ wählen. Meldet macOS „beschädigt“, hilft im Terminal:
-`xattr -cr /Applications/Stingforge.app`
+Finder Rechtsklick › „Öffnen“ wählen. Meldet macOS „beschädigt“, entfernt dieser Befehl im
+Terminal nur die Download-Sperre:
+`xattr -dr com.apple.quarantine /Applications/Stingforge.app`
 
 ### Downloads prüfen
 
@@ -50,8 +51,9 @@ Das Spiel spricht Deutsch und Englisch – umschalten per Flagge im Hauptmenü.
 | macOS (Intel and Apple Silicon) | `Stingforge-macOS.zip` | unzip, drag `Stingforge.app` into “Applications” |
 
 The Mac app is ad-hoc signed but not notarised by Apple. On first launch, right-click it in
-the Finder › “Open”. If macOS reports it as “damaged”, run in the Terminal:
-`xattr -cr /Applications/Stingforge.app`
+the Finder › “Open”. If macOS reports it as “damaged”, this Terminal command removes only the
+download quarantine flag:
+`xattr -dr com.apple.quarantine /Applications/Stingforge.app`
 
 The game speaks German and English – switch with the flags in the main menu.
 

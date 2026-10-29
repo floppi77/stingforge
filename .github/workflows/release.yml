@@ -4,8 +4,10 @@
 #   - Das Tag muss zur Versionsnummer in export_presets.cfg passen.
 #   - Godot und die Exportvorlagen werden gegen die SHA-512-Summen des Godot-Projekts geprüft.
 #   - Linux-Datei startet zur Probe ohne Fenster; die Mac-App wird auf Aufbau geprüft.
-#   - Existiert das Release schon, werden die Dateien ersetzt, sonst entsteht ein Entwurf
-#     mit automatischen Release Notes, den man vor der Veröffentlichung prüft.
+#   - Ohne Release entsteht ein Entwurf mit automatischen Release Notes, den man vor der
+#     Veröffentlichung prüft. Bei einem Entwurf werden die Dateien ersetzt.
+#   - Veröffentlichte Releases sind unveränderlich: Der Lauf bricht dann gleich zu Beginn
+#     mit einer klaren Meldung ab, statt erst beim Hochladen zu scheitern.
 name: Release
 
 on:
@@ -50,6 +52,19 @@ jobs:
             echo "application/${key}=${have}"
             test "$have" = "$want" || { echo "Version in export_presets.cfg ($have) passt nicht zum Tag $TAG"; exit 1; }
           done
+
+      - name: Release-Zustand prüfen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          draft=$(gh release view "$TAG" --json isDraft --jq .isDraft 2>/dev/null || echo none)
+          case "$draft" in
+            none)  echo "Kein Release zu $TAG vorhanden: es entsteht ein neuer Entwurf." ;;
+            true)  echo "Entwurf zu $TAG vorhanden: die Dateien werden ersetzt." ;;
+            *)     echo "::error::$TAG ist bereits veröffentlicht und unveränderlich. Für Korrekturen eine neue Version taggen (z. B. v0.6.1)."
+                   exit 1 ;;
+          esac
 
       - name: Godot und Exportvorlagen laden (SHA-512 geprüft)
         run: |
@@ -114,8 +129,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          if gh release view "$TAG" > /dev/null 2>&1; then
+          draft=$(gh release view "$TAG" --json isDraft --jq .isDraft 2>/dev/null || echo none)
+          if [ "$draft" = "true" ]; then
             gh release upload "$TAG" dist/* --clobber
+          elif [ "$draft" = "false" ]; then
+            echo "::error::$TAG wurde während des Builds veröffentlicht; Dateien bleiben unverändert."
+            exit 1
           else
             gh release create "$TAG" dist/* --draft --verify-tag --generate-notes \
               --notes-file .github/release-notes.md --title "Stingforge $TAG"

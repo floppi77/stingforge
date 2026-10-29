@@ -77,8 +77,9 @@ zusätzliches PCK nötig. Unter Linux gegebenenfalls „Als Programm ausführen�
 macOS (Intel und Apple Silicon, ab macOS 11 bzw. 10.12): ZIP entpacken und Stingforge.app
 in „Programme“ ziehen. Die App ist nur ad-hoc signiert, nicht von Apple notarisiert. Beim
 ersten Start daher im Finder Rechtsklick › „Öffnen“, oder unter Systemeinstellungen ›
-Datenschutz & Sicherheit „Dennoch öffnen“. Meldet macOS „beschädigt“, hilft im Terminal
-`xattr -cr /Applications/Stingforge.app`.
+Datenschutz & Sicherheit „Dennoch öffnen“. Meldet macOS „beschädigt“, entfernt dieser
+Befehl im Terminal nur die Download-Sperre:
+`xattr -dr com.apple.quarantine /Applications/Stingforge.app`.
 
 R4: Neuer Pixellook in 1920 × 1080 mit Ultrawide-Unterstützung (21:9, 32:9: das
 Spielfeld bleibt 16:9, die Ränder zeigen die Levelkulisse). Pixel-Titelbild und
