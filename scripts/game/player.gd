@@ -357,6 +357,7 @@ func _update_timers(delta: float) -> void:
 			bomb_cd = (17.0 - 2.0 * float(lvl)) / (1.0 + shop_mod("bomb_rate"))
 			g.player_pulse(position)
 			Audio.sfx("bomb", -10.0, 1.05)
+			Bindings.rumble(0.5, 0.6, 0.35)
 	# Druckwelle
 	if evo_has("resonance_pulse"):
 		if fire_active() and pulse_cd <= 0.0:
@@ -749,6 +750,7 @@ func take_damage(amount: int, from: Vector2 = Vector2.RIGHT) -> bool:
 			if g != null and g.has_method("shield_break_pulse"):
 				g.shield_break_pulse(position)
 		Audio.sfx("shield_hit", -4.0, 0.9)
+		Bindings.rumble(0.35, 0.1, 0.15)
 		_knockback(from)
 		return true
 	var dmg := amount
@@ -762,6 +764,10 @@ func take_damage(amount: int, from: Vector2 = Vector2.RIGHT) -> bool:
 	_knockback(from)
 	hp_changed.emit(hp, max_hp)
 	Audio.sfx("player_hit", -2.0, 0.95)
+	if hp > 0:
+		Bindings.rumble(0.6, 0.8, 0.3)
+	else:
+		Bindings.rumble(1.0, 1.0, 0.7)
 	if get_parent() != null and get_parent().has_method("on_player_hit"):
 		get_parent().on_player_hit(amount)
 	if hp <= 0:
@@ -886,7 +892,7 @@ func try_buy(id: String) -> Dictionary:
 		if id == "speed":
 			_cycle_speed()
 			return {"ok": true, "msg": ""}
-		return {"ok": false, "msg": ""}
+		return {"ok": false, "msg": "bar.maxed"}
 	var cost := upgrade_cost_for(id)
 	if nectar < cost:
 		# Zu wenig Blütenstaub: Waffen lassen sich trotzdem ausrüsten,

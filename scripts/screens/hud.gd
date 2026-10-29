@@ -117,28 +117,34 @@ func _handle_input() -> void:
 		Audio.sfx("ui_ok", -10.0, 1.0, true)
 		show_banner(Loc.t("hud.autofire_on") if p.autofire else "Autofeuer aus", 0.9)
 	if Bindings.consume("upgrade_buy"):
-		var id := String(bar_entries[selected])
-		var res: Dictionary = p.try_buy(id)
-		if bool(res.get("ok", false)):
-			pulse_flash = 0.35
-			Audio.sfx("purchase", -5.0, 1.05)
-			var u := Data.upgrade(id)
-			show_banner("%s  %s" % [Loc.t(String(u.get("name", ""))), _state_text(p, id)], 1.2)
-		elif bool(res.get("equipped", false)):
-			# Waffe gewechselt, aber die Stufe war nicht bezahlbar.
-			pulse_flash = 0.25
-			var u2 := Data.upgrade(id)
-			show_banner("%s  %s" % [Loc.t(String(u2.get("name", ""))), _state_text(p, id)], 1.1)
-			show_banner(Loc.t("bar.no_nectar"), 0.9)
+		buy_selected(p)
+
+## Gewähltes Upgrade kaufen/ausrüsten, mit Banner, Klang und Sprachansage.
+func buy_selected(p: Player) -> void:
+	var id := String(bar_entries[selected])
+	var res: Dictionary = p.try_buy(id)
+	if bool(res.get("ok", false)):
+		pulse_flash = 0.35
+		Audio.sfx("purchase", -5.0, 1.05)
+		var u := Data.upgrade(id)
+		show_banner("%s  %s" % [Loc.t(String(u.get("name", ""))), _state_text(p, id)], 1.2)
+	elif bool(res.get("equipped", false)):
+		# Waffe gewechselt, aber die Stufe war nicht bezahlbar.
+		pulse_flash = 0.25
+		var u2 := Data.upgrade(id)
+		show_banner("%s  %s" % [Loc.t(String(u2.get("name", ""))), _state_text(p, id)], 1.1)
+		show_banner(Loc.t("bar.no_nectar"), 0.9)
+		Audio.voice("nectar_low", "Zu wenig Blütenstaub")
+	else:
+		deny_flash = 0.3
+		Audio.sfx("deny", -6.0, 1.0, true)
+		if String(res.get("msg", "")) == "bar.no_nectar":
 			Audio.voice("nectar_low", "Zu wenig Blütenstaub")
-		else:
-			deny_flash = 0.3
-			Audio.sfx("deny", -6.0, 1.0, true)
-			if String(res.get("msg", "")) == "bar.no_nectar":
-				Audio.voice("nectar_low", "Zu wenig Blütenstaub")
-			var msg := String(res.get("msg", ""))
-			if msg != "":
-				show_banner(Loc.t(msg), 1.0)
+		elif String(res.get("msg", "")) == "bar.maxed":
+			Audio.voice("upgrade_max", "Voll ausgebaut")
+		var msg := String(res.get("msg", ""))
+		if msg != "":
+			show_banner(Loc.t(msg), 1.0)
 
 ## Bossankündigung: kurzer Weißblitz und großer Schriftzug.
 ## Gewähltes Upgrade ansagen ("Blitz"), damit der Blick auf dem Spielfeld bleiben kann.

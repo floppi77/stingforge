@@ -81,9 +81,13 @@ func setup(cfg: Dictionary) -> void:
 	_take_checkpoint_snapshot()
 	Audio.play_music(String(level_data.get("music", "level1")), 0.8, _level_music_start())
 	started = true
-	if int(Save.g("game.tutorial", true)) and bool(Save.campaign.get("level_stats", {}).is_empty()):
-		tutorial_t = 9.0
 	_notify(Loc.t("level." + str(level_index)), 3.0)
+	# Einstellung „Tutorialhinweise“: im ersten Level einer neuen Kampagne die
+	# aktuelle Tastenbelegung als Banner einblenden (folgen auf den Levelnamen).
+	if mode == "campaign" and bool(Save.g("game.tutorial", true)) and bool(Save.campaign.get("level_stats", {}).is_empty()):
+		tutorial_t = 9.0
+		for line in control_hints():
+			_notify(line, 3.0)
 	if mode == "tutorial":
 		add_child(load("res://scripts/game/tutorial.gd").new(self))
 	if mode == "rush":
@@ -625,7 +629,8 @@ func clear_enemy_bullets() -> void:
 func _homing_targets() -> Array:
 	var out: Array = []
 	for e in enemies:
-		if is_instance_valid(e) and not e.dead:
+		# Abgetauchte Springfische (Sprite unsichtbar) sind kein Ziel.
+		if is_instance_valid(e) and not e.dead and e.sprite.visible:
 			out.append(e.position)
 			if out.size() >= 24:
 				return out
@@ -939,6 +944,25 @@ func spawn_explosion(pos: Vector2, scale: float) -> void:
 func spawn_boss_minion(id: String, pos: Vector2) -> void:
 	_on_spawn_enemy(id, pos, {"hp_mult": 1.0})
 
+## Kurzanleitung mit der aktuellen Belegung (Tastatur und Controller).
+## Einstellungen, die im laufenden Level greifen (nach Rückkehr aus dem Pausemenü).
+func apply_settings() -> void:
+	fx.apply_settings()
+	bullets.contrast_mode = bool(Save.g("access.contrast_hazards", true))
+
+func control_hints() -> Array[String]:
+	var keys := ""
+	for a in ["move_up", "move_left", "move_down", "move_right"]:
+		for b in Bindings.bindings_for(a):
+			if String(b.get("t", "")) == "key":
+				keys += Bindings.describe_binding(b)
+				break
+	return [
+		"Fliegen: %s / Stick  ·  Schießen: %s" % [keys, Bindings.describe_action("fire")],
+		"Waffenleiste: %s und %s  ·  Kaufen: %s" % [Bindings.describe_action("upgrade_prev"),
+			Bindings.describe_action("upgrade_next"), Bindings.describe_action("upgrade_buy")],
+	]
+
 func _notify(text: String, t: float) -> void:
 	banner_queue.append({"text": text, "t": t})
 	if app != null and app.hud != null and app.hud.has_method("show_banner"):
@@ -1128,6 +1152,7 @@ func _boss_hp_scale(for_level: int = 0) -> float:
 
 func _on_boss_phase(index: int) -> void:
 	player.on_boss_phase()
+	Bindings.rumble(0.4, 0.9, 0.5)
 	# Laufende Geschosse zerplatzen sichtbar, statt einfach zu verschwinden.
 	var sparks := 0
 	for b in bullets.enemy_bullets:

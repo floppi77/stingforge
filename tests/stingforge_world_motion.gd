@@ -63,9 +63,10 @@ func _ready() -> void:
 			e.age = 2.0
 			e._physics_process(1.0 / 60.0)
 			var half_height := float(Art.info(String(e.def.sprite)).h) * 0.5
-			check(e.position.y - maxf(e.radius, half_height) >= App.PLAY_TOP - 0.001,
+			# Abgetauchte Springfische warten unsichtbar unter der Wasserlinie.
+			check(not e.sprite.visible or e.position.y - maxf(e.radius, half_height) >= App.PLAY_TOP - 0.001,
 				id + " bleibt mit sichtbarem Sprite unter Header")
-			check(e.position.y + maxf(e.radius, half_height) <= App.PLAY_BOTTOM + 0.001,
+			check(not e.sprite.visible or e.position.y + maxf(e.radius, half_height) <= App.PLAY_BOTTOM + 0.001,
 				id + " bleibt mit sichtbarem Sprite über Unterkante")
 			e.free()
 	print("STINGFORGE_WORLD_MOTION checks=%d failures=%d" % [checks, failures.size()])

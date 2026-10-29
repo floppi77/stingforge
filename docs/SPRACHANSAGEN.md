@@ -1,8 +1,9 @@
 # Sprachansagen
 
 Das Spiel sagt das gewählte Upgrade an, wenn du mit LB/RB (Tastatur Q/E) in der
-Waffenleiste blätterst, und meldet „Zu wenig Blütenstaub“, wenn ein Kauf daran
-scheitert. Abschaltbar unter Einstellungen › Audio › Sprachansagen.
+Waffenleiste blätterst. Es meldet „Zu wenig Blütenstaub“, wenn ein Kauf daran
+scheitert, und „Voll ausgebaut!“, wenn das Upgrade schon die höchste Stufe hat.
+Abschaltbar unter Einstellungen › Audio › Sprachansagen.
 
 ## Erzeugung mit Qwen3-TTS (lokal, GPU)
 
@@ -62,9 +63,14 @@ wiederholbar.
 | `upgrade_speed` | Tempo! |
 | `upgrade_repair` | Reparatur! |
 | `nectar_low` | Zu wenig Blütenstaub. |
+| `upgrade_max` | Voll ausgebaut! |
 
-Neue Ansagen: Zeile in `LINES` in `tools/tts/make_voice.py` ergänzen und im Spiel
-`Audio.voice("<datei>", "<Text>")` aufrufen.
+Neue Ansagen:
+1. Zeile in `LINES` in `tools/tts/make_voice.py` ergänzen.
+2. Die Kennung in `SOLO` in `make_voice_qwen.py` eintragen, damit die freigegebenen Ansagen
+   unverändert bleiben.
+3. Nur die neue Zeile erzeugen: `make_voice_qwen.py --only=<kennung>`.
+4. Im Spiel `Audio.voice("<datei>", "<Text>")` aufrufen.
 
 ## Ältere Wege
 

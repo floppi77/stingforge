@@ -57,6 +57,8 @@ var screen_host: Control
 var hud_host: Control
 var fade: ColorRect
 var post_rect: ColorRect
+var crt_layer: CanvasLayer
+var crt_rect: ColorRect
 ## Ultrawide/16:10: eigener Hintergrund für die Flächen neben dem 16:9-Spielfeld.
 var backdrop_vp: SubViewport
 var backdrop_rect: TextureRect
@@ -185,34 +187,93 @@ func _build_tree() -> void:
 	overlay_layer.layer = 20
 	add_child(overlay_layer)
 	overlay_layer.add_child(fade)
+	# CRT liegt über Spiel, HUD und Menüs (Ebene 15), aber unter der Überblendung.
+	crt_layer = CanvasLayer.new()
+	crt_layer.layer = 15
+	add_child(crt_layer)
+	crt_rect = ColorRect.new()
+	crt_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	crt_layer.add_child(crt_rect)
 	_apply_post_shader()
+
+const POST_SHADER := """
+shader_type canvas_item;
+uniform float strength = 0.55;
+void fragment() {
+	float d = distance(SCREEN_UV, vec2(0.5));
+	float vig = smoothstep(0.82, 0.28, d);
+	COLOR = vec4(0.0, 0.02, 0.05, (1.0 - vig) * strength * 0.55);
+}
+"""
+
+## CRT-Röhre: leichte Wölbung, Farbsaum, Scanlines im Raster der Spielpixel
+## (row_px Gerätepixel je Spielzeile), Lochmaske und Randabdunklung.
+const CRT_SHADER := """
+shader_type canvas_item;
+uniform sampler2D screen_tex : hint_screen_texture, filter_linear;
+uniform vec2 screen_px = vec2(1920.0, 1080.0);
+uniform float field_top_px = 0.0;
+uniform float row_px = 2.0;
+uniform float curvature = 0.06;
+void fragment() {
+	vec2 c = SCREEN_UV - 0.5;
+	vec2 uv = 0.5 + c * (1.0 + curvature * dot(c, c));
+	if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+		COLOR = vec4(0.0, 0.0, 0.0, 1.0);
+	} else {
+		float ca = 0.9 / screen_px.x;
+		vec3 col = vec3(texture(screen_tex, uv + vec2(ca, 0.0)).r, texture(screen_tex, uv).g,
+			texture(screen_tex, uv - vec2(ca, 0.0)).b);
+		// Untere Hälfte jeder Spielzeile dunkler; bei weniger als 2 px je Zeile nur angedeutet.
+		float f = fract((uv.y * screen_px.y - field_top_px) / row_px);
+		float scan = row_px >= 1.8 ? 0.34 : 0.12;
+		col *= 1.0 - scan * smoothstep(0.35, 0.75, f);
+		float m = mod(floor(FRAGCOORD.x), 3.0);
+		col *= vec3(m == 0.0 ? 1.0 : 0.82, m == 1.0 ? 1.0 : 0.82, m == 2.0 ? 1.0 : 0.82);
+		col *= 1.0 - 0.45 * smoothstep(0.32, 0.75, length(c));
+		COLOR = vec4(col * 1.3, 1.0);
+	}
+}
+"""
 
 func _apply_post_shader() -> void:
 	post_rect.color = Color(0, 0, 0, 0)
-	if not bool(Save.g("graphics.post", true)):
+	if bool(Save.g("graphics.post", true)):
+		var mat := ShaderMaterial.new()
+		mat.shader = Shader.new()
+		mat.shader.code = POST_SHADER
+		mat.set_shader_parameter("strength", 0.5)
+		post_rect.material = mat
+	else:
+		post_rect.material = null
+	var crt := bool(Save.g("graphics.crt", false))
+	crt_rect.visible = crt
+	if crt and crt_rect.material == null:
+		var cm := ShaderMaterial.new()
+		cm.shader = Shader.new()
+		cm.shader.code = CRT_SHADER
+		crt_rect.material = cm
+	elif not crt:
+		crt_rect.material = null
+	_layout_crt()
+
+## Scanline-Raster an Fenstergröße und Spielfeld ausrichten.
+func _layout_crt() -> void:
+	if crt_rect == null or view_rect == null:
 		return
-	var sh := Shader.new()
-	sh.code = """
-shader_type canvas_item;
-uniform float strength = 0.55;
-uniform float crt = 0.0;
-void fragment() {
-	vec2 uv = SCREEN_UV;
-	float d = distance(uv, vec2(0.5));
-	float vig = smoothstep(0.82, 0.28, d);
-	float a = (1.0 - vig) * strength * 0.55;
-	if (crt > 0.5) {
-		float scan = 0.06 * step(0.5, fract(FRAGCOORD.y * 0.5));
-		a += scan;
-	}
-	COLOR = vec4(0.0, 0.02, 0.05, a);
-}
-"""
-	var mat := ShaderMaterial.new()
-	mat.shader = sh
-	mat.set_shader_parameter("strength", 0.5)
-	mat.set_shader_parameter("crt", 1.0 if bool(Save.g("graphics.crt", false)) else 0.0)
-	post_rect.material = mat
+	var canvas: Vector2 = get_viewport().get_visible_rect().size
+	crt_rect.position = Vector2.ZERO
+	crt_rect.size = canvas
+	var mat := crt_rect.material as ShaderMaterial
+	if mat == null:
+		return
+	var px := Vector2(get_window().size)
+	if px.x < 1.0 or px.y < 1.0 or canvas.y < 1.0:
+		return
+	var k := px.y / canvas.y
+	mat.set_shader_parameter("screen_px", px)
+	mat.set_shader_parameter("field_top_px", view_rect.position.y * k)
+	mat.set_shader_parameter("row_px", view_rect.size.y * k / float(WORLD_SIZE.y))
 
 # ------------------------------------------------------------------- Anzeige
 func apply_display() -> void:
@@ -279,6 +340,7 @@ func _on_root_resize() -> void:
 		post_rect.position = Vector2(x, y)
 		post_rect.size = Vector2(w, h)
 	_layout_backdrop(win_size, Rect2(x, y, w, h))
+	_layout_crt()
 	if hud != null and hud.has_method("set_view_rect"):
 		hud.set_view_rect(Rect2(x, y, w, h))
 

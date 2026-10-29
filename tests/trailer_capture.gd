@@ -141,6 +141,23 @@ func _setup() -> void:
 				"generator_order"], 0.4, 5.0)
 			_bullet_pilot()
 			duration = 6.0
+		# Prüfbild für den CRT-Filter (Spiel mit HUD), nicht Teil des Trailers.
+		"crt_check":
+			Save.set_g("graphics.crt", true)
+			app._apply_post_shader()
+			await _level(3, {"wave": 2}, "fan")
+			app.hud.visible = true
+			_spawn_chain(["reed_leap", "moth_line"], 0.6)
+			duration = 2.5
+		# Prüfbild Teich: Springbarsche und Brunnenfontänen.
+		"water_check":
+			await _level(3, {"wave": 1}, "base", {"fan": 0, "companion": 0})
+			_game().spawn_geyser(520.0)
+			_later(0.9, func(): _game().spawn_geyser(700.0))
+			for i in range(3):
+				_game().spawn_enemy("leap_fish", Vector2(640.0 + i * 46.0, App.PLAY_BOTTOM + 30.0), {"delay": 0.2 + i * 0.45})
+			_pilot_center = Vector2(150, 200)
+			duration = 4.0
 		"shop":
 			Save.new_campaign("normal", 991)
 			Save.campaign.points = 42000

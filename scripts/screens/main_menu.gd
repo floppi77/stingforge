@@ -471,7 +471,8 @@ func _open_new_campaign() -> void:
 
 func _choose_difficulty() -> void:
 	# Erster Start: den Übungsflug anbieten (einmalig, danach im Menü wählbar).
-	if not bool(Save.profile.get("tutorial_done", false)) and not bool(Save.profile.get("tutorial_offered", false)):
+	if bool(Save.g("game.tutorial", true)) and not bool(Save.profile.get("tutorial_done", false)) \
+			and not bool(Save.profile.get("tutorial_offered", false)):
 		Save.profile["tutorial_offered"] = true
 		Save.save_profile()
 		app.push_screen("res://scripts/screens/confirm_screen.gd", {

@@ -240,6 +240,32 @@ Leveln rot ([Rotlog](../build/logs/r3/r4-miniboss-red.log)), jetzt 10 von 10 gr�
     (Stimme „Heldin“), siehe [Sprachansagen](SPRACHANSAGEN.md).
   - Sichtbare Texte nennen die Währung einheitlich **Blütenstaub**.
 
+## Fünfte Nachrunde: Bossziele, Einstellungen, Teich
+
+- **Bosse zielen richtig:**
+  - Die Riesenlarve spuckte ihren Fächer senkrecht nach unten. Jetzt zielt jede der drei
+    Salven neu aus dem Maul auf die Biene.
+  - Das Schleusentor des Wasserläufers flog waagerecht über dem sichtbaren Bild. Jetzt fällt
+    es als Fächer von oben über der Biene.
+- **Einstellungen geprüft, jede mit messbarer Wirkung (R7):**
+  - CRT-Filter neu: echte Röhre über dem ganzen Bild samt HUD und Menüs, mit leichter
+    Wölbung, Farbsaum, Lochmaske und Scanlines im Raster der Spielpixel. Vorher waren es
+    kaum sichtbare 1-px-Linien nur über dem Spielfeld, die mit der Nachbearbeitung wegfielen.
+  - Nachbearbeitung lässt sich wieder abschalten (der Vignetten-Shader blieb aktiv).
+  - Beide Filter schalten um, ohne das Fenster neu zu platzieren.
+  - Vibration war ohne Funktion. Der Controller rüttelt jetzt bei Treffern, Schildtreffern,
+    Bomben, Bossphasen und Bossende, mit der eingestellten Stärke.
+  - „Tutorialhinweise“ war ohne Funktion. Die aktuelle Tastenbelegung erscheint jetzt im
+    ersten Level einer neuen Kampagne; ausgeschaltet bietet das Hauptmenü auch den
+    Übungsflug nicht mehr an.
+  - Effektdichte und Kontrast-Geschosse greifen sofort nach dem Pausemenü.
+- **„Voll ausgebaut“:** Kaufversuch bei vollem Ausbau sagt es an (Stimme „Heldin“) und
+  zeigt ein Banner.
+- **Teich (Level 3):** Statt Ameisen und Maulwurfsgrillen springen Barsche im Bogen aus dem
+  Wasser, drehen sich mit der Flugbahn, spritzen im Scheitel einen Tropfenfächer und tauchen
+  bis zu dreimal wieder auf. Die Fontänen sind im Pixellook neu gezeichnet: schaumiger
+  Strahl mit Schüben, Gischtkrone, Wasservorhänge und Tropfen. Die Trefferform bleibt gleich.
+
 ## Prüfung
 
 * `python3 tools/verify_stingforge_r3.py`: alle Suiten einschließlich Pause-, Zwischengegner-

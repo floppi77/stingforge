@@ -76,6 +76,7 @@ const STRINGS := {
 		"bar.active": "Aktiv",
 		"bar.slower": "Tempo senken",
 		"bar.full_hp": "Leben voll",
+		"bar.maxed": "Voll ausgebaut",
 		"bar.no_nectar": "Zu wenig Blütenstaub",
 		"bar.select": "Q/E wählen   F kaufen/aktivieren",
 		"bar.locked_weapon": "Erst kaufen",

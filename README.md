@@ -95,7 +95,7 @@ export XDG_DATA_HOME="$PWD/.godot_data" XDG_CONFIG_HOME="$PWD/.godot_config" XDG
 godot --headless --path . --export-release Linux build/linux/Stingforge.x86_64
 godot --headless --path . --export-release Windows build/windows/Stingforge.exe
 godot --headless --path . --export-release macOS build/macos/Stingforge-macOS.zip
-python3 tools/verify_stingforge_r3.py     # 41 Regressionssuiten
+python3 tools/verify_stingforge_r3.py     # 42 Regressionssuiten
 ```
 
 Details: [Build-Anleitung](docs/BUILD.md).

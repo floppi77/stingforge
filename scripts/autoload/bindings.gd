@@ -57,6 +57,19 @@ func pads() -> Array[int]:
 		return []
 	return Input.get_connected_joypads()
 
+## Controller-Vibration (Einstellungen › Steuerung): Stärke 0–1 je Motor, Dauer in s.
+## Gibt zurück, ob vibriert wurde (aus, kein Controller oder Stärke 0: nein).
+func rumble(weak: float, strong: float, duration: float) -> bool:
+	if not bool(Save.g("controls.vibration", true)):
+		return false
+	var k := clampf(float(Save.g("controls.vibration_strength", 0.6)), 0.0, 1.0)
+	if k <= 0.0:
+		return false
+	var list := pads()
+	for pad in list:
+		Input.start_joy_vibration(pad, clampf(weak * k, 0.0, 1.0), clampf(strong * k, 0.0, 1.0), duration)
+	return not list.is_empty()
+
 func _ready() -> void:
 	_ensure_actions()
 	load_bindings()

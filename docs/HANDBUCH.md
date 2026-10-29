@@ -488,12 +488,14 @@ Sechs Kategorien, mit `LB`/`RB` bzw. `Q`/`E` erreichbar:
   die Liste ist also je nach Bildschirm kürzer. Die Auflösung wirkt im
   Fenstermodus; randlos und Vollbild richten sich nach dem Monitor. V-Sync,
   Bildratenbegrenzung, Skalierung und UI-Größe wirken sofort.
-* **Grafik** – Effekte, Partikel, Bildschirmwackeln, Blitze, Nachbearbeitung,
-  **Beleuchtung & Schatten** (Lichteinfall und Vignette), optionaler CRT-Filter.
+* **Grafik** – Effekte, Partikel, Bildschirmwackeln, Blitze, Nachbearbeitung (Vignette),
+  **Beleuchtung & Schatten** (Lichteinfall), optionaler CRT-Filter (Röhrenbild mit
+  Scanlines und Lochmaske über Spiel und Menüs).
 * **Audio** – Master, Musik, Effekte, UI getrennt; Stummschaltung bei Fensterverlust.
 * **Steuerung** – Tastenbelegung für Tastatur und Controller, Deadzone,
-  Empfindlichkeit, Vibration.
-* **Spiel** – Autofeuer-Voreinstellung, Hinweise, Trefferzonenanzeige.
+  Empfindlichkeit, Vibration (Treffer, Bomben, Bossphasen) und deren Stärke.
+* **Spiel** – Autofeuer-Voreinstellung, Tutorialhinweise (Steuerung im ersten Level,
+  Angebot des Übungsflugs), Trefferzonenanzeige.
   Die Schwierigkeit wird ausschließlich beim Start von Kampagne oder Boss-Rush
   gewählt und bleibt während des Runs fest.
 * **Zugänglichkeit** – Schriftgröße, reduzierte Effekte, Kontrastmarkierung

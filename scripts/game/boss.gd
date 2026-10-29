@@ -706,9 +706,11 @@ func _p_spit_arc() -> void:
 			var g := get_parent()
 			if g == null or dead:
 				return
+			# Fächer aus dem Maul, jede Salve neu auf die Biene gerichtet.
+			var mouth := position + Vector2(-50, -10)
+			var aim: Vector2 = (g.player_position() - mouth).normalized()
 			for k in range(7):
-				var a := PI * 0.5 + (k - 3) * 0.14
-				g.spawn_enemy_bullet(position, Vector2.LEFT.rotated(a - PI) * 230.0, 1, "ebullet_spore")
+				g.spawn_enemy_bullet(mouth, aim.rotated((k - 3) * 0.14) * 230.0, 1, "ebullet_spore")
 		)
 
 ## Tunnelfahrt: Die Larve wühlt unter dem Boden quer durch die Arena; vor ihr
@@ -1157,9 +1159,9 @@ func _p_drain_gate() -> void:
 		if g == null or dead:
 			return
 		var p: Vector2 = g.player_position()
+		# Schleusenschwall: Fächer von oben über der Biene.
 		for i in range(9):
-			var a := PI + (float(i) - 4.0) * 0.22
-			g.spawn_enemy_bullet(Vector2(p.x, -20), Vector2.DOWN.rotated(a - PI * 0.5) * 200.0, 1, "ebullet_spore")
+			g.spawn_enemy_bullet(Vector2(p.x, -20), Vector2.DOWN.rotated((float(i) - 4.0) * 0.22) * 200.0, 1, "ebullet_spore")
 	)
 
 func _p_sludge_wave() -> void:
@@ -1757,6 +1759,7 @@ func _die() -> void:
 	_end_cave_in()
 	if dead or reviving:
 		return
+	Bindings.rumble(0.8, 1.0, 0.9)
 	if encounter_form == 1 and _is_final_encounter():
 		_begin_reviving()
 		return

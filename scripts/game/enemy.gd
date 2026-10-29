@@ -40,6 +40,13 @@ var bullet_speed_mult: float = 1.0
 var tint := Color.WHITE
 ## Verfolger wählen nach der Warnphase genau eine Flugbahn; kein Umdrehen.
 var approach_dir := Vector2.ZERO
+## Springfisch: Wartezeit unter Wasser, Sprünge bisher, Spritzer im Scheitel schon abgegeben.
+const FISH_GRAVITY := 560.0
+## Blickrichtung des Barsch-Sprites (nach links oben), damit er der Flugbahn folgt.
+const FISH_BASE_ANGLE := -2.72
+var _fish_wait := 0.0
+var _fish_jumps := 0
+var _fish_spat := false
 var body_half_height := 0.0
 ## Zwischengegner verlassen das Feld nie: eigenes Patrouillenmuster statt des
 ## Flugmusters ihres Grundtyps, bis sie besiegt sind.
@@ -83,6 +90,9 @@ func setup(point_id: String, pos: Vector2, options: Dictionary = {}) -> void:
 	base_y = position.y
 	home_y = position.y
 	fire_t = fire_interval * randf_range(0.4, 1.0)
+	if behavior == "fish_leap":
+		_fish_wait = float(options.get("delay", 0.3))
+		sprite.visible = false
 
 func _build_sprite() -> void:
 	sprite = AnimatedSprite2D.new()
@@ -226,6 +236,8 @@ func _move(delta: float) -> void:
 		"rush":
 			position.x -= speed * delta
 			position.y = base_y + sin(age * 8.0) * 3.0
+		"fish_leap":
+			_fish_leap(delta, p)
 		"sweep":
 			vx = -speed * 0.55
 			position.x += vx * delta
@@ -265,9 +277,49 @@ func _move_miniboss(delta: float, p: Vector2) -> void:
 	var ty := lerpf(home_y + sin(age * 1.3) * 90.0, p.y, 0.45)
 	position.y = move_toward(position.y, ty, 70.0 * delta)
 
+## Springfisch: wartet unter Wasser, springt im Bogen Richtung Biene, spritzt im
+## Scheitel einen Tropfenfächer und taucht ein; bis zu drei Sprünge hintereinander.
+func _fish_leap(delta: float, p: Vector2) -> void:
+	if _fish_wait > 0.0:
+		_fish_wait -= delta
+		position.y = App.PLAY_BOTTOM + 30.0
+		if _fish_wait > 0.0:
+			return
+		var v := sqrt(2.0 * FISH_GRAVITY * randf_range(170.0, 250.0))
+		var flight := 2.0 * v / FISH_GRAVITY
+		vx = clampf((p.x - position.x) / flight, -260.0, -50.0)
+		vy = -v
+		position.y = App.PLAY_BOTTOM + 4.0
+		sprite.visible = true
+		_fish_spat = false
+		_fish_splash()
+	vy += FISH_GRAVITY * delta
+	position += Vector2(vx, vy) * delta
+	sprite.rotation = Vector2(vx, vy).angle() - FISH_BASE_ANGLE
+	if not _fish_spat and vy >= 0.0:
+		_fish_spat = true
+		var g := get_parent()
+		if g != null and g.has_method("spawn_enemy_bullet"):
+			var aim := (p - position).normalized()
+			for a in [-0.28, 0.0, 0.28]:
+				g.spawn_enemy_bullet(position, aim.rotated(a) * 170.0 * bullet_speed_mult, 1, "ebullet_orb", {"scale": 0.8})
+	if vy > 0.0 and position.y > App.PLAY_BOTTOM + 6.0:
+		_fish_splash()
+		_fish_jumps += 1
+		sprite.visible = false
+		if _fish_jumps >= 3:
+			queue_free()
+			return
+		_fish_wait = 0.55
+
+func _fish_splash() -> void:
+	var g := get_parent()
+	if g != null and "fx" in g and g.fx != null and g.fx.has_method("water_splash"):
+		g.fx.water_splash(Vector2(position.x, App.PLAY_BOTTOM - 2.0), 1.0)
+
 func _clamp_playfield() -> void:
-	# Abseil-, Auftauch- und Abflugbewegungen führen bewusst über den Feldrand.
-	if behavior in ["descend", "pop_up"] or (behavior == "from_behind" and age > 4.6):
+	# Abseil-, Auftauch-, Sprung- und Abflugbewegungen führen bewusst über den Feldrand.
+	if behavior in ["descend", "pop_up", "fish_leap"] or (behavior == "from_behind" and age > 4.6):
 		return
 	position.y = clampf(position.y, App.PLAY_TOP + body_half_height + 2.0,
 		App.PLAY_BOTTOM - body_half_height - 2.0)

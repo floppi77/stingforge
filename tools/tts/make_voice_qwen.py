@@ -1,7 +1,7 @@
 """Sprachansagen mit Qwen3-TTS (lokal, GPU) erzeugen.
 
 Einrichtung: tools/tts/setup_qwen.sh (Python-Umgebung .venv-qwen + Modelle VoiceDesign/Base)
-Aufruf:      tools/tts/.venv-qwen/bin/python tools/tts/make_voice_qwen.py [--probe] [stimme]
+Aufruf:      tools/tts/.venv-qwen/bin/python tools/tts/make_voice_qwen.py [--probe] [--only=id,…] [stimme]
 Danach:      tools/import_shuttle.sh assets/audio/voice/*.ogg
 
 Zwei Schritte, damit alle Ansagen nach derselben Person klingen:
@@ -47,6 +47,9 @@ VOICE = 'heldin'
 # sprechen und die nehmen, deren Tonhöhe den übrigen Ansagen am nächsten liegt.
 RETAKES = {'upgrade_bombs'}
 RETAKE_TRIES = 8
+# Später ergänzte Zeilen: einzeln gesprochen (wie RETAKES), damit der Stapel der
+# freigegebenen Ansagen unverändert bleibt.
+SOLO = {'upgrade_max'}
 # Referenzsatz: kurze Ausrufe mit Schwung, damit der Klon Tempo und Ausdruck übernimmt.
 REF_TEXT = 'Achtung! Neue Waffe bereit! Schild hoch, Tempo rauf – und jetzt zeigen wir dem Schwarm, was wir können!'
 
@@ -92,16 +95,21 @@ def pitch(w: np.ndarray, sr: int) -> float:
 def speak(refs: dict[str, Path]) -> dict[str, tuple[list[np.ndarray], int]]:
     """Alle Zeilen mit der geklonten Referenzstimme sprechen."""
     model = _load(CLONE_MODEL)
-    texts = list(LINES.values())
+    keys = [k for k in LINES if k not in SOLO]
+    texts = [LINES[k] for k in keys]
     out = {}
     for n, ref in refs.items():
         prompt = model.create_voice_clone_prompt(ref_audio=str(ref), ref_text=REF_TEXT)
         torch.manual_seed(SEED)
         wavs, sr = model.generate_voice_clone(text=texts, language=['German'] * len(texts),
                                               voice_clone_prompt=prompt * len(texts))
-        keys = list(LINES)
+        wavs = list(wavs)
         target = float(np.median([pitch(w, sr) for k, w in zip(keys, wavs) if k not in RETAKES]))
-        for k in RETAKES & set(keys):
+        for k in SOLO:
+            keys.append(k)
+            texts.append(LINES[k])
+            wavs.append(np.zeros(1, dtype=np.float32))
+        for k in (RETAKES | SOLO) & set(keys):
             i = keys.index(k)
             tries = []
             for t in range(RETAKE_TRIES):
@@ -111,12 +119,14 @@ def speak(refs: dict[str, Path]) -> dict[str, tuple[list[np.ndarray], int]]:
             best = min(tries, key=lambda w: abs(pitch(w, sr) - target))
             print(f'{n}/{k}: {pitch(wavs[i], sr):.0f} Hz -> {pitch(best, sr):.0f} Hz (Ziel {target:.0f} Hz)')
             wavs[i] = best
-        out[n] = (wavs, sr)
+        out[n] = (dict(zip(keys, wavs)), sr)
     return out
 
 
 def main(argv: list[str]) -> int:
     probe = '--probe' in argv
+    # --only=upgrade_max,nectar_low schreibt nur diese Clips (übrige bleiben unangetastet).
+    only = {k for a in argv if a.startswith('--only=') for k in a[7:].split(',') if k}
     names = [a for a in argv if not a.startswith('--')] or (list(VOICES) if probe else [VOICE])
     refs = design(names, refresh='--refresh' in argv)
     for n, (wavs, sr) in speak(refs).items():
@@ -125,16 +135,18 @@ def main(argv: list[str]) -> int:
             gap = np.zeros(int(sr * 0.45), dtype=np.float32)
             ref, rsr = sf.read(refs[n], dtype='float32')
             parts = [ref, np.zeros(int(rsr * 0.8), dtype=np.float32)]
-            for w in wavs:
-                parts += [w.astype(np.float32), gap]
+            for key in LINES:
+                parts += [wavs[key].astype(np.float32), gap]
             sf.write(PROBE_DIR / f'{n}.wav', np.concatenate(parts), sr)
             print(f'Hörprobe {n}: {PROBE_DIR / (n + ".wav")}')
             continue
         tmp = ROOT / 'tools/music/build/voice'
         tmp.mkdir(parents=True, exist_ok=True)
-        for (key, text), w in zip(LINES.items(), wavs):
+        for key, text in LINES.items():
+            if only and key not in only:
+                continue
             raw = tmp / f'{key}.wav'
-            sf.write(raw, w, sr)
+            sf.write(raw, wavs[key], sr)
             iv.write_named(key, iv.decode(raw), f'{text} ({key})')
     return 0
 

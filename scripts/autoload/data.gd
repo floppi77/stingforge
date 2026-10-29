@@ -230,6 +230,8 @@ const ENEMIES := {
 			 "behavior": "mirror", "speed": 170, "fire": 2.8, "shots": "aimed1", "dmg": 1},
 	"reed_jumper": {"name": "Schilfspringer", "hp": 22, "score": 110, "nectar": 3, "sprite": "hopper", "r": 9,
 			 "behavior": "leap", "speed": 200, "fire": 0.0, "shots": "", "dmg": 1},
+	"leap_fish": {"name": "Springbarsch", "hp": 24, "score": 120, "nectar": 3, "sprite": "leapfish", "r": 10,
+			 "behavior": "fish_leap", "speed": 0, "fire": 0.0, "shots": "", "dmg": 1},
 	"pike_fry": {"name": "Hechtbrut", "hp": 20, "score": 100, "nectar": 3, "sprite": "pike", "r": 10,
 			 "behavior": "rush", "speed": 300, "fire": 0.0, "shots": "", "dmg": 1},
 	"spore_drifter": {"name": "Sporenträger", "hp": 28, "score": 100, "nectar": 3, "sprite": "spore", "r": 10,

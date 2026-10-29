@@ -339,7 +339,10 @@ func _toggle(id: String) -> void:
 	if id == "vsync":
 		App.apply_display()
 	if id == "post" or id == "crt":
-		App.apply_display()
+		# Nur die Bildfilter neu setzen; apply_display würde das Fenster neu platzieren.
+		App._apply_post_shader()
+	if id == "vibration":
+		Bindings.rumble(0.5, 0.5, 0.2)
 	Audio.sfx("ui_ok", -10.0, 1.0, true)
 
 
@@ -371,7 +374,7 @@ func on_activate(index: int) -> void:
 	if id == "back":
 		if not staged.is_empty():
 			apply_staged_display()
-		app.pop_screen()
+		_leave()
 		return
 	if id == "apply_display":
 		apply_staged_display()
@@ -479,6 +482,12 @@ func _process(delta: float) -> void:
 
 func do_back() -> void:
 	audio_apply()
+	_leave()
+
+## Beim Verlassen laufendes Level an geänderte Einstellungen anpassen.
+func _leave() -> void:
+	if app.game != null and is_instance_valid(app.game) and app.game.has_method("apply_settings"):
+		app.game.apply_settings()
 	app.pop_screen()
 
 func audio_apply() -> void:

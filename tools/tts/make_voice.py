@@ -33,6 +33,7 @@ LINES = {
     'upgrade_speed': 'Tempo!',
     'upgrade_repair': 'Reparatur!',
     'nectar_low': 'Zu wenig Blütenstaub.',
+    'upgrade_max': 'Voll ausgebaut!',
 }
 # Etwas zügiger als normal (1.0), damit schnelles Blättern verständlich bleibt.
 LENGTH_SCALE = '0.88'

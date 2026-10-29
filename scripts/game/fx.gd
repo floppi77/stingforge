@@ -14,13 +14,24 @@ var density := 1.0
 var impacts: Array = []
 ## Glasscherben: drehende Dreiecke mit Schwerkraft (zersplitternde Scheiben).
 var shards: Array = []
+## Wassertropfen (Spritzer von Fischen, Fontänen): Pixelquadrate mit Schwerkraft.
+var drops: Array = []
 var _impact_serial := 0
+## Wasserpalette für Fontänen und Spritzer (Pixellook, wenige feste Töne).
+const W_DEEP := Color("#245f9e")
+const W_MID := Color("#3f8fd8")
+const W_LIGHT := Color("#8fd2fb")
+const W_FOAM := Color("#dcf4ff")
 const MAX_EFFECTS := 192
 const MAX_IMPACTS := 96
 
 func _ready() -> void:
 	z_index = 12
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	apply_settings()
+
+## Effektdichte aus den Einstellungen (auch nach Änderung im Pausemenü).
+func apply_settings() -> void:
 	density = float(Save.g("graphics.effects", 1.0))
 	if bool(Save.g("access.reduce_effects", false)):
 		density *= 0.5
@@ -48,6 +59,17 @@ func add(art: String, pos: Vector2, opts: Dictionary = {}) -> void:
 		"rot": float(opts.get("rot", 0.0)),
 		"grow": float(opts.get("grow", 0.0)),
 	})
+
+## Wasserspritzer an der Oberfläche: Tropfen fliegen fächerförmig hoch und fallen zurück.
+func water_splash(pos: Vector2, scale: float = 1.0) -> void:
+	var n := int(round(14.0 * scale * clampf(density, 0.3, 1.0)))
+	for i in range(n):
+		if drops.size() >= 160:
+			drops.pop_front()
+		var ang := -PI * 0.5 + randf_range(-0.75, 0.75)
+		drops.append({"p": pos + Vector2(randf_range(-6.0, 6.0), 0), "v": Vector2.from_angle(ang) * randf_range(90.0, 210.0) * scale,
+			"t": 0.0, "life": randf_range(0.45, 0.8), "size": 1 + int(i % 3 == 0)})
+	add("ring", pos, {"life": 0.35, "scale": 0.7 * scale, "grow": 1.2, "tint": Color(0.75, 0.93, 1.0, 0.8)})
 
 func explode(pos: Vector2, scale: float = 1.0, tint: Color = Color.WHITE) -> void:
 	add("explode", pos, {"life": 0.5, "scale": scale * 1.2, "tint": tint, "important": true})
@@ -162,6 +184,15 @@ func update(delta: float) -> void:
 		sh.rot = float(sh.rot) + float(sh.spin) * delta
 		keep_s.append(sh)
 	shards = keep_s
+	var keep_d: Array = []
+	for dr in drops:
+		dr.t = float(dr.t) + delta
+		if float(dr.t) >= float(dr.life):
+			continue
+		dr.v = (dr.v as Vector2) + Vector2(0, 520.0 * delta)
+		dr.p += (dr.v as Vector2) * delta
+		keep_d.append(dr)
+	drops = keep_d
 	var keep_h: Array = []
 	for h in hazards:
 		h.t = float(h.get("t", 0.0)) + delta
@@ -194,6 +225,11 @@ func _draw() -> void:
 		draw_colored_polygon(pts, Color(0.62, 0.9, 1.0, 0.55 * fade))
 		pts.append(pts[0])
 		draw_polyline(pts, Color(0.9, 1.0, 1.0, 0.9 * fade), 1.0)
+	for dr in drops:
+		var dc: Color = W_FOAM if int(dr.size) == 1 else W_LIGHT
+		dc.a = 1.0 - smoothstep(0.6, 1.0, float(dr.t) / float(dr.life))
+		var dp := (dr.p as Vector2).floor()
+		draw_rect(Rect2(dp, Vector2(float(dr.size), float(dr.size) + 1.0)), dc)
 	for particle in impacts:
 		var color: Color = particle.tint
 		color.a *= 1.0 - float(particle.t) / float(particle.life)
@@ -399,55 +435,113 @@ static func geyser_hits(h: Dictionary, p: Vector2, radius: float) -> bool:
 		return true
 	return p.distance_to(top) <= float(g.crown) + radius
 
+## Fontäne im Pixellook: alles auf ganzen Spielpixeln, feste Wasserpalette,
+## Animation im 12-fps-Takt. Form und Treffer kommen aus geyser_shape().
 func _draw_geyser(h: Dictionary, _elapsed: float) -> void:
 	var g := geyser_shape(h)
-	var base: Vector2 = g.base
+	var base: Vector2 = (g.base as Vector2).floor()
 	var full := float(h.get("height", 80.0))
 	var height := float(g.height)
-	var half := float(g.half)
+	var half := int(g.half)
 	var warn := float(h.get("warn", 0.7))
 	var t := float(h.get("t", 0.0))
-	# Vorwarnung: brodelndes Becken und schwache Vorschau der ganzen Säule.
+	var fr := int(_t * 12.0)
+	var salt := int(base.x)
+	# Vorwarnung: Blasen steigen im Becken auf, gestrichelte Vorschau der Säulenränder.
 	if t < warn:
-		var pulse := 0.08 + 0.07 * sin(_t * 16.0)
-		draw_rect(Rect2(base.x - half, base.y - full, half * 2.0, full), Color(0.6, 0.9, 1.0, pulse))
-		for k in range(5):
-			var bx := base.x - 14.0 + k * 7.0
-			draw_circle(Vector2(bx, base.y - 3 - absf(sin(_t * 11.0 + k * 1.3)) * 7.0), 1.8,
-				Color(0.85, 1.0, 1.0, 0.85), true, -1.0, false)
-	# Schaumring am Fuß
-	for k in range(3):
-		var r := 10.0 + fposmod(_t * 30.0 + k * 8.0, 24.0)
-		draw_arc(base + Vector2(0, -1), r, PI, TAU, 18, Color(0.85, 0.97, 1.0, 0.75 * (1.0 - (r - 10.0) / 24.0)), 2.0, false)
+		for k in range(7):
+			var ph := fposmod(_t * 2.6 + _h01(k, salt), 1.0)
+			_wpx(base.x - 15.0 + k * 5.0, base.y - 2.0 - floorf(ph * 9.0), 2, 2, W_FOAM, 1.0 - ph * 0.7)
+		var a := 0.22 + 0.14 * sin(_t * 16.0)
+		var yy := base.y - full
+		while yy < base.y - 4.0:
+			_wpx(base.x - half, yy, 1, 3, W_LIGHT, a)
+			_wpx(base.x + half - 1, yy, 1, 3, W_LIGHT, a)
+			yy += 6.0
+	# Schaumteppich am Fuß, breiter solange die Säule steht.
+	var spread := half + (10 if height > 2.0 else 4)
+	for i in range(-spread, spread, 2):
+		var hn := 1 + int(_h01(i + fr * 7, salt) * 3.0)
+		_wpx(base.x + i, base.y - hn, 2, hn, W_FOAM if absi(i) < spread - 4 else W_LIGHT, 0.95)
 	if height <= 2.0:
 		return
-	var top: Vector2 = g.top
-	# Strahl: leicht konisch, außen blau, innen heller Kern mit aufsteigenden Streifen.
-	var wob := sin(_t * 9.0) * 1.5
-	var outer := PackedVector2Array([base + Vector2(-half - 3, 0), top + Vector2(-half + 1 + wob, 0),
-		top + Vector2(half - 1 + wob, 0), base + Vector2(half + 3, 0)])
-	draw_colored_polygon(outer, Color(0.30, 0.62, 0.92, 0.72))
-	draw_polyline(PackedVector2Array([outer[0], outer[1]]), Color(0.75, 0.93, 1.0, 0.9), 1.5)
-	draw_polyline(PackedVector2Array([outer[3], outer[2]]), Color(0.75, 0.93, 1.0, 0.9), 1.5)
-	draw_rect(Rect2(base.x - 4 + wob * 0.5, top.y, 8, height), Color(0.86, 0.97, 1.0, 0.75))
-	var y := base.y - fposmod(_t * 220.0, 18.0)
-	while y > top.y + 4.0:
-		draw_rect(Rect2(base.x - half + 3 + wob * 0.6, y - 7, 3, 7), Color(1, 1, 1, 0.55))
-		draw_rect(Rect2(base.x + half - 6 + wob * 0.6, y - 12, 3, 6), Color(1, 1, 1, 0.45))
-		y -= 18.0
-	# Krone: Wasser quillt oben auf und fällt in Bögen zu beiden Seiten.
-	var crown := float(g.crown)
-	for k in range(7):
-		var ang := PI + PI * float(k) / 6.0
-		var off := Vector2.from_angle(ang) * crown * (0.55 + 0.15 * sin(_t * 12.0 + k))
-		draw_circle(top + off * Vector2(1.0, 0.6), 5.0, Color(0.55, 0.85, 1.0, 0.85), true, -1.0, false)
-	draw_circle(top, crown * 0.55, Color(0.92, 0.99, 1.0, 0.9), true, -1.0, false)
-	for k in range(14):
+	var top := base.y - floorf(height)
+	# Säule zeilenweise (2 px): mit Luft durchsetztes, fast weißes Wasser. Schübe laufen
+	# als Wülste nach oben, Ränder flattern, bläuliche Schlieren ziehen mit.
+	var row := 0
+	var y := base.y - 2.0
+	while y > top:
+		var up := base.y - y
+		var frac := up / maxf(1.0, height)
+		var surge := sin(up * 0.09 - _t * 14.0)
+		var w := float(half) - frac * 4.0 + surge * 2.0
+		var jl := floorf(_h01(row * 3 + fr, salt) * 3.0) - 1.0
+		var jr := floorf(_h01(row * 5 + fr + 17, salt) * 3.0) - 1.0
+		var x0 := base.x - w + jl
+		var x1 := base.x + w + jr
+		_wpx(x0 - 2.0, y - 2.0, int(x1 - x0) + 4, 2, W_LIGHT, 0.45)
+		_wpx(x0, y - 2.0, int(x1 - x0), 2, W_FOAM, 0.92)
+		_wpx(x0, y - 2.0, 2, 2, W_LIGHT, 0.95)
+		_wpx(x1 - 2.0, y - 2.0, 2, 2, W_MID, 0.95)
+		for k in range(5):
+			var sx := -7.0 + k * 3.5
+			if _h01(row + fr * 3 + k * 31, salt) < 0.3:
+				_wpx(base.x + sx, y - 2.0, 1, 2, W_MID if k % 2 == 0 else W_LIGHT, 0.9)
+		if _h01(row * 7 + fr * 5, salt) < 0.18:
+			_wpx(base.x - 2.0 + jl * 2.0, y - 2.0, 2, 2, Color.WHITE, 1.0)
+		y -= 2.0
+		row += 1
+	# Seitliche Gischt: einzelne Tropfen steigen neben dem Strahl mit.
+	for k in range(10):
+		var ph := fposmod(_t * 1.8 + _h01(k, salt + 3), 1.0)
 		var side := -1.0 if k % 2 == 0 else 1.0
-		var ph := fposmod(_t * 1.4 + float(k) * 0.137, 1.0)
-		var dx := side * (8.0 + ph * (34.0 + float(k % 3) * 8.0))
-		var dy := -10.0 * ph + 90.0 * ph * ph
-		draw_circle(top + Vector2(dx, dy), 2.2 * (1.0 - ph * 0.5), Color(0.8, 0.95, 1.0, 0.85 * (1.0 - ph)), true, -1.0, false)
+		_wpx(base.x + side * (float(half) + 3.0 + _h01(k * 9, salt) * 5.0), base.y - ph * height, 1, 2, W_FOAM,
+			0.8 * (1.0 - ph))
+	var crown := float(g.crown)
+	if crown < 4.0:
+		return
+	var cw := int(crown * 1.2)
+	# Zurückfallendes Wasser: unterbrochene Vorhänge links und rechts, nach unten breiter.
+	for side2 in [-1.0, 1.0]:
+		var i := 0
+		var yy2 := top + 8.0
+		while yy2 < base.y - 3.0:
+			if (i + fr) % 3 != 0:
+				_wpx(base.x + float(side2) * (float(cw) - 3.0 + i * 0.18), yy2, 1, 2, W_LIGHT, 0.65)
+			yy2 += 3.0
+			i += 1
+	# Krone: Gischtballen (verpixelte Scheiben), die sich langsamer umformen als der Strahl.
+	var slow := int(_t * 6.0)
+	for b in range(7):
+		var bx := (_h01(b * 11 + slow, salt) - 0.5) * float(cw) * 1.5
+		var by := -_h01(b * 17 + slow, salt) * crown * 0.9
+		var r := 4.0 + _h01(b * 23 + slow, salt) * crown * 0.35
+		var cy := -r
+		while cy <= r:
+			var span := floorf(sqrt(maxf(0.0, r * r - cy * cy)) * 0.5) * 2.0
+			_wpx(base.x + bx - span, top + by + cy, int(span * 2.0) + 2, 2,
+				W_LIGHT if cy > r * 0.5 else W_FOAM, 0.95)
+			cy += 2.0
+		_wpx(base.x + bx - 1.0, top + by - r, 2, 1, Color.WHITE, 1.0)
+	# Tropfen auf Parabelbahnen vom Kronenrand nach außen.
+	for k in range(22):
+		var side3 := -1.0 if k % 2 == 0 else 1.0
+		var ph2 := fposmod(_t * 1.25 + float(k) * 0.113, 1.0)
+		var dx := side3 * (float(cw) * 0.5 + ph2 * (24.0 + float(k % 4) * 12.0))
+		var dy := -16.0 * ph2 + 120.0 * ph2 * ph2
+		var sz := 2 if k % 3 == 0 else 1
+		_wpx(base.x + dx, top + dy, sz, sz + 1, W_LIGHT if sz == 2 else W_FOAM, 1.0 - ph2 * 0.6)
+	# Sprühnebel: helle Einzelpixel über der Krone.
+	for k in range(10):
+		var mx := (_h01(k * 13 + fr, salt) - 0.5) * float(cw) * 3.0
+		var my := -_h01(k * 29 + fr, salt) * crown * 1.4
+		_wpx(base.x + mx, top + my, 1, 1, Color.WHITE, 0.55)
+
+## Ein Wasserpixel-Block auf ganzen Spielpixeln.
+func _wpx(x: float, y: float, w: int, hgt: int, col: Color, a: float) -> void:
+	var c := col
+	c.a = a
+	draw_rect(Rect2(floorf(x), floorf(y), float(w), float(hgt)), c)
 
 ## Giftige Sporenwolke des Pilzwalds: wabernde Klumpen in Violett mit gelbgrünen
 ## Sporen, die nach außen treiben. Trefferkreis bleibt unverändert.

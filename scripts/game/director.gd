@@ -206,7 +206,12 @@ func _update_extras(delta: float) -> void:
 		ambush_t = 2.0
 	if ground_t <= 0.0:
 		ground_t = extra_rng.randf_range(11.0, 16.0)
-		if extra_rng.randf() < 0.55:
+		if String(level_data.get("mechanic", "")) == "water":
+			# Am Teich laufen keine Ameisen: Barsche springen im Bogen aus dem Wasser.
+			var fx0 := extra_rng.randf_range(560.0, 820.0)
+			for i in range(3):
+				_spawn("leap_fish", Vector2(fx0 + i * 46.0, App.PLAY_BOTTOM + 30.0), {"delay": 0.3 + i * 0.45})
+		elif extra_rng.randf() < 0.55:
 			for i in range(2):
 				_spawn("ant_gunner", Vector2(1000.0 + i * 70.0, App.PLAY_BOTTOM - 20.0), {})
 		else:
