@@ -129,7 +129,7 @@ Schnellfeuerüberschuss wird mit `max(1, angeforderter_Takt × tatsächliches_In
 | Evolution | Wirkung und konkrete Verbrauchsstelle | Nachweis |
 |---|---|---|
 | Durchschlagstachel `pierce1` | `pierce` → Haupt-/Zusatz-/Resonanzgeschoss → Welt-Durchschlagverbrauch | T; Projektilbudget messbar |
-| Splittstachel `splinter` | Treffer → begrenzte sekundäre Splitter; zwei je Evolutionsstufe | E Welt: keine Ursprungswiederholung/Rekursion, Shop ergänzt statt verdrängt |
+| Splittstachel `splinter` | Treffer → sekundäre Splitter schräg nach oben und unten, bernsteinfarben; zwei je Evolutionsstufe | E Welt: keine Ursprungswiederholung/Rekursion, Shop ergänzt statt verdrängt |
 | Gezielter Stich `crit` | `crit_chance` → kombinierte Critchance und Angriffsmesswerte | E: Erwartungswert im Player, tausende Würfe in Welt |
 | Stakkato `stinger_rapid` | `fire_rate_mult, dmg_mult` → `fire_interval`, Wuchtkonversion, Schaden | T; Takt-/Maxbuildmessung |
 | Schwerer Stachel `heavy_sting` | `dmg_mult, fire_rate_mult` → mehr Einzelschaden und langsamerer Takt | T; reale Damage-/Taktverbrauchsstellen |
@@ -143,7 +143,7 @@ Schnellfeuerüberschuss wird mit `max(1, angeforderter_Takt × tatsächliches_In
 | Pollenschleier `pollen_trail` | Bewegungsereignis → `spawn_pollen`, Stärke je Stufe | E Player; E Welt: Fläche, Timing, kein Selbstschaden |
 | Staubexplosion `pollen_burst` | Killereignis → Pollen-Burst, direkter Nachbarschaden je Stufe | T: `_on_enemy_killed`, `spawn_pollen`; Flächensystem zusätzlich E Welt |
 | Allergieaura `pollen_shield` | räumlicher Auraeintritt → Faktor0,55 für Gegnergeschosse | E Welt: späterer Eintritt und Austritt, keine Dauerfremdbremse |
-| Sammelinstinkt `pollen_economy` | Magnetradius und zusätzliche Nektarwerte je Pickup | E Player: gewöhnlicher Drop1 wird auf Stufe2 zu3; E API Magnet |
+| Sammelinstinkt `pollen_economy` | Magnetradius und zusätzlicher Blütenstaub je Blüte (nicht je Beutetropfen) | E Player: Blüte 1 wird auf Stufe 2 zu 3, Beutetropfen bleiben unverändert; E API Magnet |
 | Sichttrübung `pollen_blind` | gezielte Kugel betritt Pollen → einmalige40%-Probe | E Welt:395/1000, kein erneutes Hochwürfeln, ungezielte Kugeln bleiben |
 | Windreiter `wind_rider` | `speed_mult` → Flugtempo; Pollen driften in Flugrichtung | E Welt Drift; T Tempokonsum |
 | Chitinpanzer `chitin_plate` | `hp` → einmalig berechnete maximale HP | E: gespeicherter Endwert wird nicht erneut bonifiziert; Rush separat |
@@ -161,7 +161,7 @@ Schnellfeuerüberschuss wird mit `max(1, angeforderter_Takt × tatsächliches_In
 | Nektarstau `nectar_overflow` | maximale Waffenstufe → zusätzliche Punkte/Schild beim Pickup | E: Schildquelle regeneriert auch allein; T Punkteconsumer |
 | Umwandlung `nectar_convert` | alle20s zehn Nektar gegen ein fehlendes HP | E: tatsächlicher Verbrauch/Heilung |
 | Duftspur `nectar_scent` | `nectar_drop_chance` → 10 % je Stufe auf einen Blütenstaub mehr (verschmolzen ×1,5) | E Welt: Dropwert bleibt bei maximal fünf Objekten erhalten |
-| Völlerei `nectar_gluttony` |20% Nektarbonus mit Bruchrest,10% langsamerer Takt | E: fünf Einzelpickups ergeben6; mit Sammelinstinkt2 insgesamt18 statt15 |
+| Völlerei `nectar_gluttony` |20% Nektarbonus mit Bruchrest,10% langsamerer Takt | E: fünf Einzelpickups ergeben 6; fünf Blüten mit Sammelinstinkt 2 insgesamt 18 statt 15 |
 | Handel `nectar_bargain` | `cost_mult` → tatsächlicher Upgradepreis | E: erster Fächer kostet weniger als30 |
 | Nektarquelle `nectar_font` | Bossphasenereignis →15 Nektar, kein Pickup-/Völlereiproc | E: echte Player-Ereignisfunktion |
 
