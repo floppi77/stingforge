@@ -11,6 +11,8 @@ var _t := 0.0
 var _pilot := true
 var _pilot_phase := 0.0
 var _pilot_center := Vector2(200, 270)
+var _pilot_amp := Vector2(70.0, 120.0)
+var _max_bullets := 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -24,8 +26,9 @@ func _ready() -> void:
 	Audio.set_unfocused(false)
 	await _setup()
 
-func _level(level: int, shop: Dictionary = {}, weapon: String = "fan", upgrades: Dictionary = {}) -> void:
-	Save.new_campaign("normal", 9100 + level)
+func _level(level: int, shop: Dictionary = {}, weapon: String = "fan", upgrades: Dictionary = {},
+		difficulty: String = "normal") -> void:
+	Save.new_campaign(difficulty, 9100 + level)
 	Save.campaign.shop = shop
 	var u := {"base": 1, "fan": 3, "lightning": 0, "plasma": 0, "companion": 2, "bombs": 0, "shield": 3, "speed": 1}
 	u.merge(upgrades, true)
@@ -71,7 +74,7 @@ func _setup() -> void:
 			_spawn_chain(["moth_arc", "pod_field"], 0.9)
 			duration = 4.0
 		"l5":
-			await _level(5, {"orbit": 3, "wave": 2}, "fan")
+			await _level(5, {"wave": 2, "wave_amp": 1}, "fan")
 			_game()._on_hazard("wind_zone", {"dir": -1.0})
 			_spawn_chain(["moth_line", "moth_arc"], 0.7)
 			duration = 4.0
@@ -81,7 +84,7 @@ func _setup() -> void:
 			_spawn_chain(["moth_arc"], 0.6)
 			duration = 5.0
 		"l8":
-			await _level(8, {"orbit": 3}, "plasma", {"plasma": 3})
+			await _level(8, {"homing": 2}, "plasma", {"plasma": 3})
 			_spawn_chain(["moth_line", "moth_arc"], 0.8)
 			duration = 4.0
 		"l9":
@@ -89,29 +92,55 @@ func _setup() -> void:
 			_spawn_chain(["moth_arc", "moth_line", "moth_arc"], 0.7)
 			duration = 4.0
 		"boss_larva":
-			await _level(2, {"orbit": 2}, "lightning", {"lightning": 3})
+			await _level(2, {"spiral": 1}, "lightning", {"lightning": 3}, "expert")
 			_game()._spawn_boss()
 			_later(2.4, func(): _game().boss.take_damage(_game().boss.max_hp * 0.75))
 			duration = 7.5
 		"boss_pike":
-			await _level(3, {"wave": 2}, "fan")
+			await _level(3, {"wave": 2}, "fan", {}, "expert")
 			_game()._spawn_boss()
 			_later(2.0, func(): _game().boss.take_damage(_game().boss.max_hp * 0.5))
 			duration = 6.5
 		"boss_mantis":
-			await _level(5, {"orbit": 3}, "plasma", {"plasma": 3})
+			await _level(5, {"homing": 2}, "plasma", {"plasma": 3}, "expert")
 			_game()._spawn_boss()
 			duration = 5.0
 		"boss_queen":
-			await _level(9, {"wave": 3}, "lightning", {"lightning": 3})
+			await _level(9, {"wave": 3}, "lightning", {"lightning": 3}, "expert")
 			_game()._spawn_boss()
 			_later(3.0, func(): _game().boss.take_damage(_game().boss.max_hp * 0.45))
 			duration = 6.0
 		"boss_core":
-			await _level(10, {"orbit": 3, "wave": 2}, "fan")
+			await _level(10, {"wave": 2}, "fan", {}, "expert")
 			_game()._spawn_boss()
 			_later(3.2, func(): _game().boss.take_damage(_game().boss.max_hp * 0.4))
 			duration = 6.5
+		# Bullet-Hell: Experte, viele echte Schützen gleichzeitig, zähere Gegner,
+		# damit das Sperrfeuer stehen bleibt. Biene weicht in engeren Bögen aus.
+		"bh_fungus":
+			await _level(4, {}, "base", {"fan": 1, "companion": 1}, "expert")
+			_spawn_chain(["mushroom_guard", "ladybug_pair", "spore_field", "mushroom_guard", "dragonfly_dash",
+				"ladybug_pair", "mushroom_guard", "generator_order"], 0.35, 6.0)
+			_bullet_pilot()
+			duration = 6.0
+		"bh_glass":
+			await _level(6, {}, "lightning", {"fan": 0, "lightning": 1, "companion": 1}, "expert")
+			_spawn_chain(["generator_order", "glass_drone_row", "mirror_orbit", "ladybug_pair", "generator_order",
+				"mirror_orbit", "glass_drone_row"], 0.35, 6.0)
+			_bullet_pilot()
+			duration = 5.5
+		"bh_hive":
+			await _level(9, {}, "base", {"fan": 1, "companion": 1}, "expert")
+			_spawn_chain(["hive_guard_row", "acolyte_orbit", "ladybug_pair", "hive_guard_row", "acolyte_orbit",
+				"mushroom_guard"], 0.4, 5.0)
+			_bullet_pilot()
+			duration = 6.0
+		"bh_core":
+			await _level(10, {}, "plasma", {"fan": 0, "plasma": 1, "companion": 1}, "expert")
+			_spawn_chain(["core_pulse", "generator_order", "shard_orbit", "mirror_orbit", "core_pulse",
+				"generator_order"], 0.4, 5.0)
+			_bullet_pilot()
+			duration = 6.0
 		"shop":
 			Save.new_campaign("normal", 991)
 			Save.campaign.points = 42000
@@ -128,10 +157,15 @@ func _setup() -> void:
 			await _level(1)
 			duration = 3.0
 
-func _spawn_chain(forms: Array, gap: float) -> void:
+func _spawn_chain(forms: Array, gap: float, hp_scale: float = 1.0) -> void:
 	for i in range(forms.size()):
 		var f := String(forms[i])
-		_later(0.2 + i * gap, func(): _game().director.spawn_formation(f))
+		_later(0.2 + i * gap, func(): _game().director.spawn_formation(f, hp_scale))
+
+## Ausweichflug fürs Sperrfeuer: weiter links, schnellere, kleinere Haken.
+func _bullet_pilot() -> void:
+	_pilot_center = Vector2(170, 270)
+	_pilot_amp = Vector2(45.0, 150.0)
 
 func _later(t: float, fn: Callable) -> void:
 	get_tree().create_timer(t, false).timeout.connect(fn)
@@ -142,8 +176,11 @@ func _physics_process(delta: float) -> void:
 		# Autopilot: ruhige Achterbahn im linken Drittel, zielt mal höher, mal tiefer.
 		_pilot_phase += delta
 		var p = app.game.player
-		var goal := _pilot_center + Vector2(sin(_pilot_phase * 0.7) * 70.0, sin(_pilot_phase * 1.3) * 120.0)
+		var goal := _pilot_center + Vector2(sin(_pilot_phase * 0.7) * _pilot_amp.x, sin(_pilot_phase * 1.3) * _pilot_amp.y)
 		p.position = p.position.lerp(goal, clampf(delta * 3.0, 0.0, 1.0))
+	if app.game != null and is_instance_valid(app.game):
+		_max_bullets = maxi(_max_bullets, app.game.bullets.enemy_bullets.size())
 	if _t >= duration:
+		print("TRAILER_CLIP %s max_enemy_bullets=%d" % [clip, _max_bullets])
 		set_physics_process(false)
 		get_tree().quit(0)

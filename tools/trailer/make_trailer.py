@@ -8,9 +8,9 @@ Ergebnis: build/trailer/stingforge_trailer.mp4 (1920×1080, 60 fps, H.264 + AAC)
 
 Schnitt im Takt des Musikbetts:
   0,0–9,0   ruhiger Einstieg (Level 1, Flötenthema)     Menü, Blütenmeer
-  9,0–27,55 Weltenmontage (Level 5, B-Teil, 152 BPM)     sechs Welten
+  9,0–27,55 Weltenmontage (Level 5, B-Teil, 152 BPM)     Welten im Wechsel mit Bullet-Hell
   27,55–32,48 Auftakt Level 10                            Werkstatt
-  32,48     Ankunft der Bossmusik (harter Schnitt, Blitz) fünf Bosse
+  32,48     Ankunft der Bossmusik (harter Schnitt, Blitz) Bosse und Sperrfeuer im Kern
   56,98–62,48 Endkarte, Musik klingt aus
 """
 from __future__ import annotations
@@ -31,11 +31,11 @@ FPS = 60
 SHOTS = [
     ('menu', 0.3, 4.5),
     ('l1', 0.8, 4.5),
-    ('l3', 0.8, 3.09), ('l4', 0.6, 3.09), ('l5', 0.6, 3.09),
-    ('l6', 1.6, 3.09), ('l8', 0.6, 3.09), ('l9', 0.5, 3.10),
+    ('l3', 0.8, 3.09), ('bh_fungus', 2.4, 3.09), ('l5', 0.6, 3.09),
+    ('bh_glass', 2.2, 3.09), ('l8', 0.6, 3.09), ('bh_hive', 2.4, 3.10),
     ('shop', 0.0, 4.93),
-    ('boss_larva', 1.2, 6.0), ('boss_pike', 2.0, 4.5), ('boss_mantis', 0.5, 4.5),
-    ('boss_queen', 1.0, 4.5), ('boss_core', 1.3, 5.0),
+    ('boss_larva', 1.2, 5.5), ('bh_core', 1.2, 4.5), ('boss_pike', 1.8, 4.5),
+    ('boss_queen', 1.0, 4.5), ('boss_core', 0.9, 5.5),
 ]
 END_CARD = 5.5
 BOSS_CUT = 32.48
@@ -48,7 +48,8 @@ TITLES = [
     ('ADAPT.', 18.4, 21.4, 150, '#52d6c4', 'mid'),
     ('Werkstatt  ·  Evolutionen  ·  Verschmelzungen', 27.9, 32.2, 56, '#fff4dc', 'low'),
     ('STRIKE.', 32.7, 35.6, 150, '#ff5c84', 'mid'),
-    ('Zehn Bosse  ·  Phasen mit Auftritt', 38.6, 41.6, 56, '#fff4dc', 'low'),
+    ('Sperrfeuer bis an den Bildrand', 38.4, 41.9, 56, '#fff4dc', 'low'),
+    ('Zehn Bosse  ·  Phasen mit Auftritt', 43.0, 46.4, 56, '#fff4dc', 'low'),
 ]
 
 
@@ -60,7 +61,7 @@ def end_card(path: Path) -> None:
     img.paste(logo, ((1920 - logo.width) // 2, 230), logo)
     d = ImageDraw.Draw(img)
     for text, size, y, col in (('Evolve. Adapt. Strike.', 64, 860, (255, 214, 102)),
-                               ('Eine Pixel-Hommage an Apidya  ·  Linux & Windows', 40, 950, (169, 172, 201))):
+                               ('Eine Pixel-Hommage an Apidya  ·  Linux · Windows · macOS', 40, 950, (169, 172, 201))):
         f = ImageFont.truetype(str(FONT), size)
         w = d.textlength(text, font=f)
         d.text(((1920 - w) / 2 + 3, y + 3), text, font=f, fill=(40, 20, 8))
