@@ -20,6 +20,10 @@ sha256sum -c SHA256SUMS.txt --ignore-missing
 
 Mehr dazu in [SECURITY.md](https://github.com/floppi77/stingforge/blob/main/SECURITY.md).
 
+## Unterstützen
+
+Gefällt dir Stingforge? Über einen Kaffee auf [Ko-fi](https://ko-fi.com/floppi77) freue ich mich.
+
 ## Lizenz
 
 Frei für nicht-kommerzielle Zwecke: Code unter

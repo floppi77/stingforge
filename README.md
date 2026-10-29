@@ -6,6 +6,10 @@
 Ein horizontales Pixel-Shoot’em-up mit einer Biene in der Hauptrolle – eine Hommage an <i>Apidya</i> (Amiga, 1992).</p>
 
 <p align="center">
+  <a href="https://ko-fi.com/floppi77"><img src="https://img.shields.io/badge/Ko--fi-Unterst%C3%BCtzen-FF5E5B?logo=ko-fi&amp;logoColor=white" alt="Auf Ko-fi unterstützen"></a>
+</p>
+
+<p align="center">
   <img src="docs/media/level1-bluetenmeer.png" alt="Level 1 – Blütenmeer" width="860">
 </p>
 
@@ -148,6 +152,11 @@ Die Sample-Bibliotheken werden nicht mitgeliefert, sondern bei Bedarf geladen.
 
 Vollständige Hinweise zu Fremdbestandteilen, auch zur Godot Engine (MIT):
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## Unterstützen
+
+Stingforge ist kostenlos. Wenn dir das Spiel gefällt, freue ich mich über einen Kaffee auf
+[Ko-fi](https://ko-fi.com/floppi77).
 
 ## Lizenz
 
