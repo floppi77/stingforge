@@ -19,3 +19,11 @@ sha256sum -c SHA256SUMS.txt --ignore-missing
 ```
 
 Mehr dazu in [SECURITY.md](https://github.com/floppi77/stingforge/blob/main/SECURITY.md).
+
+## Lizenz
+
+Frei für nicht-kommerzielle Zwecke: Code unter
+[PolyForm Noncommercial 1.0.0](https://github.com/floppi77/stingforge/blob/main/LICENSE),
+Inhalte unter [CC BY-NC-SA 4.0](https://github.com/floppi77/stingforge/blob/main/LICENSE-ASSETS.md).
+Die Spieldateien enthalten die Godot Engine (MIT), siehe
+[THIRD_PARTY_NOTICES.md](https://github.com/floppi77/stingforge/blob/main/THIRD_PARTY_NOTICES.md).

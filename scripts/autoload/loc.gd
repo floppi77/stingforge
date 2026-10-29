@@ -256,7 +256,7 @@ const STRINGS := {
 
 		# --- Credits ---
 		"credits.title": "Credits",
-		"credits.body": "Stingforge\nEvolve. Adapt. Strike.\nEin eigenständiges Bienen-Shoot’em-up, inspiriert von Apidya (Kaiko, 1992).\n\nDesign, Code, Pixelgrafik, Musik und Sound: Team Stingforge\nHauptmenü-Hintergrund und Stingforge-Logo: vom Nutzer bereitgestellt\nEngine: Godot Engine 4.7.2\n3D-Vorlagen und Tiefenebenen: Blender 5.2\nPixelarbeit und Animationen: Aseprite 1.3.18\nAudio-Synthese: eigener Tracker (Python/numpy)\n\nDank an Kaiko und Chris Hülsbeck für das Original.",
+		"credits.body": "Stingforge\nEvolve. Adapt. Strike.\nEin eigenständiges Bienen-Shoot’em-up, inspiriert von Apidya (Kaiko, 1992).\n\nDesign, Code, Pixelgrafik, Musik und Sound: Team Stingforge\nHauptmenü-Hintergrund und Stingforge-Logo: vom Nutzer bereitgestellt\nEngine: Godot Engine 4.7.2\n3D-Vorlagen und Tiefenebenen: Blender 5.2\nPixelarbeit und Animationen: Aseprite 1.3.18\nSoundtrack: sfizz und Csound mit VSCO 2 CE und VCSL (CC0)\nSprachansagen: Qwen3-TTS\nSchriften: Jersey 10, Silkscreen, Pixelify Sans, Nunito, Oxanium (SIL OFL 1.1)\n\n© 2026 floppi77 · Code: PolyForm Noncommercial 1.0.0 · Inhalte: CC BY-NC-SA 4.0\nGodot Engine: MIT-Lizenz, © 2014-present Godot Engine contributors,\n© 2007-2014 Juan Linietsky, Ariel Manzur\n\nDank an Kaiko und Chris Hülsbeck für das Original.",
 		"credits.hint": "B oder Esc: zurück",
 
 		# --- Training ---

@@ -134,7 +134,7 @@ Die Sample-Bibliotheken werden nicht mitgeliefert, sondern bei Bedarf geladen.
 
 ## Danksagung und Lizenzen Dritter
 
-- **Schriften:** Jersey 10, Silkscreen und Nunito, alle unter der
+- **Schriften:** Jersey 10, Silkscreen, Pixelify Sans, Nunito und Oxanium, alle unter der
   [SIL Open Font License](assets/ui/fonts/pixel/OFL-Jersey10.txt).
 - **Samples:** [VSCO 2 Community Edition](https://github.com/sgossner/VSCO-2-CE) und
   [Versilian Community Sample Library](https://github.com/sgossner/VCSL) von Versilian Studios
@@ -146,4 +146,17 @@ Die Sample-Bibliotheken werden nicht mitgeliefert, sondern bei Bedarf geladen.
 - **Vorbild:** *Apidya* (Kaiko, 1992). Stingforge ist eine eigenständige Hommage, ohne
   Verbindung zu den Rechteinhabern.
 
-Eine Lizenz für den Projektcode ist noch nicht festgelegt.
+Vollständige Hinweise zu Fremdbestandteilen, auch zur Godot Engine (MIT):
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## Lizenz
+
+Stingforge ist frei für alle **nicht-kommerziellen** Zwecke: spielen, weitergeben,
+verändern, lernen, eigene Fan-Projekte. Kommerzielle Nutzung ist dem Urheber vorbehalten.
+
+- **Code:** [PolyForm Noncommercial 1.0.0](LICENSE)
+- **Inhalte** (Grafik, Musik, Stimme, Level, Texte):
+  [CC BY-NC-SA 4.0](LICENSE-ASSETS.md) – mit Namensnennung und Weitergabe unter gleichen Bedingungen
+- Name und Logo „Stingforge“ sind von den Lizenzen ausgenommen.
+
+© 2026 floppi77
