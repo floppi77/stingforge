@@ -282,7 +282,7 @@ Leveln rot ([Rotlog](../build/logs/r3/r4-miniboss-red.log)), jetzt 10 von 10 gr√
     `tools/i18n/extract.py --missing` listet Texte ohne √úbersetzung.
   - Englische Sprachansagen mit derselben Stimme (`voice/en/`).
   - Zahlen mit Tausender- und Dezimaltrennzeichen der Sprache.
-- **GitHub zweisprachig:** README.en.md, docs/MANUAL.md, zweisprachige SECURITY.md und Release Notes,
+- **GitHub zweisprachig:** README (Deutsch und Englisch in einer Datei), docs/MANUAL.md, zweisprachige SECURITY.md und Release Notes,
   neue Galerien in `docs/media/de` und `docs/media/en`.
 - **Spielhilfe ohne Debug:** Die Debugtaste steht weder im Handbuch noch in den Steuerungseinstellungen.
 
