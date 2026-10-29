@@ -1,0 +1,3 @@
+# Geprüfte Fehlalarme von Gitleaks (Fingerprint je Fund).
+# SHA-256-Prüfsumme der alten Apidya_Reimagined.exe, kein Schlüssel:
+9a4ee2ba76bdd38f92e619833cece1b40cccc9f4:tools/package_stingforge_release.py:generic-api-key:42
