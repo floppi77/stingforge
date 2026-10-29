@@ -841,6 +841,11 @@ func _roll_offers(count: int) -> Array:
 	# Gewichtung: Familienvielfalt bevorzugen
 	var chosen: Array = []
 	var families: Array = []
+	# Meisterevolution: liegt eine bereit, belegt sie die erste Karte.
+	var ready := master_offers()
+	if not ready.is_empty() and count > 0:
+		chosen.append(String(ready[rng.randi_range(0, ready.size() - 1)]))
+		families.append(String(Data.master(String(chosen[0])).family))
 	var guard := 0
 	# Leerer Pool (alles ausgebaut) darf nicht in einen ungültigen Index laufen.
 	while chosen.size() < count and guard < 200 and not pool.is_empty():
@@ -861,6 +866,25 @@ func _roll_offers(count: int) -> Array:
 		if not chosen.has(cand2):
 			chosen.append(cand2)
 	return chosen
+
+## Meisterevolutionen, die jetzt angeboten werden dürfen: beide Eltern im Run, mindestens
+## eine davon auf Höchststufe, Meister noch nicht gewählt. Drohnen-Meister wirken nur
+## mit gekaufter Drohne (wie ihre Eltern), werden aber unabhängig davon angeboten.
+func master_offers() -> Array:
+	var out: Array = []
+	for m in Data.MASTERS:
+		if _evo_level(String(m.id)) > 0:
+			continue
+		var a := String(m.parents[0])
+		var b := String(m.parents[1])
+		var la := _evo_level(a)
+		var lb := _evo_level(b)
+		if la <= 0 or lb <= 0:
+			continue
+		if la < int(Data.evo(a).max) and lb < int(Data.evo(b).max):
+			continue
+		out.append(String(m.id))
+	return out
 
 func _evo_level(id: String) -> int:
 	var lv := 0
@@ -903,8 +927,11 @@ func show_evolution_screen(restored: bool) -> void:
 
 func _confirm_evolution(id: String) -> void:
 	var lv: int = int(Save.campaign.get("pending", {}).get("level", run_level))
-	var first_unlock := not Save.is_evolution_unlocked(id)
-	Save.unlock_evolution(id)
+	var is_master := Data.is_master(id)
+	# Meisterevolutionen zählen nicht zu den 36 Profil-Evolutionen, sondern ins Sammelbuch.
+	var first_unlock := Save.discover_master(id) if is_master else not Save.is_evolution_unlocked(id)
+	if not is_master:
+		Save.unlock_evolution(id)
 	_apply_evolution(id)
 	var fusions: Array = []
 	var fusions_new: Array = []
@@ -931,6 +958,7 @@ func _confirm_evolution(id: String) -> void:
 		"level": lv,
 		"new_unlock": was_new,
 		"chosen": id,
+		"master": is_master,
 		"fusions": fusions,
 		"fusions_new": fusions_new,
 		"training": false,

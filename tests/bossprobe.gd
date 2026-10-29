@@ -46,7 +46,10 @@ func _ready() -> void:
 		return
 	var threshold := float(b.phase_defs[phase_before + 1].get("hp", 0.7))
 	b.hp = b.max_hp * (threshold + 0.01)
+	var effects_before: int = g.fx.effects.size()
 	b.take_damage(b.max_hp * 0.05)	# löst die Phasenprüfung aus
+	# Phasenauftritt: laufende Geschosse zerplatzen sichtbar (Funken), statt still zu verschwinden.
+	var cleared_visibly: bool = g.bullets.enemy_bullets.is_empty() and g.fx.effects.size() > effects_before
 	# Direkt nach dem Wechsel darf sich die Lage nur wenig ändern.
 	await get_tree().physics_frame
 	var pos_after_switch: Vector2 = b.position
@@ -69,11 +72,10 @@ func _ready() -> void:
 		fails.append("Boss ruckt im Übergang (%.1f px in einem Bild)" % max_jump)
 	if max_jump < 0.01:
 		fails.append("Boss bewegt sich überhaupt nicht")
-	# Geschosse der vorherigen Phase müssen weiterfliegen
 	var after_bullets: int = g.bullets.enemy_bullets.size()
-	if before_bullets >= 3 and after_bullets == 0:
-		fails.append("Geschosse der vorherigen Phase wurden gelöscht (%d -> %d)"
-			% [before_bullets, after_bullets])
+	# Phasenauftritt: Geschosse der vorherigen Phase zerplatzen sichtbar.
+	if before_bullets >= 3 and not cleared_visibly:
+		fails.append("Geschosse der vorherigen Phase verschwinden ohne sichtbares Zerplatzen (%d)" % before_bullets)
 	print("BOSS: Phase %d -> %d, erster Schritt %.1f px, größter Satz %.1f px, Geschosse %d -> %d, Pos %.0f/%.0f -> %.0f/%.0f"
 		% [phase_before, b.phase, first_step, max_jump, before_bullets, after_bullets,
 			pos_before.x, pos_before.y, b.position.x, b.position.y])

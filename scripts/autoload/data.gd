@@ -202,6 +202,36 @@ const FAMILIES := ["sting", "swarm", "pollen", "chitin", "resonance", "nectar"]
 
 # ---------------------------------------------------------------------- Gegner
 ## behavior: steuert die Bewegungs-/Angriffsroutine in enemy.gd
+## Meisterevolutionen: Besitzt du beide Eltern (eine davon auf Höchststufe), erscheint
+## am Levelende eine Meisterkarte. Die Eltern bleiben erhalten, die Meisterevolution
+## bringt eine eigene neue Mechanik (Umsetzung: scripts/game/masters.gd).
+const MASTERS := [
+	{"id": "m_splinter_lance", "family": "sting", "name": "Splitterlanze", "parents": ["pierce1", "splinter"],
+	 "desc": "Splitter fliegen weiter, durchschlagen zwei Ziele und zerbrechen bei jedem Treffer erneut in zwei Splitter."},
+	{"id": "m_death_mark", "family": "sting", "name": "Todesmal", "parents": ["crit", "swarm_mark"],
+	 "desc": "Kritische Treffer markieren das Ziel: drei Sekunden lang nimmt es doppelten Schaden von allem (Bosse 1,5-fach)."},
+	{"id": "m_royal_court", "family": "swarm", "name": "Hofstaat", "parents": ["companion_add", "swarm_echo"],
+	 "desc": "Sechs Begleitbienen umschwärmen dich und feuern mit deiner aktiven Waffe.", "weapon": "companion"},
+	{"id": "m_shield_wall", "family": "swarm", "name": "Schildwall", "parents": ["companion_form", "drone_sacrifice"],
+	 "desc": "Die Drohnen bilden vor dir eine Wand und schlucken Geschosse; eine getroffene Drohne baut sich in drei Sekunden neu auf.", "weapon": "companion"},
+	{"id": "m_chain_bloom", "family": "pollen", "name": "Kettenblüte", "parents": ["pollen_burst", "pollen_trail"],
+	 "desc": "Pollenwolken besiegter Gegner explodieren und zünden alle Pollenwolken in ihrer Nähe – eine Kettenreaktion."},
+	{"id": "m_pollen_storm", "family": "pollen", "name": "Pollensturm", "parents": ["pollen_trail", "wind_rider"],
+	 "desc": "Ein Pollenwirbel kreist um die Biene, zermahlt Gegner und löscht feindliche Geschosse."},
+	{"id": "m_second_skin", "family": "chitin", "name": "Zweite Haut", "parents": ["chitin_plate", "chitin_regen"],
+	 "desc": "Einmal pro Level überlebst du einen tödlichen Treffer: Du häutest dich, behältst ein Leben und dein Schild lädt voll."},
+	{"id": "m_thorn_armor", "family": "chitin", "name": "Dornenpanzer", "parents": ["chitin_plate", "chitin_thorns"],
+	 "desc": "Jeder Treffer, den du einsteckst – auch am Schild –, schleudert einen Ring aus zwölf Stacheln rundum."},
+	{"id": "m_thunder_choir", "family": "resonance", "name": "Gewitterchor", "parents": ["resonance_beat", "resonance_chain"],
+	 "desc": "Resonanzschüsse werden zu Gewittern: Jeder Treffer springt als Blitz auf bis zu fünf weitere Gegner."},
+	{"id": "m_echo_shield", "family": "resonance", "name": "Echoschild", "parents": ["resonance_calm", "resonance_pulse"],
+	 "desc": "Drei Sekunden Dauerfeuer bauen einen Klangring auf, der vier Sekunden lang Feindgeschosse zurückwirft."},
+	{"id": "m_gold_rush", "family": "nectar", "name": "Goldrausch", "parents": ["nectar_bargain", "nectar_gluttony"],
+	 "desc": "Jeder sechste Gegner verliert einen goldenen Tropfen: fünf Blütenstaub, der von selbst zu dir fliegt."},
+	{"id": "m_life_nectar", "family": "nectar", "name": "Lebensnektar", "parents": ["nectar_convert", "nectar_overflow"],
+	 "desc": "Gesammelter Blütenstaub füllt eine Lebensreserve (30 Tropfen). Ist sie voll und fehlt dir ein Leben, heilt sie dich sofort."},
+]
+
 const ENEMIES := {
 	# R4: Hornisse überholt von hinten, Spinne seilt sich von oben ab (ruhige
 	# Passagen); Ameisenkanonier und Maulwurfsgrille greifen vom Boden an.
@@ -547,10 +577,11 @@ func synergy_partners(id: String) -> Array:
 	if own.is_empty():
 		return out
 	var mine := String(own.get("synergy", ""))
-	if mine != "" and mine != id:
+	if mine != "" and mine != id and master_of(id, mine) == "":
 		out.append(mine)
 	for e in EVOLUTIONS:
-		if String(e.get("synergy", "")) == id and String(e.id) != id and not out.has(String(e.id)):
+		if String(e.get("synergy", "")) == id and String(e.id) != id and not out.has(String(e.id)) \
+				and master_of(id, String(e.id)) == "":
 			out.append(String(e.id))
 	return out
 
@@ -593,7 +624,38 @@ func evo(id: String) -> Dictionary:
 	for e in EVOLUTIONS:
 		if e.id == id:
 			return e
+	return master(id)
+
+## Meisterevolution nach Kennung (mit max 1 und leerer Effekttabelle wie eine Evolution).
+func master(id: String) -> Dictionary:
+	for m in MASTERS:
+		if m.id == id:
+			var d: Dictionary = m.duplicate()
+			d["max"] = 1
+			d["effect"] = {}
+			d["master"] = true
+			return d
 	return {}
+
+func is_master(id: String) -> bool:
+	return id.begins_with("m_") and not master(id).is_empty()
+
+## Meisterevolution eines Elternpaars ("" wenn das Paar keine hat).
+func master_of(a: String, b: String) -> String:
+	for m in MASTERS:
+		var p: Array = m.parents
+		if (p[0] == a and p[1] == b) or (p[0] == b and p[1] == a):
+			return String(m.id)
+	return ""
+
+## Meisterevolutionen, an denen diese Evolution als Elternteil beteiligt ist: [[partner, master], …]
+func master_links(id: String) -> Array:
+	var out: Array = []
+	for m in MASTERS:
+		var p: Array = m.parents
+		if p.has(id):
+			out.append([String(p[1] if p[0] == id else p[0]), String(m.id)])
+	return out
 
 func upgrade(id: String) -> Dictionary:
 	for u in UPGRADES:

@@ -243,6 +243,33 @@ offers; the decision itself cannot be skipped.
 * Matching evolutions **fuse** and both grow stronger; the main menu lists every
   fusion you have discovered.
 
+
+## 5c. Master evolutions
+
+Twelve pairs of evolutions merge into a **master evolution** with its own new mechanic. If you
+own both parents in the same run and at least one of them is at its highest level, a **golden
+master card** appears as the first offer at the end of the next level. If you choose it, both
+parents keep their effects and the master evolution is added on top. The collection in the main
+menu (*Fusions*) shows every recipe; undiscovered ones appear as “???” with their parents.
+
+| Master evolution | Parents | Effect |
+|---|---|---|
+| Splinter Lance | Piercing Stinger + Splinter Stinger | splinters fly further, pierce two targets and break apart again on every hit |
+| Death Mark | Precise Sting + Target Marking | critical hits mark: double damage from everything for 3 s (bosses 1.5×) |
+| Royal Court | Brood Escort + Swarm Echo | six escort bees with a double shot of your active weapon (needs the drone) |
+| Shield Wall | Formation Escort + Sacrificial Drone | drones form a wall in front of you and swallow projectiles (needs the drone) |
+| Chain Bloom | Dust Burst + Pollen Veil | exploding clouds ignite every pollen cloud nearby |
+| Pollen Storm | Pollen Veil + Wind Rider | a pollen vortex circles you, damaging enemies and erasing projectiles |
+| Second Skin | Chitin Armour + Moulting | survive one lethal hit per level, shield recharges fully |
+| Thorn Armour | Chitin Armour + Spiked Hide | every hit you take flings twelve stingers all around |
+| Thunder Choir | Metronome + Chain Resonance | resonance shots jump as lightning to up to five enemies |
+| Echo Shield | Calm Core + Shockwave | three seconds of continuous fire charge a ring that reflects projectiles |
+| Gold Rush | Bargain + Gluttony | every sixth enemy drops a golden drop (5 pollen) |
+| Life Nectar | Conversion + Nectar Surplus | 30 collected drops fill a reserve that heals you by one life |
+
+The other 16 pairs of evolutions **fuse** as before: both grow stronger together
+(percentages +50 %, counts +1, trigger thresholds −25 %).
+
 ---
 
 ## 5a. Workshop (points, permanent)

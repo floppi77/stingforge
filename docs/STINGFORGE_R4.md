@@ -286,6 +286,17 @@ Leveln rot ([Rotlog](../build/logs/r3/r4-miniboss-red.log)), jetzt 10 von 10 gr�
   neue Galerien in `docs/media/de` und `docs/media/en`.
 - **Spielhilfe ohne Debug:** Die Debugtaste steht weder im Handbuch noch in den Steuerungseinstellungen.
 
+## Siebte Nachrunde: Meisterevolutionen
+
+- **Zwölf Meisterevolutionen** (`Data.MASTERS`, Wirkungen in `scripts/game/masters.gd`): Besitzt
+  man beide Eltern und steht eine auf Höchststufe, erscheint am Levelende eine goldene
+  Meisterkarte. Die Eltern bleiben, die neue Mechanik kommt hinzu. Für diese zwölf Paare entfällt
+  der pauschale Verschmelzungsbonus; die übrigen 16 Paare behalten ihn.
+- Sammelbuch zeigt Meisterrezepte (unentdeckt „???“) und die verbleibenden Verschmelzungen.
+- **Staubexplosion:** Pollenwolken deutlich durchsichtiger, Explosionswolken am stärksten.
+- **Debug-Sprung zum Boss:** beendet jetzt Abschnitte, Wellen, Bodengegner und Zwischengegner;
+  vorher lief das Level im Hintergrund weiter.
+
 ## Prüfung
 
 * `python3 tools/verify_stingforge_r3.py`: alle Suiten einschließlich Pause-, Zwischengegner-

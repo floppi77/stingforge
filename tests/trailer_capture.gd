@@ -158,6 +158,18 @@ func _setup() -> void:
 				_game().spawn_enemy("leap_fish", Vector2(640.0 + i * 46.0, App.PLAY_BOTTOM + 30.0), {"delay": 0.2 + i * 0.45})
 			_pilot_center = Vector2(150, 200)
 			duration = 4.0
+		# Prüfbild Meisterevolutionen: Pollensturm, Echoschild, Schildwall, Todesmal, Goldrausch.
+		"masters_check":
+			await _level(4, {}, "fan", {"fan": 2, "companion": 3})
+			var evos := ["pollen_trail", "wind_rider", "m_pollen_storm", "resonance_calm", "resonance_pulse",
+				"m_echo_shield", "companion_form", "drone_sacrifice", "m_shield_wall", "crit", "swarm_mark",
+				"m_death_mark", "nectar_bargain", "nectar_gluttony", "m_gold_rush"]
+			_game().player.evolutions = []
+			for id in evos:
+				_game().player.evolutions.append({"id": id, "level": 2 if id == "crit" else 1})
+			_game().masters.echo_t = 6.0
+			_spawn_chain(["ladybug_pair", "moth_arc", "mushroom_guard"], 0.5, 3.0)
+			duration = 4.5
 		"shop":
 			Save.new_campaign("normal", 991)
 			Save.campaign.points = 42000

@@ -62,6 +62,7 @@ func _default_profile() -> Dictionary:
 		"version": VERSION,
 		"unlocked_evolutions": [],
 		"fusions_seen": [],
+		"masters_seen": [],
 		"tutorial_done": false,
 		"tutorial_offered": false,
 		"boss_rush_unlocked": false,
@@ -388,6 +389,25 @@ func unlock_evolution(id: String) -> bool:
 	arr.append(id)
 	save_profile()
 	return true
+
+## Meisterevolutionen im Profil: einmal gebildet, bleiben sie im Sammelbuch sichtbar.
+## Wer das Elternpaar früher schon als Verschmelzung entdeckt hat, kennt das Rezept.
+func discover_master(id: String) -> bool:
+	var arr: Array = profile.get("masters_seen", [])
+	if arr.has(id):
+		return false
+	arr.append(id)
+	profile["masters_seen"] = arr
+	save_profile()
+	return true
+
+func is_master_seen(id: String) -> bool:
+	if (profile.get("masters_seen", []) as Array).has(id):
+		return true
+	var m := Data.master(id)
+	if m.is_empty():
+		return false
+	return is_fusion_seen(Data.fusion_key(String(m.parents[0]), String(m.parents[1])))
 
 ## Verschmelzungen im Profil: einmal entdeckt, bleiben sie in der Übersicht sichtbar.
 func discover_fusion(key: String) -> bool:

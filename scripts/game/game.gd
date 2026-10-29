@@ -21,6 +21,9 @@ var lighting_top: Sprite2D
 var bullets: BulletField
 var fx: Fx
 var player: Player
+const MastersScript := preload("res://scripts/game/masters.gd")
+var masters: Node2D
+var _last_crit := false
 var director: Director
 var enemies: Array = []
 var pickups: Array = []
@@ -145,6 +148,8 @@ func _build_nodes() -> void:
 	add_child(director)
 	player = Player.new()
 	add_child(player)
+	masters = MastersScript.new(self)
+	add_child(masters)
 	player.died.connect(_on_player_died)
 	player.notice.connect(func(t): _notify(t, 1.4))
 	director.spawn_enemy_requested.connect(_on_spawn_enemy)
@@ -221,6 +226,7 @@ func _physics_process(delta: float) -> void:
 	_update_hazards(delta)
 	_update_collisions()
 	_update_pollens(delta)
+	masters.update(delta)
 	swarm_call_cd = maxf(0.0, swarm_call_cd - delta)
 	if tutorial_t > 0.0:
 		tutorial_t -= delta
@@ -324,6 +330,8 @@ func _on_enemy_killed(e: Enemy) -> void:
 	shake(3.0)
 	_drop_nectar(e.position, e.nectar_drop)
 	last_kill_times.append(stats.time)
+	if masters != null:
+		masters.on_kill(e)
 	# Pollenexplosion
 	if player.evo_has("pollen_burst"):
 		spawn_pollen(e.position, 1.4 * player.fusion_factor("pollen_burst"), true)
@@ -643,7 +651,8 @@ func _homing_targets() -> Array:
 func _shot_damage(raw: float, is_boss: bool = false) -> float:
 	var dmg := raw
 	var crit := clampf(player.shop_mod("crit") + player.evo_effect("crit_chance"), 0.0, 1.0)
-	if crit > 0.0 and randf() < crit:
+	_last_crit = crit > 0.0 and randf() < crit
+	if _last_crit:
 		dmg *= 2.0
 	if is_boss:
 		dmg *= 1.0 + player.shop_mod("boss_dmg")
@@ -717,7 +726,10 @@ func _impact_color(target: Node2D) -> Color:
 func _projectile_impact(b: Dictionary, target: Node2D, impact: Vector2, part: int = -1) -> void:
 	var id := target.get_instance_id()
 	b.hit[id] = true
+	_last_crit = false
 	var base := float(b.dmg) if bool(b.get("crit_rolled", false)) else _shot_damage(float(b.dmg))
+	if _last_crit and masters != null:
+		masters.mark(target)
 	var damage := base * _target_damage_mult(target)
 	if target == boss:
 		boss.take_damage(damage, impact, part)
@@ -745,7 +757,8 @@ func _projectile_impact(b: Dictionary, target: Node2D, impact: Vector2, part: in
 		b.life = 0.0
 
 func _target_damage_mult(target: Node2D) -> float:
-	return 1.0 + player.shop_mod("boss_dmg") if target == boss or target == miniboss else 1.0
+	var mark: float = masters.mark_mult(target) if masters != null else 1.0
+	return (1.0 + player.shop_mod("boss_dmg") if target == boss or target == miniboss else 1.0) * mark
 
 func _segment_hit(b: Dictionary, center: Vector2, radius: float) -> bool:
 	var p: Vector2 = b.p
@@ -821,6 +834,10 @@ func _chain_from(b: Dictionary, from_pos: Vector2, count: int, damage: float = -
 			hits += 1
 
 func _proc_splinters(b: Dictionary, pos: Vector2, dmg: float) -> void:
+	# Splitterlanze: Splitter zerbrechen bei ihrem Treffer noch einmal (eine Generation).
+	if int(b.get("proc_depth", 0)) == 1 and bool(b.get("lance", false)) and masters != null and masters.has("m_splinter_lance"):
+		_spawn_splinter(pos, dmg, 2, b.hit, 2)
+		return
 	if int(b.get("proc_depth", 0)) > 0:
 		return
 	if player.evo_has("splinter"):
@@ -829,13 +846,15 @@ func _proc_splinters(b: Dictionary, pos: Vector2, dmg: float) -> void:
 	if player.shop_mod("splinter_chance") > 0.0 and randf() < minf(1.0, player.shop_mod("splinter_chance")):
 		_spawn_splinter(pos, dmg * 0.6, 2, b.hit)
 
-func _spawn_splinter(pos: Vector2, dmg: float, amount: int = 2, hit_ids: Dictionary = {}) -> void:
+func _spawn_splinter(pos: Vector2, dmg: float, amount: int = 2, hit_ids: Dictionary = {}, depth: int = 1) -> void:
+	var lance: bool = masters != null and masters.has("m_splinter_lance")
 	for i in range(amount):
 		var a := PI * 0.5 + (0.5 if i % 2 == 0 else -0.5)
 		var child := bullets.spawn_player(pos, Vector2.RIGHT.rotated(a) * 420.0, dmg * 0.35, "bullet_fan",
-			{"r": 4.0, "life": 0.5, "pierce": 1, "proc_depth": 1})
+			{"r": 4.0, "life": 0.8 if lance else 0.5, "pierce": 2 if lance else 1, "proc_depth": depth})
 		if not child.is_empty():
-			child["proc_depth"] = 1
+			child["proc_depth"] = depth
+			child["lance"] = lance and depth == 1
 			child["crit_rolled"] = true
 			child.hit = hit_ids.duplicate()
 
@@ -872,9 +891,13 @@ func spawn_pollen(pos: Vector2, strength: float, burst: bool = false) -> void:
 		drift += player.vel * 0.65
 	fx.add_hazard({"kind": "pollen_cloud", "p": pos, "radius": radius, "t": 0.0,
 		"life": 2.4 if not burst else 1.6, "max_life": 2.4 if not burst else 1.6,
-		"vel": drift, "dmg": 1, "hit_cd": 0.0, "friendly": true,
+		"vel": drift, "dmg": 1, "hit_cd": 0.0, "friendly": true, "burst": burst,
 		"color": Color(0.7, 1.0, 0.6, 0.26)})
-	fx.add("pollen", pos, {"life": 0.9, "scale": strength, "tint": Color(0.8, 1.0, 0.7, 0.8)})
+	# Explosionswolken stapeln sich bei vielen Abschüssen: deutlich durchsichtiger,
+	# damit die Biene darin sichtbar bleibt.
+	fx.add("pollen", pos, {"life": 0.9, "scale": strength, "tint": Color(0.8, 1.0, 0.7, 0.35 if burst else 0.55)})
+	if burst and masters != null:
+		masters.schedule_bloom(pos, radius)
 	if burst:
 		for e in enemies.duplicate():
 			if is_instance_valid(e) and not e.dead and e.position.distance_to(pos) < radius + 10.0:
@@ -921,6 +944,17 @@ func shield_break_pulse(pos: Vector2) -> void:
 	for e in enemies:
 		if is_instance_valid(e) and not e.dead and e.position.distance_to(pos) < 100.0:
 			e.take_damage(18.0)
+
+## Goldrausch: goldener Tropfen mit mehreren Blütenstaub, der von selbst zur Biene fliegt.
+func spawn_gold_drop(pos: Vector2, value: int) -> void:
+	var p := Pickup.new()
+	add_child(p)
+	p.setup("nectar", pos, value)
+	p.magnet = true
+	p.scale = Vector2(1.5, 1.5)
+	p.modulate = Color(1.4, 1.15, 0.45)
+	pickups.append(p)
+	fx.add_text(pos + Vector2(0, -12), "+%d" % value, Color(1.0, 0.85, 0.3), 12)
 
 func drone_intercept(pos: Vector2) -> bool:
 	for b in bullets.enemy_bullets:

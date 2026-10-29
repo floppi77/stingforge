@@ -46,6 +46,9 @@ var invuln_visual: float = 0.0
 var shield_hits: int = 0
 var shield_regen_t: float = 0.0
 var _diff_damage_carry := 0.0
+## Meisterevolutionen: Zweite Haut (einmal pro Level), Lebensnektar-Reserve.
+var _second_skin_used := false
+var life_reserve := 0
 # Bruchteile bleiben über einzelne Treffer/Pickups und Präzisionswechsel erhalten.
 var _guard_damage_carry: float = 0.0
 var _nectar_carry: float = 0.0
@@ -148,7 +151,7 @@ func _build_visuals() -> void:
 	engine_fx.z_index = -1
 	add_child(engine_fx)
 	# Begleiterdrohnen: eigener Körper je Einheit, sonst nur unsichtbare Schüsse
-	for i in range(5):
+	for i in range(MAX_COMPANIONS + 1):
 		var c := AnimatedSprite2D.new()
 		c.sprite_frames = Art.sprite_frames("drone")
 		c.play("default")
@@ -675,14 +678,32 @@ func rhythm_interval() -> int:
 func _fire_rhythm() -> void:
 	var mult := 2.4 * (1.0 + evo_effect("rhythm_mult"))
 	var chain := int(evo_effect("rhythm_chain"))
+	# Gewitterchor: der Resonanzschuss springt als Blitz auf bis zu fünf Gegner.
+	var thunder := _master("m_thunder_choir")
 	_spawn(position + Vector2(24, 0), Vector2(820, 0), 9.0 * dmg_mult() * mult,
 		"bullet_plasma", {"pierce": 2 + int(evo_effect("pierce")), "r": 9.0, "scale": 1.15,
-			"chain": chain, "life": 1.8, "tint": Color(1.4, 1.4, 1.6)}, true)
+			"chain": chain, "lchain": 5 if thunder else 0, "life": 1.8,
+			"tint": Color(1.6, 1.5, 0.7) if thunder else Color(1.4, 1.4, 1.6)}, true)
 	Audio.sfx("shot_plasma", -12.0, 1.3)
+
+## Zahl der Begleiter: höchstens fünf, mit der Meisterevolution Hofstaat genau sechs.
+func companion_count() -> int:
+	var owned := int(upgrades.get("companion", 0))
+	if owned > 0 and _master("m_royal_court"):
+		return MAX_COMPANIONS + 1
+	return mini(MAX_COMPANIONS, owned + int(evo_effect("companion_add")))
+
+## Meisterevolution vorhanden und aktiv (Drohnen-Meister nur mit gekaufter Drohne).
+func _master(id: String) -> bool:
+	return evo_has(id) and _evo_active(Data.evo(id))
+
+func _masters_node() -> Node:
+	var g := get_parent()
+	return g.get("masters") if g != null and "masters" in g else null
 
 func _update_companions(delta: float) -> void:
 	# Höchstens fünf Begleiter (so viele kann die Biene sichtbar führen), auch verschmolzen.
-	var count := mini(MAX_COMPANIONS, int(upgrades.get("companion", 0)) + int(evo_effect("companion_add")))
+	var count := companion_count()
 	companion_phase += delta
 	_update_companion_visuals(count)
 	if count <= 0:
@@ -692,10 +713,17 @@ func _update_companions(delta: float) -> void:
 		companion_cd = rate
 		var game := get_parent()
 		if game != null and game.has_method("spawn_player_bullet"):
+			var mn := _masters_node()
 			for i in range(count):
+				if mn != null and mn.has("m_shield_wall") and not mn.wall_active(i):
+					continue
 				var p := companion_position(i, count)
 				var opts := {"r": 4.0, "tint": Color(0.8, 1.0, 0.9)}
-				if evo_has("swarm_echo"):
+				if _master("m_royal_court"):
+					# Hofstaat: jede Biene feuert einen kleinen Doppelschuss deiner aktiven Waffe.
+					for a in [-0.09, 0.09]:
+						_spawn_pattern(p + Vector2(10, 0), Vector2(700, 0).rotated(a), 4.4 * dmg_mult(), int(evo_effect("pierce")), opts)
+				elif evo_has("swarm_echo"):
 					_spawn_pattern(p + Vector2(10, 0), Vector2(700, 0), 4.4 * dmg_mult(), int(evo_effect("pierce")), opts)
 				else:
 					_spawn(p + Vector2(10, 0), Vector2(700, 0), 4.4 * dmg_mult(), "bullet_base", opts, true)
@@ -719,6 +747,9 @@ func _update_companion_visuals(count: int) -> void:
 		c.modulate.a = 0.9 + 0.1 * bob
 
 func companion_position(i: int, count: int) -> Vector2:
+	var mn := _masters_node()
+	if mn != null and mn.has("m_shield_wall"):
+		return mn.wall_position(i, count)
 	var form := 0.0
 	if evo_has("companion_form"):
 		form = 1.0 if vel.x > 30.0 else 0.0
@@ -754,6 +785,7 @@ func take_damage(amount: int, from: Vector2 = Vector2.RIGHT) -> bool:
 		Audio.sfx("shield_hit", -4.0, 0.9)
 		Bindings.rumble(0.35, 0.1, 0.15)
 		_knockback(from)
+		_struck()
 		return true
 	# Schwierigkeit: Trefferschaden mit angesparten Bruchteilen (Entspannt verzeiht etwa
 	# jeden fünften Treffer, Experte kostet etwa jeden dritten Treffer doppelt).
@@ -765,6 +797,20 @@ func take_damage(amount: int, from: Vector2 = Vector2.RIGHT) -> bool:
 		dmg = int(floor(due + 0.000001))
 		_guard_damage_carry = maxf(0.0, due - float(dmg))
 	hp -= dmg
+	# Zweite Haut: einmal pro Level einen tödlichen Treffer überleben.
+	if hp <= 0 and _master("m_second_skin") and not _second_skin_used:
+		_second_skin_used = true
+		hp = 1
+		if shield_active():
+			shield_hits = shield_max
+			_update_aura()
+		iframes = 2.5
+		hp_changed.emit(hp, max_hp)
+		notice.emit("Zweite Haut! Du häutest dich.")
+		Audio.sfx("shield_hit", -2.0, 0.7)
+		_struck()
+		return true
+	_struck()
 	iframes = float(difficulty.iframes) + evo_effect("iframes") + shop_mod("iframe_add")
 	invuln_visual = 0.0
 	_knockback(from)
@@ -778,7 +824,15 @@ func take_damage(amount: int, from: Vector2 = Vector2.RIGHT) -> bool:
 		get_parent().on_player_hit(amount)
 	if hp <= 0:
 		_die()
+	else:
+		_use_life_reserve()
 	return true
+
+## Eingesteckter Treffer (Schild oder Leben): Dornenpanzer reagiert.
+func _struck() -> void:
+	var mn := _masters_node()
+	if mn != null:
+		mn.on_player_struck()
 
 func _knockback(from: Vector2) -> void:
 	var dir := (position - from)
@@ -822,8 +876,21 @@ func add_nectar(n: int, pickup: bool = true) -> void:
 			if shield_hits >= shield_max:
 				shield_regen_t = 0.0
 			_update_aura()
+	# Lebensnektar: gesammelter Blütenstaub füllt die Reserve; voll heilt sie ein Leben.
+	if pickup and _master("m_life_nectar"):
+		life_reserve = mini(life_reserve + n, LIFE_RESERVE)
 	nectar += n
 	nectar_changed.emit(nectar)
+	_use_life_reserve()
+
+const LIFE_RESERVE := 30
+
+func _use_life_reserve() -> void:
+	if life_reserve >= LIFE_RESERVE and hp < max_hp and alive:
+		life_reserve = 0
+		heal(1)
+		notice.emit("Lebensnektar heilt dich!")
+		Audio.sfx("pickup_heart", -6.0, 1.1)
 
 func add_points(n: int) -> void:
 	points += n

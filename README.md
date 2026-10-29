@@ -56,8 +56,10 @@ Jedes Level endet mit einem Boss, der sich wie sein Tier bewegt und in mehreren 
   den Highscore.
 - **Evolutionen und Starttalente:**
   - 20 Starttalente, drei davon zufällig zur Wahl; nach jedem Level eine Evolution.
-  - Passende Evolutionen **verschmelzen** und werden gemeinsam stärker.
-  - Entdeckte Verschmelzungen sammelt das Hauptmenü.
+  - **Zwölf Meisterevolutionen:** Aus zwei passenden Evolutionen entsteht eine neue Fähigkeit,
+    etwa ein Pollensturm um die Biene, ein Schildwall aus Drohnen oder Gewitter aus Resonanzschüssen.
+  - Weitere Paare **verschmelzen** und werden gemeinsam stärker; das Sammelbuch im Hauptmenü
+    zeigt alle Rezepte.
 - **Eigener Soundtrack:**
   - Jedes Level hat einen durchkomponierten Track, exakt so lang wie der Weg bis zum Boss und
     synchron zur Levelzeit.
@@ -104,7 +106,7 @@ export XDG_DATA_HOME="$PWD/.godot_data" XDG_CONFIG_HOME="$PWD/.godot_config" XDG
 godot --headless --path . --export-release Linux build/linux/Stingforge.x86_64
 godot --headless --path . --export-release Windows build/windows/Stingforge.exe
 godot --headless --path . --export-release macOS build/macos/Stingforge-macOS.zip
-python3 tools/verify_stingforge_r3.py     # 43 Regressionssuiten
+python3 tools/verify_stingforge_r3.py     # 44 Regressionssuiten
 ```
 
 Details: [Build-Anleitung](docs/BUILD.md).

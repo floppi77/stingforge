@@ -252,6 +252,34 @@ Angebote **einmal neu würfeln**; die Entscheidung selbst ist nicht überspringb
   liefern bei Wiederholung keine zweite Evolution.
 * Die zehnte Evolution bleibt gespeichert und steht im **Boss-Rush** zur Verfügung.
 
+
+## 5c. Meisterevolutionen
+
+Zwölf Paare von Evolutionen verschmelzen zu einer **Meisterevolution** mit eigener, neuer
+Mechanik. Besitzt du beide Eltern im selben Run und steht mindestens eine davon auf
+Höchststufe, erscheint am nächsten Levelende eine **goldene Meisterkarte** als erstes Angebot.
+Wählst du sie, bleiben beide Eltern mit ihrer Wirkung erhalten; die Meisterevolution kommt
+dazu. Das Sammelbuch im Hauptmenü (*Verschmelzungen*) zeigt alle Rezepte; unentdeckte stehen
+als „???“ mit ihren Eltern da.
+
+| Meisterevolution | Eltern | Wirkung |
+|---|---|---|
+| Splitterlanze | Durchschlagstachel + Splittstachel | Splitter fliegen weiter, durchschlagen zwei Ziele und zerbrechen bei jedem Treffer erneut |
+| Todesmal | Gezielter Stich + Zielmarkierung | Kritische Treffer markieren: 3 s doppelter Schaden von allem (Bosse 1,5-fach) |
+| Hofstaat | Brutbegleiter + Schwarmecho | sechs Begleitbienen mit Doppelschuss deiner aktiven Waffe (braucht die Drohne) |
+| Schildwall | Formationsbegleiter + Opferdrohne | Drohnen bilden eine Wand vor dir und schlucken Geschosse (braucht die Drohne) |
+| Kettenblüte | Staubexplosion + Pollenschleier | Explosionswolken zünden alle Pollenwolken in der Nähe |
+| Pollensturm | Pollenschleier + Windreiter | ein Pollenwirbel kreist um dich, schadet Gegnern und löscht Geschosse |
+| Zweite Haut | Chitinpanzer + Häutung | einmal pro Level einen tödlichen Treffer überleben, Schild lädt voll |
+| Dornenpanzer | Chitinpanzer + Stachelhaut | jeder eingesteckte Treffer schleudert zwölf Stacheln rundum |
+| Gewitterchor | Taktgeber + Kettenresonanz | Resonanzschüsse springen als Blitz auf bis zu fünf Gegner |
+| Echoschild | Ruhepol + Druckwelle | drei Sekunden Dauerfeuer laden einen Ring, der Geschosse zurückwirft |
+| Goldrausch | Handel + Völlerei | jeder sechste Gegner lässt einen goldenen Tropfen (5 Blütenstaub) fallen |
+| Lebensnektar | Umwandlung + Nektarstau | 30 gesammelte Tropfen füllen eine Reserve, die dich um ein Leben heilt |
+
+Die übrigen 16 Evolutionspaare **verschmelzen** wie bisher: Beide werden gemeinsam stärker
+(Prozentwerte +50 %, Zählwerte +1, Auslöseschwellen −25 %).
+
 ---
 
 ## 5a. Werkstatt (Punkte, dauerhaft)

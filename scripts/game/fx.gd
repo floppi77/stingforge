@@ -661,6 +661,8 @@ func _draw_hazard(h: Dictionary) -> void:
 			# Pollen der Biene: goldene Ballen mit glitzernden Körnchen.
 			var r: float = float(h.radius)
 			var fade := clampf(life / maxf(0.3, max_life), 0.0, 1.0) * 0.8 + 0.2
+			# Durchsichtig genug, dass die Biene auch in mehreren Wolken sichtbar bleibt.
+			fade *= 0.35 if bool(h.get("burst", false)) else 0.5
 			for k in range(6):
 				var ang := TAU * float(k) / 6.0 + _t * 0.5
 				draw_circle(pos + Vector2.from_angle(ang) * r * 0.35, r * 0.42, Color(1.0, 0.78, 0.30, 0.22 * fade), true, -1.0, false)
@@ -669,7 +671,7 @@ func _draw_hazard(h: Dictionary) -> void:
 				for k in range(10):
 					var a2 := TAU * _h01(k, 51) + _t * 0.9
 					var d2 := r * (0.2 + 0.7 * _h01(k, 52))
-					draw_rect(Rect2((pos + Vector2.from_angle(a2) * d2).round(), Vector2(2, 2)), Color(1.0, 0.95, 0.6, 0.8 * fade))
+					draw_rect(Rect2((pos + Vector2.from_angle(a2) * d2).round(), Vector2(2, 2)), Color(1.0, 0.95, 0.6, minf(0.8, 1.6 * fade)))
 		"reflect_panel":
 			_draw_glass(h)
 		"light_shaft":

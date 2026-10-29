@@ -55,6 +55,19 @@ func build_items() -> void:
 				cur = int(entry.get("level", 1))
 		var lines: Array = []
 		lines.append({"text": String(e.desc), "color": UiTheme.TEXT, "size": 15})
+		if bool(e.get("master", false)):
+			var pa := Data.evo(String(e.parents[0]))
+			var pb := Data.evo(String(e.parents[1]))
+			lines.append({"text": Loc.tx("Aus %s und %s – beide bleiben erhalten.") % [Loc.tx(String(pa.name)), Loc.tx(String(pb.name))],
+				"size": 13, "color": UiTheme.ACCENT2})
+			if String(e.get("weapon", "")) != "":
+				lines.append({"text": Loc.t("evo.weapon_dependent") % Loc.t("bar." + String(e.weapon)), "size": 12,
+					"color": UiTheme.DIM})
+			list.append({
+				"kind": "card", "text": String(e.name), "family": String(e.family), "id": String(id),
+				"value_text": Loc.tx("MEISTER"), "compact": true, "master": true, "lines": lines,
+			})
+			continue
 		var downside := _downside_text(e)
 		if downside != "":
 			lines.append({"text": Loc.t("evo.downside") % downside, "color": Color(1, 0.72, 0.55), "size": 13})
@@ -71,6 +84,12 @@ func build_items() -> void:
 			for entry in Save.campaign.get("evolutions", []):
 				if String(entry.get("id", "")) == String(partner):
 					owned_partner = Loc.tx(String(Data.evo(String(partner)).get("name", partner)))
+		for link in Data.master_links(String(id)):
+			var pm := Data.master(String(link[1]))
+			if Save.campaign.get("evolutions", []).any(func(en): return String(en.get("id", "")) == String(link[0])):
+				lines.append({"text": Loc.tx("Mit %s bereit für die Meisterevolution %s") % [
+					Loc.tx(String(Data.evo(String(link[0])).name)), Loc.tx(String(pm.name)) if Save.is_master_seen(String(link[1])) else "???"],
+					"size": 12, "color": UiTheme.ACCENT})
 		if owned_partner != "":
 			lines.append({"text": Loc.t("evo.synergy_now") % owned_partner, "size": 12, "color": UiTheme.OK})
 		elif not names.is_empty():

@@ -54,7 +54,8 @@ func _wait_tip(seconds: float = 6.0) -> bool:
 # ------------------------------------------------------------------ Verschmelzung
 func _fusions() -> void:
 	var pairs := Data.all_fusions()
-	_ok(pairs.size() >= 20, "Verschmelzungspaare definiert (%d)" % pairs.size())
+	# Zwölf Paare sind Meisterevolutionen geworden (R9); die übrigen verschmelzen weiter.
+	_ok(pairs.size() >= 16, "Verschmelzungspaare definiert (%d)" % pairs.size())
 	var p := Player.new()
 	p.evolutions = [{"id": "heavy_sting", "level": 1}]
 	var alone := p.evo_effect("dmg_mult")
@@ -63,11 +64,11 @@ func _fusions() -> void:
 		"Schwerer Stachel × Splittstachel: verschmolzen, Schaden %.2f → %.2f" % [alone, p.evo_effect("dmg_mult")])
 	p.evolutions = [{"id": "pierce1", "level": 1}, {"id": "pierce_master", "level": 1}]
 	_ok(int(p.evo_effect("pierce")) >= 5, "Durchschlag verschmolzen +1 je Partner (%d)" % int(p.evo_effect("pierce")))
-	p.evolutions = [{"id": "nectar_bargain", "level": 1}]
-	var cheap := p.evo_effect("cost_mult")
-	p.evolutions.append({"id": "nectar_gluttony", "level": 1})
-	_ok(p.evo_effect("cost_mult") < cheap and p.evo_effect("fire_rate_mult") <= -0.099,
-		"Handel × Völlerei: Rabatt größer, Nachteil unverändert")
+	p.evolutions = [{"id": "nectar_gluttony", "level": 1}]
+	var more := p.evo_effect("nectar_mult")
+	p.evolutions.append({"id": "nectar_overflow", "level": 1})
+	_ok(p.evo_effect("nectar_mult") > more and p.evo_effect("fire_rate_mult") <= -0.099,
+		"Völlerei × Nektarstau: mehr Blütenstaub, Nachteil unverändert")
 	p.free()
 	var key := Data.fusion_key("splinter", "heavy_sting")
 	Save.profile["fusions_seen"] = []

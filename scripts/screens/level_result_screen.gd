@@ -35,8 +35,11 @@ func build_items() -> void:
 	if chosen != "":
 		var e := Data.evo(chosen)
 		list.append({"kind": "sep"})
-		list.append({"kind": "label", "text": Loc.tx("Neue Evolution: %s") % Loc.tx(String(e.get("name", chosen))),
-			"size": 18, "color": UiTheme.family_color(String(e.get("family", "sting")))})
+		var master_txt := Loc.tx("Meisterevolution: %s") if Data.is_master(chosen) else Loc.tx("Neue Evolution: %s")
+		list.append({"kind": "label", "text": master_txt % Loc.tx(String(e.get("name", chosen))),
+			"size": 18, "color": UiTheme.ACCENT if Data.is_master(chosen) else UiTheme.family_color(String(e.get("family", "sting")))})
+		if Data.is_master(chosen):
+			list.append({"kind": "label", "text": Loc.tx(String(e.get("desc", ""))), "size": 14, "color": UiTheme.TEXT})
 		if new_unlock:
 			list.append({"kind": "label", "text": Loc.t("evo.new_unlock"), "size": 14, "color": UiTheme.OK})
 		for pair in fusions:

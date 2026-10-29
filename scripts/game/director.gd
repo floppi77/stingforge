@@ -141,6 +141,12 @@ func _restart_from_checkpoint(cp: int) -> void:
 func start_boss_now() -> void:
 	if boss_started:
 		return
+	# Wie am regulären Levelende: keine Abschnitte, Wellen, Bodengegner oder
+	# Zwischengegner mehr (z. B. beim Debug-Sprung zum Boss).
+	section = level_data.sections.size()
+	section_t = 0.0
+	miniboss_done = true
+	finish_wait = 0.0
 	boss_started = true
 	boss_triggered.emit()
 

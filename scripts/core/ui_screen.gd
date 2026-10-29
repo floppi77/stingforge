@@ -626,6 +626,10 @@ func _make_card(it: Dictionary, idx: int) -> Control:
 	var compact := bool(it.get("compact", false))
 	var fam := Label.new()
 	fam.text = Loc.t("evo.family." + String(it.get("family", "sting"))).to_upper()
+	if bool(it.get("master", false)):
+		# Meisterkarte: goldener Stern und Kennzeichnung vor der Familie.
+		marker.text = "★ "
+		fam.text = Loc.tx("MEISTEREVOLUTION") + "  ·  " + fam.text
 	fam.add_theme_font_override("font", UiTheme.font_bold())
 	fam.add_theme_font_size_override("font_size", UiTheme.size(10 if compact else 12))
 	fam.add_theme_color_override("font_color", UiTheme.family_color(String(it.get("family", "sting"))))
@@ -642,7 +646,7 @@ func _make_card(it: Dictionary, idx: int) -> Control:
 	name_l.text = String(it.get("text", ""))
 	name_l.add_theme_font_override("font", UiTheme.font_bold())
 	name_l.add_theme_font_size_override("font_size", UiTheme.size(18 if compact else 21))
-	name_l.add_theme_color_override("font_color", UiTheme.TEXT)
+	name_l.add_theme_color_override("font_color", UiTheme.ACCENT if bool(it.get("master", false)) else UiTheme.TEXT)
 	name_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vb.add_child(name_l)
 

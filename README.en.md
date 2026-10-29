@@ -55,8 +55,10 @@ boss that moves like its animal and escalates over several phases.
   animated explanation. Only available between levels. Points you spend lower your highscore.
 - **Evolutions and starting talents:**
   - 20 starting talents, three of them offered at random; one evolution after every level.
-  - Matching evolutions **fuse** and grow stronger together.
-  - The main menu collects every fusion you discover.
+  - **Twelve master evolutions:** two matching evolutions merge into a new ability, such as a
+    pollen storm around the bee, a shield wall of drones or thunder from resonance shots.
+  - Other pairs **fuse** and grow stronger together; the collection in the main menu shows every
+    recipe.
 - **Original soundtrack:**
   - Every level has a fully composed track, exactly as long as the way to the boss and in sync
     with the level time.
@@ -102,7 +104,7 @@ export XDG_DATA_HOME="$PWD/.godot_data" XDG_CONFIG_HOME="$PWD/.godot_config" XDG
 godot --headless --path . --export-release Linux build/linux/Stingforge.x86_64
 godot --headless --path . --export-release Windows build/windows/Stingforge.exe
 godot --headless --path . --export-release macOS build/macos/Stingforge-macOS.zip
-python3 tools/verify_stingforge_r3.py     # 43 regression suites
+python3 tools/verify_stingforge_r3.py     # 44 regression suites
 ```
 
 Details (German): [build guide](docs/BUILD.md).
