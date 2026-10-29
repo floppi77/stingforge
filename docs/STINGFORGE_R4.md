@@ -306,7 +306,9 @@ Leveln rot ([Rotlog](../build/logs/r3/r4-miniboss-red.log)), jetzt 10 von 10 gr�
   Mantis feuert Nadelfächer und Sichelbogen. Fällt eine, wechselt die Überlebende in
   Phase II und hat alle Angriffe.
 - **Wasserläufer:** Gleitstoß auf der Spielerbahn mit platzenden Blasen, Wellenringe mit
-  Lücke. Ab Phase 3 („Die Rohre platzen!“) ständiger Wasserregen plus Fontänenfächer.
+  Lücke. Ab Phase 3 („Die Rohre platzen!“) ständiger Wasserregen plus Fontänenfächer. Ab Phase 4
+  („Die Kanäle fluten!“) steigt Kanalwasser auf 30 % der Feldhöhe; Berührung kostet ein Leben,
+  der Wasserläufer läuft auf der Oberfläche, nach seinem Tod läuft das Wasser ab.
 - **Erntemaschine:**
   - Phase 1 mit Flankenangriff: rechts hinaus, links herein, Salven nach rechts.
   - Phase 2: Module schwingen und halten mehr aus.
@@ -327,7 +329,8 @@ Leveln rot ([Rotlog](../build/logs/r3/r4-miniboss-red.log)), jetzt 10 von 10 gr�
   - Links öffnen über `App.open_link` im Browser.
 - **Ko-fi:** kleiner Knopf oben rechts im Hauptmenü, zusätzlich als Eintrag in den Credits
   (Tastatur und Controller).
-- **Debug:** Boss wählen und sofort bekämpfen; Abspann als Vorschau ohne Runabschluss.
+- **Debug:** Boss wählen (links/rechts) und mit Bestätigen sofort bekämpfen; Godmode-Schalter;
+  Abspann als Vorschau ohne Runabschluss.
 - Neue Prüfsuite `tests/r10_probe` (45 Suiten).
 
 ## Prüfung

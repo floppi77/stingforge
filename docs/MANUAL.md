@@ -390,7 +390,7 @@ pattern and its own attacks:
 | 4 | Parasitic Fungal Mind | drifts in a wide circle | spore clouds and small sproutlings as helpers. A healing mushroom slowly heals the boss; it only becomes vulnerable once its three orbiting guards fall |
 | 5 | Mantis Pair | two mantises with their own health and their own attacks | when one falls, the other inherits its attacks |
 | 6 | Mechanical Pollinator | circles an anchor point | armour phases alternate with mirror volleys |
-| 7 | Mutant Pond Skater | glides along a lane, skims across the water at your height | bubble trail and ripple rings; from “The pipes are bursting!” water splashes rain down from above |
+| 7 | Mutant Pond Skater | glides along a lane, skims across the water at your height | bubble trail and ripple rings; from “The pipes burst!” water splashes rain down from above, at “The channels flood!” the bottom 30 % of the field floods – touching the water costs health |
 | 8 | Insectoid Harvester | phase 1: leaves to the right and attacks from behind on the left | phase 2 with moving, tougher modules; phases 3 and 4 with ever denser barrages |
 | 9 | Swarm Queen | figure-eight | summons guards, spiral fire |
 | 10 | Core Organism | first form, then rebirth with three phases of its own | from phase 3 it pauses: the whole screen becomes a danger zone except one safe zone. Miss it and you take triple damage. The wind rests meanwhile |

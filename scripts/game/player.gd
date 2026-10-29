@@ -770,7 +770,7 @@ func _update_aura(delta: float = 0.0) -> void:
 
 # --------------------------------------------------------------- Schaden/Leben
 func take_damage(amount: int, from: Vector2 = Vector2.RIGHT) -> bool:
-	if not alive or iframes > 0.0:
+	if not alive or iframes > 0.0 or App.debug_god:
 		return false
 	last_hit_from = from
 	if shield_active() and shield_hits > 0:

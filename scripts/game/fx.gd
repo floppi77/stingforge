@@ -625,6 +625,27 @@ func _draw_gravity(h: Dictionary, life: float, max_life: float) -> void:
 		var p := Vector2(x, top + fall)
 		draw_rect(Rect2(p.round(), Vector2(2, 4)), Color(0.85, 0.62, 1.0, 0.7 * a))
 
+## Kanalflut: trübes Wasser mit pixeliger Wellenkante, Schaumkrone und aufsteigenden Blasen.
+func _draw_flood(h: Dictionary) -> void:
+	var top := float(h.y)
+	var bottom := float(App.PLAY_BOTTOM) + 44.0
+	if top >= bottom:
+		return
+	draw_rect(Rect2(-200, top, 1360, bottom - top), Color(0.12, 0.30, 0.26, 0.78))
+	draw_rect(Rect2(-200, top + 26.0, 1360, bottom - top), Color(0.06, 0.18, 0.16, 0.45))
+	# Wellenkante in 4px-Schritten, damit sie im Pixelraster bleibt.
+	var x := -200.0
+	while x < 1160.0:
+		var wave := roundf(sin(x * 0.035 + _t * 3.2) * 2.0 + sin(x * 0.011 - _t * 1.7) * 2.0)
+		draw_rect(Rect2(x, top + wave - 3.0, 4, 3), Color(0.70, 0.92, 0.80, 0.85))
+		draw_rect(Rect2(x, top + wave, 4, 2), Color(0.30, 0.55, 0.45, 0.9))
+		x += 4.0
+	for k in range(22):
+		var bx := fposmod(_h01(k, 61) * 1160.0 + _t * (14.0 + 8.0 * _h01(k, 62)), 1160.0) - 100.0
+		var depth := bottom - top - 8.0
+		var by := bottom - fposmod(_t * (22.0 + 18.0 * _h01(k, 63)) + _h01(k, 64) * depth, maxf(1.0, depth))
+		draw_rect(Rect2(Vector2(bx, by).round(), Vector2(2, 2)), Color(0.75, 0.95, 0.85, 0.5))
+
 ## Schutzzone: ganzer Schirm als pulsierende Warnfläche, nur ein Kreis bleibt frei.
 ## Zeilenweise in 2px-Streifen, damit das Loch pixelig und exakt rund bleibt.
 func _draw_safe_zone(h: Dictionary, life: float, max_life: float) -> void:
@@ -738,6 +759,8 @@ func _draw_hazard(h: Dictionary) -> void:
 			_draw_gravity(h, life, max_life)
 		"safe_zone":
 			_draw_safe_zone(h, life, max_life)
+		"flood":
+			_draw_flood(h)
 		"water_line":
 			var yy4: float = float(h.get("y", 470.0))
 			draw_rect(Rect2(0, yy4, 960, 540 - yy4), Color(0.10, 0.35, 0.45, 0.45))

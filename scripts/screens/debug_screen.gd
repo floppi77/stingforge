@@ -19,13 +19,16 @@ func build_items() -> void:
 	list.append({"kind": "sep"})
 	list.append({"kind": "action", "text": "Zum Levelboss", "id": "boss", "compact": true, "accent": true})
 	var pick_boss := String(Data.level(boss_pick).get("boss", ""))
-	list.append({"kind": "choice", "id": "bossjump", "compact": true,
+	# Aktionszeile statt Auswahl: links/rechts wechselt den Boss, Bestätigen startet den Kampf.
+	list.append({"kind": "action", "id": "bossjump", "compact": true,
 		"text": "Boss wählen und bekämpfen",
-		"value_text": "L%02d %s" % [boss_pick, Loc.tx(String(Data.boss(pick_boss).get("name", pick_boss)))],
+		"value_text": "‹ L%02d %s ›" % [boss_pick, Loc.tx(String(Data.boss(pick_boss).get("name", pick_boss)))],
 		"value_color": UiTheme.ACCENT, "disabled": app != null and String(app.mode) != "campaign"})
 	list.append({"kind": "action", "text": "Abspann starten", "id": "credits", "compact": true})
 	list.append({"kind": "action", "text": "Zum nächsten Level", "id": "next", "compact": true})
 	list.append({"kind": "action", "text": "Vollheilen", "id": "heal", "compact": true})
+	list.append({"kind": "toggle", "text": "Godmode", "id": "god", "compact": true,
+		"value_text": "An" if bool(app.debug_god) else "Aus"})
 	list.append({"kind": "sep"})
 	list.append({"kind": "label", "text": "TAKTISCHE UPGRADES", "size": 13, "color": UiTheme.ACCENT2})
 	for u in Data.UPGRADES:
@@ -78,7 +81,11 @@ func on_adjust(index: int, dir: int) -> void:
 	if index >= items.size():
 		return
 	var id := String(items[index].get("id", ""))
-	if id == "bossjump":
+	if id == "god":
+		app.debug_god = not bool(app.debug_god)
+		Audio.sfx("ui_ok", -8.0, 1.0, true)
+		_after_change()
+	elif id == "bossjump":
 		boss_pick = wrapi(boss_pick + dir, 1, Data.levels.size() + 1)
 		Audio.sfx("ui_move", -10.0, 1.0, true)
 		_after_change()
@@ -249,8 +256,12 @@ func _fill_side() -> void:
 			_side_line("Vollständig ausgebaut.", 14, UiTheme.OK)
 	elif id == "bossjump":
 		_side_line("Boss wählen", 20, UiTheme.ACCENT, true)
-		_side_line("Links/rechts wählt den Boss, Bestätigen lädt dessen Level und startet sofort "
+		_side_line("Links/rechts wechselt den Boss, Bestätigen lädt dessen Level und startet sofort "
 			+ "den Bosskampf. Nur im Run.", 14, UiTheme.TEXT)
+	elif id == "god":
+		_side_line("Godmode", 20, UiTheme.ACCENT, true)
+		_side_line("Die Biene nimmt keinen Schaden: Geschosse, Gegner, Flut und Schutzzone treffen "
+			+ "ins Leere. Gilt bis zum Ausschalten oder Spielende.", 14, UiTheme.TEXT)
 	elif id == "credits":
 		_side_line("Abspann", 20, UiTheme.ACCENT, true)
 		_side_line("Zeigt das Abspann-Level als Vorschau. Der Run bleibt unverändert.", 14, UiTheme.TEXT)

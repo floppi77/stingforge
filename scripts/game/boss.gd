@@ -190,11 +190,18 @@ func _stable_bounds() -> Rect2:
 
 ## Höhe, auf der ein Bodenwesen (Larve, Pilz, Erntemaschine) steht.
 func _ground_y() -> float:
-	return App.PLAY_BOTTOM - _stable_bounds().end.y - 2.0
+	return _floor_y() - _stable_bounds().end.y - 2.0
+
+## Untere Grenze für den Körper: Spielfeldboden oder, bei Flut, die Wasseroberfläche.
+func _floor_y() -> float:
+	var g := get_parent()
+	if g != null and g.has_method("flood_top"):
+		return minf(float(App.PLAY_BOTTOM), g.flood_top())
+	return float(App.PLAY_BOTTOM)
 
 func _clamp_target(t: Vector2) -> Vector2:
 	var b := _stable_bounds()
-	t.y = clampf(t.y, App.PLAY_TOP - b.position.y + 2.0, App.PLAY_BOTTOM - b.end.y - 2.0)
+	t.y = clampf(t.y, App.PLAY_TOP - b.position.y + 2.0, _floor_y() - b.end.y - 2.0)
 	t.x = clampf(t.x, 520.0, 900.0)
 	return t
 
@@ -1668,7 +1675,7 @@ func _p_skim_strike() -> void:
 	var g := get_parent()
 	if g == null:
 		return
-	var lane := clampf((g.player_position() as Vector2).y, 130.0, 430.0)
+	var lane := _clamp_target(Vector2(700.0, clampf((g.player_position() as Vector2).y, 130.0, 430.0))).y
 	var start := position
 	_telegraph(0.7)
 	telegraph_color = Color(0.5, 0.85, 1.0, 0.5)
@@ -1936,8 +1943,9 @@ func _clamp_playfield() -> void:
 	if submerged:
 		return
 	var bounds := _stable_bounds()
+	# Bei Flut hebt das steigende Wasser den Wasserläufer mit an.
 	position.y = clampf(position.y, App.PLAY_TOP - bounds.position.y + 2.0,
-		App.PLAY_BOTTOM - bounds.end.y - 2.0)
+		_floor_y() - bounds.end.y - 2.0)
 
 # --------------------------------------------------------------- Schaden
 func _end_cave_in() -> void:

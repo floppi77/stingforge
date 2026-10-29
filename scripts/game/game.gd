@@ -225,6 +225,7 @@ func _physics_process(delta: float) -> void:
 	_update_pickups(delta)
 	_update_hazards(delta)
 	_tick_safe_zone(delta)
+	_tick_flood(delta)
 	_update_collisions()
 	_update_pollens(delta)
 	masters.update(delta)
@@ -538,6 +539,10 @@ const SAFE_ZONE_RADIUS := 34.0
 const SAFE_ZONE_REACTION := 0.35
 const SAFE_ZONE_DAMAGE := 3
 var safe_zone: Dictionary = {}
+## Wasserläufer „Die Kanäle fluten!“: das untere Feld steht unter Wasser, Berührung schadet.
+const FLOOD_SHARE := 0.30
+const FLOOD_RISE_TIME := 2.5
+var flood: Dictionary = {}
 
 func _apply_pollen_defenses(b: Dictionary) -> void:
 	if player == null or float(b.life) <= 0.0:
@@ -628,6 +633,39 @@ func _tick_safe_zone(_delta: float) -> void:
 	player.iframes = 0.0
 	player.take_damage(SAFE_ZONE_DAMAGE, c)
 	shake(9.0)
+
+func begin_flood() -> void:
+	if not flood.is_empty():
+		return
+	var top := float(App.PLAY_BOTTOM) - float(App.PLAY_BOTTOM - App.PLAY_TOP) * FLOOD_SHARE
+	flood = {"kind": "flood", "p": Vector2.ZERO, "y": float(App.PLAY_BOTTOM), "target": top,
+		"t": 0.0, "life": 1.0e9, "max_life": 1.0e9}
+	fx.add_hazard(flood)
+	shake(8.0)
+	Audio.sfx("explosion_small", -6.0, 0.6)
+
+## Oberkante des Flutwassers (ohne Flut die Unterkante des Spielfelds).
+func flood_top() -> float:
+	return float(flood.y) if not flood.is_empty() else float(App.PLAY_BOTTOM)
+
+func _tick_flood(delta: float) -> void:
+	if flood.is_empty():
+		return
+	var y := float(flood.y)
+	if boss == null or not is_instance_valid(boss) or boss.dead:
+		# Boss besiegt: das Wasser läuft wieder ab.
+		flood.y = y + 140.0 * delta
+		if float(flood.y) >= float(App.PLAY_BOTTOM):
+			flood.life = 0.0
+			flood = {}
+		return
+	var rise := (float(App.PLAY_BOTTOM) - float(flood.target)) / FLOOD_RISE_TIME
+	flood.y = move_toward(y, float(flood.target), rise * delta)
+	var reach := Player.HIT_RADIUS * (1.0 + player.evo_effect("hitbox"))
+	if player.position.y + reach >= float(flood.y):
+		var at := Vector2(player.position.x, float(flood.y))
+		if player.take_damage(1, at):
+			fx.water_splash(at, 1.0)
 
 ## Eigenständige Schwerkraft: Wind-Gegensteuerung darf diese Kraft nicht auf28%
 ## abschwächen. Mehrere Felder teilen sich die Obergrenze statt sich zu addieren.
@@ -1261,6 +1299,8 @@ func _on_boss_phase(index: int) -> void:
 	if not safe_zone.is_empty():
 		safe_zone.life = 0.0
 		safe_zone = {}
+	if boss != null and is_instance_valid(boss) and String(boss.id) == "mutant_skater" and index >= 3:
+		begin_flood()
 	Bindings.rumble(0.4, 0.9, 0.5)
 	# Laufende Geschosse zerplatzen sichtbar, statt einfach zu verschwinden.
 	var sparks := 0

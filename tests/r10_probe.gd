@@ -156,6 +156,28 @@ func _skater() -> void:
 		if (bl.get("tint", Color.WHITE) as Color).is_equal_approx(Color(0.6, 0.85, 1.0)) or float((bl.v as Vector2).y) > 0.0:
 			drops += 1
 	_ok(drops >= 10, "Rohrbruch: viele Wasserspritzer prasseln herab (%d)" % drops)
+	# „Die Kanäle fluten!“: unteres Feld zu 30 % unter Wasser, Berührung schadet.
+	_ok(g.flood.is_empty(), "Vor der vierten Phase keine Flut")
+	b._apply_phase(3)
+	_ok(b.phase_line(3) == "Die Kanäle fluten!" and not g.flood.is_empty(), "„Die Kanäle fluten!“ startet die Flut")
+	await _wait(4.5)
+	var expect := float(App.PLAY_BOTTOM) - float(App.PLAY_BOTTOM - App.PLAY_TOP) * 0.30
+	_ok(absf(g.flood_top() - expect) < 0.5, "Wasser steht bei 30 %% der Feldhöhe (y=%.1f)" % g.flood_top())
+	var body: Rect2 = b._stable_bounds()
+	_ok(b.position.y + body.end.y <= g.flood_top() + 0.5, "Wasserläufer läuft auf der Wasseroberfläche")
+	g.player.iframes = 0.0
+	g.player.shield_hits = 0
+	g.player.max_hp = 9
+	g.player.hp = 9
+	g.player.set_physics_process(false)
+	g.player.position = Vector2(200, g.flood_top() - 40.0)
+	g._tick_flood(0.0)
+	_ok(g.player.hp == 9, "Über dem Wasser kein Schaden")
+	g.player.position = Vector2(200, g.flood_top() + 20.0)
+	g._tick_flood(0.0)
+	_ok(g.player.hp == 8, "Wasserberührung kostet Leben")
+	g.player.set_physics_process(true)
+	g.player.iframes = 1.0e6
 	app.menu_main()
 	await _wait(0.2)
 
@@ -322,6 +344,32 @@ func _menu_and_debug() -> void:
 	var dbg = app.screens[-1]
 	var dids: Array = dbg.items.map(func(it): return String(it.get("id", "")))
 	_ok(dids.has("bossjump") and dids.has("credits"), "Debugmenü: Boss wählen und Abspann starten")
+	_ok(dids.has("god"), "Debugmenü: Godmode-Schalter")
+	# Bestätigen auf der Bosszeile startet den Kampf, statt nur weiterzuschalten.
+	var row: int = dids.find("bossjump")
+	dbg.focus = row
+	dbg.on_adjust(row, 1)
+	var picked: int = dbg.boss_pick
+	dbg.focus = row
+	dbg._activate()
+	await _wait(0.4)
+	_ok(app.is_in_game() and int(app.game.level_index) == picked and app.game.director.boss_started,
+		"Bestätigen auf der Bosszeile startet den gewählten Bosskampf (L%d)" % picked)
+	# Godmode: kein Schaden, auch nicht durch Flut oder Schutzzone.
+	app.debug_game()
+	await _wait(0.1)
+	dbg = app.screens[-1]
+	dbg.focus = dids.find("god")
+	dbg._activate()
+	_ok(bool(app.debug_god), "Godmode lässt sich einschalten")
+	app.debug_close()
+	var pl = app.game.player
+	pl.iframes = 0.0
+	var hp_god: int = pl.hp
+	_ok(not pl.take_damage(3, Vector2.ZERO) and pl.hp == hp_god, "Godmode: kein Schaden")
+	app.debug_god = false
+	pl.iframes = 0.0
+	_ok(pl.take_damage(1, Vector2.ZERO), "Ohne Godmode wieder verwundbar")
 	app.debug_credits()
 	await _wait(0.3)
 	var end = app.screens[-1]

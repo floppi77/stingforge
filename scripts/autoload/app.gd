@@ -506,6 +506,9 @@ func debug_next_level() -> void:
 	reset_upgrades_for_new_level()
 	_begin_level_with_story(lv + 1, 0)
 
+## Debug: Godmode – die Biene nimmt keinen Schaden (nur für diese Sitzung).
+var debug_god := false
+
 ## Debug: Level eines Bosses laden und sofort den Bosskampf starten (nur im Run).
 func debug_fight_boss(lv: int) -> bool:
 	if mode != "campaign":
