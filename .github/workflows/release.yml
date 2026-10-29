@@ -106,7 +106,8 @@ jobs:
           if gh release view "$TAG" > /dev/null 2>&1; then
             gh release upload "$TAG" dist/* --clobber
           else
-            gh release create "$TAG" dist/* --draft --verify-tag --generate-notes --title "Stingforge $TAG"
+            gh release create "$TAG" dist/* --draft --verify-tag --generate-notes \
+              --notes-file .github/release-notes.md --title "Stingforge $TAG"
           fi
 
       # VirusTotal: läuft nur, wenn das Repository-Secret VT_API_KEY gesetzt ist.
@@ -137,6 +138,6 @@ jobs:
           {
             gh release view "$TAG" --json body --jq .body
             printf '\n\n### VirusTotal\n\n'
-            echo "$ANALYSIS" | tr ',' '\n' | sed -E 's#^([^=]+)=(.*)$#- [\1](\2)#'
+            echo "$ANALYSIS" | tr ',' '\n' | sed -E 's#^(dist/)?([^=]+)=(.*)$#- [\2](\3)#'
           } > notes.md
           gh release edit "$TAG" --notes-file notes.md
