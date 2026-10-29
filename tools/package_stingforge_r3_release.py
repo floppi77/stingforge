@@ -14,7 +14,8 @@ ROOT = Path(__file__).resolve().parents[1]
 RELEASE = ROOT / 'release'
 ARCHIVE = ROOT / 'build/stingforge-r4-previous-release'
 LOGS = ROOT / 'build/logs/stingforge-r3'
-BINARIES = {'linux': ROOT / 'build/linux/Stingforge.x86_64', 'windows': ROOT / 'build/windows/Stingforge.exe'}
+BINARIES = {'linux': ROOT / 'build/linux/Stingforge.x86_64', 'windows': ROOT / 'build/windows/Stingforge.exe',
+            'macos': ROOT / 'build/macos/Stingforge-macOS.zip'}
 
 
 def digest(path):
@@ -30,7 +31,7 @@ def main():
     assert summary['stable_sources'] and len(summary['results']) == SUITE_COUNT
     assert all(row['passed'] for row in summary['results'])
     starts = {row['platform']: row for row in json.loads((LOGS / 'binaries-summary.json').read_text())}
-    assert set(starts) == {'linux', 'windows'}
+    assert set(starts) == set(BINARIES)
     for platform, path in BINARIES.items():
         assert digest(path) == starts[platform]['sha256'], 'Export nach Prüfung verändert: ' + platform
     # Bisherige Auslieferung einmalig sichern (nur Spieldateien und Prüfsummen).
@@ -68,10 +69,16 @@ def main():
 
 **Evolve. Adapt. Strike.** – eine Pixel-Hommage an Apidya.
 
-[Windows](<Stingforge.exe>) · [Linux](<Stingforge.x86_64>)
+[Windows](<Stingforge.exe>) · [Linux](<Stingforge.x86_64>) · [macOS](<Stingforge-macOS.zip>)
 
-Jeweils eine vollständige Spieldatei, keine Installation und kein zusätzliches PCK nötig.
-Unter Linux gegebenenfalls „Als Programm ausführen“ erlauben.
+Windows und Linux: jeweils eine vollständige Spieldatei, keine Installation und kein
+zusätzliches PCK nötig. Unter Linux gegebenenfalls „Als Programm ausführen“ erlauben.
+
+macOS (Intel und Apple Silicon, ab macOS 11 bzw. 10.12): ZIP entpacken und Stingforge.app
+in „Programme“ ziehen. Die App ist nur ad-hoc signiert, nicht von Apple notarisiert. Beim
+ersten Start daher im Finder Rechtsklick › „Öffnen“, oder unter Systemeinstellungen ›
+Datenschutz & Sicherheit „Dennoch öffnen“. Meldet macOS „beschädigt“, hilft im Terminal
+`xattr -cr /Applications/Stingforge.app`.
 
 R4: Neuer Pixellook in 1920 × 1080 mit Ultrawide-Unterstützung (21:9, 32:9: das
 Spielfeld bleibt 16:9, die Ränder zeigen die Levelkulisse). Pixel-Titelbild und
@@ -84,14 +91,16 @@ Neu in dieser Fassung:
 - Neue Bossmusik je Level, nahtlos an die Levelmusik anschließend, im Kampf geloopt.
 - Ein eigener, durchkomponierter Soundtrack je Level, exakt bis zum Bosseinsatz.
 - Dreispaltige Werkstatt mit animierten Erklärgrafiken.
-- Upgrade-Ansage per Sprache.
+- Upgrade-Ansage per Sprache (neue, hellere Stimme mit Qwen3-TTS).
+- Erstmals eine macOS-Fassung.
 - Spannenderer Larven-Boss mit drei Phasen und Bossphasen mit Auftritt.
 - Zerbrechliches Glas in Level 6.
 - Höhere Fontänen in Level 3.
 - Maßvollere Zielsuche.
 
 **{SUITE_COUNT}/{SUITE_COUNT} Regressionssuiten erfolgreich.** Linux-Datei gestartet, Windows-Datei unter
-Wine (nicht nativ auf Windows). Kein physisches Xbox-Gamepad verfügbar.
+Wine (nicht nativ auf Windows). Die macOS-App ist auf Aufbau, Architekturen und Signatur geprüft,
+aber mangels Mac nicht gestartet. Kein physisches Xbox-Gamepad verfügbar.
 
 [Änderungen](<STINGFORGE_R4.md>) · [Handbuch](<HANDBUCH.md>) · [Prüfsummen](<SHA256SUMS.txt>) ·
 [Bilder](<screenshots/stingforge-r4/>) · [Vorgänger R3](<STINGFORGE_R3.md>)

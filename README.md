@@ -56,6 +56,7 @@ Jedes Level endet mit einem Boss, der sich wie sein Tier bewegt und in mehreren 
   - Jedes Level hat einen durchkomponierten Track, exakt so lang wie der Weg bis zum Boss und
     synchron zur Levelzeit.
   - Die Bossmusik setzt nahtlos im selben Tempo ein und loopt, solange der Kampf dauert.
+- **Plattformen:** Linux, Windows und macOS.
 - **Pixellook in 1920 × 1080:** Ultrawide (21:9, 32:9) und 16:10, Pixelschriften, Menüs im Amiga-Stil.
 - **Modi:**
   - Kampagne mit Checkpoints
@@ -68,8 +69,11 @@ Jedes Level endet mit einem Boss, der sich wie sein Tier bewegt und in mehreren 
 ## Spielen
 
 Fertige Spieldateien für **Windows** und **Linux** werden als einzelne Datei ohne Installation
-gebaut. Sie sind zu groß für das Repository und gehören zu den
-[Releases](https://github.com/floppi77/stingforge/releases).
+gebaut, für **macOS** (Intel und Apple Silicon) als ZIP mit der App. Sie sind zu groß für das
+Repository und gehören zu den [Releases](https://github.com/floppi77/stingforge/releases).
+
+Die Mac-App ist nicht von Apple notarisiert: beim ersten Start im Finder Rechtsklick ›
+„Öffnen“ wählen.
 
 | Aktion | Tastatur | Controller |
 |---|---|---|
@@ -89,7 +93,8 @@ Benötigt **Godot 4.7** (GL Compatibility).
 export XDG_DATA_HOME="$PWD/.godot_data" XDG_CONFIG_HOME="$PWD/.godot_config" XDG_CACHE_HOME="$PWD/.godot_cache"
 godot --headless --path . --export-release Linux build/linux/Stingforge.x86_64
 godot --headless --path . --export-release Windows build/windows/Stingforge.exe
-python3 tools/verify_stingforge_r3.py     # 40 Regressionssuiten
+godot --headless --path . --export-release macOS build/macos/Stingforge-macOS.zip
+python3 tools/verify_stingforge_r3.py     # 41 Regressionssuiten
 ```
 
 Details: [Build-Anleitung](docs/BUILD.md).
@@ -125,8 +130,9 @@ Die Sample-Bibliotheken werden nicht mitgeliefert, sondern bei Bedarf geladen.
 - **Samples:** [VSCO 2 Community Edition](https://github.com/sgossner/VSCO-2-CE) und
   [Versilian Community Sample Library](https://github.com/sgossner/VCSL) von Versilian Studios
   (CC0), für den Soundtrack.
-- **Sprachansagen:** erzeugt mit [Piper](https://github.com/rhasspy/piper) und der Stimme
-  *Thorsten* ([Thorsten-Voice](https://github.com/thorstenMueller/Thorsten-Voice), Datensatz CC0).
+- **Sprachansagen:** erzeugt lokal mit [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS)
+  (Modelle VoiceDesign und Base, Apache-2.0). Die Stimme ist aus einer Beschreibung
+  entworfen, sie gehört keinem echten Sprecher.
 - Made with Vibe, DeepSeek V4.1 Flash, GPT Sol 6.1, Claude Opus 5.5, Coffee and Love.
 - **Vorbild:** *Apidya* (Kaiko, 1992). Stingforge ist eine eigenständige Hommage, ohne
   Verbindung zu den Rechteinhabern.

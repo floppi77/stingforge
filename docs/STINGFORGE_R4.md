@@ -236,6 +236,8 @@ Leveln rot ([Rotlog](../build/logs/r3/r4-miniboss-red.log)), jetzt 10 von 10 gr�
   Hinweis entfällt.
 - **Sprache:**
   - Die Ansagen kommen jetzt von Piper (Stimme Thorsten), neu ist „Zu wenig Blütenstaub“.
+  - Nachtrag: Piper klang zu dunkel und abgehackt. Die Ansagen kommen inzwischen von Qwen3-TTS
+    (Stimme „Heldin“), siehe [Sprachansagen](SPRACHANSAGEN.md).
   - Sichtbare Texte nennen die Währung einheitlich **Blütenstaub**.
 
 ## Prüfung

@@ -4,33 +4,49 @@ Das Spiel sagt das gewählte Upgrade an, wenn du mit LB/RB (Tastatur Q/E) in der
 Waffenleiste blätterst, und meldet „Zu wenig Blütenstaub“, wenn ein Kauf daran
 scheitert. Abschaltbar unter Einstellungen › Audio › Sprachansagen.
 
-## Erzeugung mit Piper (lokal, offline)
+## Erzeugung mit Qwen3-TTS (lokal, GPU)
 
-- **Werkzeug:** [Piper](https://github.com/rhasspy/piper) in einer eigenen Python-Umgebung
-  unter `tools/tts/.venv`. Das ist keine Systeminstallation und liegt nicht in Git.
-- **Stimme:** *Thorsten* (high) aus `rhasspy/piper-voices`.
-  - Die Sprachdaten von [Thorsten-Voice](https://github.com/thorstenMueller/Thorsten-Voice)
-    stehen unter CC0.
-  - Das Modell wurde aus der englischen „lessac“-Stimme feintrainiert. Vor einer kommerziellen
-    Veröffentlichung deren Bedingungen prüfen.
+- **Werkzeug:** [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) in einer eigenen
+  Python-3.12-Umgebung unter `tools/tts/.venv-qwen`, Modelle unter `tools/tts/models`
+  (je etwa 4,3 GB). Das ist keine Systeminstallation und liegt nicht in Git.
+- **Modelle:** `Qwen3-TTS-12Hz-1.7B-VoiceDesign` und `Qwen3-TTS-12Hz-1.7B-Base`, beide
+  Apache-2.0.
+- **Stimme „Heldin“:** aus einer Beschreibung in Worten entworfen (warm, hell, verspielt,
+  wie eine fröhliche Funkerin), sie gehört keinem echten Sprecher. Die Beschreibung und
+  weitere Kandidaten stehen in `VOICES` in `tools/tts/make_voice_qwen.py`.
+
+Zwei Schritte, damit alle Ansagen nach derselben Person klingen:
+
+1. VoiceDesign spricht mit der beschriebenen Stimme einmal einen Referenzsatz
+   (`tools/tts/voices/qwen_<stimme>.wav`).
+2. Das Basismodell klont diese Referenz und spricht jede Zeile einzeln. Zeilen in
+   `RETAKES` werden mehrfach gesprochen; genommen wird die Fassung, deren Tonhöhe den
+   übrigen Ansagen am nächsten liegt. Das betrifft derzeit „Bombe!“, das sonst zu tief endet.
 
 Einrichten:
 
 ```bash
-tools/tts/setup.sh
+tools/tts/setup_qwen.sh
 ```
 
-Ansagen erzeugen:
+Hörproben aller Kandidaten nach `build/stimmproben_qwen`:
 
 ```bash
-python3 tools/tts/make_voice.py
+tools/tts/.venv-qwen/bin/python tools/tts/make_voice_qwen.py --probe
 ```
 
-Ins Spiel importieren:
+Ansagen fürs Spiel erzeugen und importieren:
+
+```bash
+tools/tts/.venv-qwen/bin/python tools/tts/make_voice_qwen.py
+```
 
 ```bash
 tools/import_shuttle.sh assets/audio/voice/*.ogg
 ```
+
+`--refresh` entwirft die Referenzstimme neu. Die Erzeugung ist mit festem Seed
+wiederholbar.
 
 ## Texte
 
@@ -50,5 +66,10 @@ tools/import_shuttle.sh assets/audio/voice/*.ogg
 Neue Ansagen: Zeile in `LINES` in `tools/tts/make_voice.py` ergänzen und im Spiel
 `Audio.voice("<datei>", "<Text>")` aufrufen.
 
-Fremde Aufnahmen, etwa aus einem anderen Sprachdienst, verarbeitet weiterhin
-`tools/music/import_voice.py`, auch eine einzelne Sammelaufnahme mit Pausen.
+## Ältere Wege
+
+- **Piper** (`tools/tts/setup.sh`, `tools/tts/make_voice.py`, Stimme *Thorsten*, Datensatz CC0)
+  läuft ohne GPU und bleibt als Rückfall erhalten. Die Stimme klang aber zu dunkel und
+  abgehackt.
+- Fremde Aufnahmen, etwa aus einem anderen Sprachdienst, verarbeitet weiterhin
+  `tools/music/import_voice.py`, auch eine einzelne Sammelaufnahme mit Pausen.

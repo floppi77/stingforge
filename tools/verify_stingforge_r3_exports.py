@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""R3: exportiert Linux und Windows aus den abgenommenen Quellen und prüft die Dateien.
+"""R3: exportiert Linux, Windows und macOS aus den abgenommenen Quellen und prüft die Dateien.
+
+macOS kommt als ZIP mit Stingforge.app (Universal: Intel und Apple Silicon, ad-hoc signiert,
+nicht notarisiert). Starten lässt sich die App hier nicht; geprüft werden Aufbau, Architekturen,
+Signaturverzeichnis und Paket.
 
 Voraussetzung ist ein grüner Lauf von tools/verify_stingforge_r3.py. Der Export nutzt
 die projektinternen Godot-Ordner (.godot_data/.godot_config/.godot_cache), die
@@ -12,6 +16,7 @@ import json
 import os
 import re
 import subprocess
+import zipfile
 
 ## Anzahl der Regressionssuiten (R2-Bestand + R3/R4 + R5 Musik/Gameplay + R6).
 SUITE_COUNT = 41
@@ -19,8 +24,11 @@ SUITE_COUNT = 41
 ROOT = Path(__file__).resolve().parents[1]
 LOGS = ROOT / 'build/logs/stingforge-r3'
 DATA = ROOT / 'build/r3-testdata/binaries'
-BINARIES = {'linux': ROOT / 'build/linux/Stingforge.x86_64', 'windows': ROOT / 'build/windows/Stingforge.exe'}
-PRESETS = {'linux': 'Linux', 'windows': 'Windows'}
+BINARIES = {'linux': ROOT / 'build/linux/Stingforge.x86_64', 'windows': ROOT / 'build/windows/Stingforge.exe',
+            'macos': ROOT / 'build/macos/Stingforge-macOS.zip'}
+PRESETS = {'linux': 'Linux', 'windows': 'Windows', 'macos': 'macOS'}
+MAC_APP = 'Stingforge.app/Contents/'
+
 # Neue R3-Skripte müssen tatsächlich im eingebetteten Paket landen.
 PACKED = ['level_progress.gdc', 'ui_veil.gdc', 'ui_run_status.gdc', 'hud.gdc', 'director.gdc', 'app.gdc',
           'side_shade.gdc', 'weak_point_marker.gdc', 'Jersey10-Regular.ttf', 'hero_px.png', 'logo_px.png', 'panel.png']
@@ -52,6 +60,22 @@ def run(name, command, env, timeout):
     return text
 
 
+def check_mac(path):
+    """App-Bündel im ZIP: Universal-Binary (x86_64 + arm64), Paket, Signatur, ausführbar."""
+    with zipfile.ZipFile(path) as z:
+        names = {i.filename: i for i in z.infolist()}
+        for need in ('MacOS/Stingforge', 'Resources/Stingforge.pck', 'Info.plist', '_CodeSignature/CodeResources'):
+            assert MAC_APP + need in names, 'Mac-Bündel unvollständig: ' + need
+        assert (names[MAC_APP + 'MacOS/Stingforge'].external_attr >> 16) & 0o111, 'Mac-Programm nicht ausführbar'
+        head = z.open(MAC_APP + 'MacOS/Stingforge').read(64)
+        plist = z.read(MAC_APP + 'Info.plist').decode()
+    # Fat-Header: Magic CAFEBABE, zwei Architekturen (CPU-Typen x86_64 0x01000007, arm64 0x0100000C).
+    assert head[:4] == bytes.fromhex('cafebabe') and int.from_bytes(head[4:8], 'big') == 2, 'Kein Universal-Binary'
+    cpus = {int.from_bytes(head[8 + 20 * i:12 + 20 * i], 'big') for i in range(2)}
+    assert cpus == {0x01000007, 0x0100000C}, 'Architekturen fehlen: ' + str(cpus)
+    assert 'io.github.floppi77.stingforge' in plist, 'Bundle-ID fehlt'
+
+
 def main():
     spec = importlib.util.spec_from_file_location('r2', ROOT / 'tools/verify_stingforge_r2.py')
     r2 = importlib.util.module_from_spec(spec)
@@ -73,7 +97,10 @@ def main():
     DATA.mkdir(parents=True, exist_ok=True)
     env = dict(os.environ, XDG_DATA_HOME=str(DATA / 'data'), XDG_CONFIG_HOME=str(DATA / 'config'),
                XDG_CACHE_HOME=str(DATA / 'cache'))
+    check_mac(BINARIES['macos'])
     for platform, path in BINARIES.items():
+        if platform == 'macos':
+            continue
         with path.open('rb') as stream:
             stream.seek(-4, 2)
             assert stream.read() == b'GDPC', 'Kein eingebetteter PCK: ' + platform
@@ -85,8 +112,9 @@ def main():
                            '--quit-after', '180'],
         dict(env, WINEPREFIX=str(ROOT / 'build/windows/.wineprefix'), WINEDEBUG='-all'), 180)
     for platform, path in BINARIES.items():
+        mac = platform == 'macos'
         starts.append({'platform': platform, 'bytes': path.stat().st_size, 'sha256': digest(path),
-                       'embedded_pck': True, 'start_ok': True, 'native': platform == 'linux'})
+                       'embedded_pck': not mac, 'start_ok': not mac, 'native': platform == 'linux'})
     assert r2.production_manifest() == tested, 'Quellen während des Exports geändert'
     (LOGS / 'binaries-summary.json').write_text(json.dumps(starts, indent=2) + '\n')
     print('STINGFORGE_R3_EXPORTS_OK', flush=True)

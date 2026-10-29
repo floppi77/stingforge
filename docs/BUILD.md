@@ -6,9 +6,9 @@ Die Größen und Prüfsummen unten gehören zum abgenommenen R2-Build.
 R2 verwendet fertige Rastergrafiken und benötigt keinen Blender-Aufruf; der
 unbenötigte Blender-Importer ist in der Projektkonfiguration deaktiviert.
 
-Diese Anleitung beschreibt, wie aus den Quellen im Projektordner die beiden
-ausgelieferten Einzeldateien entstehen. Alles läuft auf Linux; für Windows wird
-Godots Windows-Exportvorlage verwendet (kein Kreuzcompiler nötig).
+Diese Anleitung beschreibt, wie aus den Quellen im Projektordner die ausgelieferten
+Dateien für Linux, Windows und macOS entstehen. Alles läuft auf Linux; für Windows und
+macOS werden Godots Exportvorlagen verwendet (kein Kreuzcompiler, kein Mac nötig).
 
 ---
 
@@ -17,7 +17,7 @@ Godots Windows-Exportvorlage verwendet (kein Kreuzcompiler nötig).
 | Werkzeug | Version im Projekt | Verwendung |
 |---|---|---|
 | Godot | 4.7.2 stable | Engine, Export (Renderer: GL Compatibility) |
-| Godot-Exportvorlagen | 4.7.2 stable | `linux_release.x86_64`, `windows_release_x86_64.exe` |
+| Godot-Exportvorlagen | 4.7.2 stable | `linux_release.x86_64`, `windows_release_x86_64.exe`, `macos.zip` |
 | Blender | nur optionale historische Quellen | Für R2 nicht verwendet und nicht erforderlich |
 | Aseprite | 1.3.18.6-dev | Sprites (`.aseprite`-Quellen, Lua-Generator) |
 | Python | 3.14 + numpy, Pillow | Audio-Synthese, Prüfskripte |
@@ -78,12 +78,13 @@ Importvorgang ab, sobald er ein `.blend` ohne konfigurierten Blender-Pfad findet
 
 ## 3. Export
 
-Die Presets stehen in `export_presets.cfg` (Linux und Windows, jeweils
-`binary_format/embed_pck = true`, Architektur x86_64, alle Ressourcen außer den
-Quellordnern).
+Die Presets stehen in `export_presets.cfg`: Linux und Windows mit
+`binary_format/embed_pck = true` und Architektur x86_64, macOS als App-Bündel
+(Universal: Intel und Apple Silicon). Alle Presets nehmen alle Ressourcen außer den
+Quellordnern.
 
 ```bash
-mkdir -p build/linux build/windows
+mkdir -p build/linux build/windows build/macos
 
 # Linux
 XDG_DATA_HOME="$PWD/.godot_data" godot --headless --path . \
@@ -92,7 +93,21 @@ XDG_DATA_HOME="$PWD/.godot_data" godot --headless --path . \
 # Windows
 XDG_DATA_HOME="$PWD/.godot_data" godot --headless --path . \
   --export-release "Windows" build/windows/Stingforge.exe
+
+# macOS
+XDG_DATA_HOME="$PWD/.godot_data" godot --headless --path . \
+  --export-release "macOS" build/macos/Stingforge-macOS.zip
 ```
+
+**macOS:**
+- Der Export ergibt ein ZIP mit `Stingforge.app`, das PCK liegt in `Contents/Resources`.
+- Für Apple Silicon verlangt Godot die Projekteinstellung *ETC2/ASTC importieren*
+  (`rendering/textures/vram_compression/import_etc2_astc`). Sie ist aktiv. Alle Texturen
+  sind verlustfrei importiert, das Bild ändert sich dadurch nicht.
+- Signatur: Godots eingebaute Ad-hoc-Signatur. Für eine Notarisierung bräuchte es eine
+  Apple-Developer-ID. Ohne sie muss man die App beim ersten Start per Rechtsklick ›
+  „Öffnen“ freigeben.
+- Bundle-ID: `io.github.floppi77.stingforge`.
 
 **Wichtig für den Export:** Alles, was im Projektordner liegt und nicht
 ausgeschlossen ist, landet im PCK. Die Ausschlussliste in `export_presets.cfg`
@@ -100,7 +115,8 @@ enthält deshalb neben Werkzeugen und Tests auch `.godot_data/*` (Testdaten,
 Exportvorlagen) und `Astra/*` (ein fremder Projektordner). Fehlt ein Eintrag,
 wächst die fertige Datei schnell um mehrere hundert Megabyte.
 
-Ergebnis: je eine Datei mit eingebettetem PCK – keine weiteren Dateien nötig.
+Ergebnis für Linux und Windows: je eine Datei mit eingebettetem PCK – keine weiteren
+Dateien nötig. Für macOS ein ZIP mit dem App-Bündel.
 
 | Datei | Größe | SHA-256 |
 |---|---|---|
