@@ -1,0 +1,76 @@
+# Sicherheitsprüfungen bei jedem Push, jedem Pull Request und einmal pro Woche.
+#   - Gitleaks: Geheimnisse (Schlüssel, Tokens, Passwörter) in der gesamten Git-Historie
+#   - Bandit: statische Sicherheitsanalyse der Python-Werkzeuge unter tools/
+#   - zizmor: Sicherheitsprüfung der GitHub-Workflows selbst
+# Alle Fremdwerkzeuge sind auf feste Versionen gepinnt, Actions auf Commit-SHAs,
+# heruntergeladene Programme werden gegen veröffentlichte Prüfsummen geprüft.
+name: Sicherheit
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '23 4 * * 1'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gitleaks:
+    name: Geheimnisse (Gitleaks)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    env:
+      GITLEAKS_VERSION: 8.30.1
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Gitleaks laden (Prüfsumme geprüft)
+        run: |
+          cd "$RUNNER_TEMP"
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          tar="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSLO "$base/$tar"
+          curl -fsSLO "$base/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          grep -F " $tar" "gitleaks_${GITLEAKS_VERSION}_checksums.txt" | sha256sum -c -
+          tar -xzf "$tar" gitleaks
+      - name: Historie durchsuchen
+        run: '"$RUNNER_TEMP/gitleaks" git --redact --verbose --exit-code 1 .'
+
+  bandit:
+    name: Python-Werkzeuge (Bandit)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Bandit installieren
+        run: python -m pip install --disable-pip-version-check bandit==1.9.4
+      # Mittlere und hohe Schwere bei mindestens mittlerer Sicherheit; die Werkzeuge
+      # rufen bewusst lokale Programme (ffmpeg, godot) mit Argumentlisten auf.
+      - name: Analyse
+        run: bandit -r tools -ll -ii
+
+  zizmor:
+    name: Workflows (zizmor)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Analyse
+        run: pipx run zizmor==1.31.1 --offline .github/workflows

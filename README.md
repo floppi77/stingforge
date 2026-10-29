@@ -73,7 +73,8 @@ gebaut, für **macOS** (Intel und Apple Silicon) als ZIP mit der App. Sie sind z
 Repository und gehören zu den [Releases](https://github.com/floppi77/stingforge/releases).
 
 Die Mac-App ist nicht von Apple notarisiert: beim ersten Start im Finder Rechtsklick ›
-„Öffnen“ wählen.
+„Öffnen“ wählen. Jedes Release enthält `SHA256SUMS.txt`; wie man Downloads prüft, steht in
+[SECURITY.md](SECURITY.md).
 
 | Aktion | Tastatur | Controller |
 |---|---|---|
@@ -98,6 +99,14 @@ python3 tools/verify_stingforge_r3.py     # 41 Regressionssuiten
 ```
 
 Details: [Build-Anleitung](docs/BUILD.md).
+
+**Releases** baut die CI ([release.yml](.github/workflows/release.yml)): Ein Tag `v*` erzeugt
+die Dateien für alle drei Plattformen, Prüfsummen und einen Entwurf des GitHub-Releases.
+Sicherheitsprüfungen laufen bei jedem Push, siehe [SECURITY.md](SECURITY.md).
+
+```bash
+git tag v0.4.1 && git push origin v0.4.1
+```
 
 ## Soundtrack-Pipeline
 

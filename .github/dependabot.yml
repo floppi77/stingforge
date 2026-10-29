@@ -1,0 +1,13 @@
+# Dependabot hält die gepinnten GitHub Actions aktuell (wöchentlich, gesammelt in einem PR).
+# Das Spiel selbst hat keine Paketabhängigkeiten; Godot ist in den Workflows fest gepinnt.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+    commit-message:
+      prefix: 'CI'
