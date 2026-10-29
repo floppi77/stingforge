@@ -27,21 +27,21 @@ func build_items() -> void:
 	var list: Array = []
 	list.append({"kind": "label", "text": Loc.t("level." + str(level)), "size": 26, "color": UiTheme.ACCENT})
 	var rank := String(stats.get("rank", "C"))
-	list.append({"kind": "label", "text": "Wertung: %s – %s" % [rank, String(stats.get("rank_text", ""))],
+	list.append({"kind": "label", "text": Loc.tx("Wertung: %s – %s") % [rank, String(stats.get("rank_text", ""))],
 		"size": 22, "color": _rank_color(rank)})
-	list.append({"kind": "label", "text": "Schwierigkeit: %s   Saatwert: %d" % [
+	list.append({"kind": "label", "text": Loc.tx("Schwierigkeit: %s   Saatwert: %d") % [
 		Loc.t(String(Data.DIFFICULTY[String(stats.get("difficulty", "normal"))].name)),
 		int(stats.get("seed", 0))], "size": 15, "color": UiTheme.DIM})
 	if chosen != "":
 		var e := Data.evo(chosen)
 		list.append({"kind": "sep"})
-		list.append({"kind": "label", "text": "Neue Evolution: %s" % String(e.get("name", chosen)),
+		list.append({"kind": "label", "text": Loc.tx("Neue Evolution: %s") % Loc.tx(String(e.get("name", chosen))),
 			"size": 18, "color": UiTheme.family_color(String(e.get("family", "sting")))})
 		if new_unlock:
 			list.append({"kind": "label", "text": Loc.t("evo.new_unlock"), "size": 14, "color": UiTheme.OK})
 		for pair in fusions:
 			var key := Data.fusion_key(String(pair[0]), String(pair[1]))
-			list.append({"kind": "label", "text": "Verschmelzung: %s – beide Evolutionen werden stärker." % Data.fusion_name(String(pair[0]), String(pair[1])),
+			list.append({"kind": "label", "text": Loc.tx("Verschmelzung: %s – beide Evolutionen werden stärker.") % Data.fusion_name(String(pair[0]), String(pair[1])),
 				"size": 16, "color": UiTheme.ACCENT2})
 			if fusions_new.has(key):
 				list.append({"kind": "label", "text": "VERSCHMELZUNG ENTDECKT – im Hauptmenü unter „Verschmelzungen“", "size": 13, "color": UiTheme.OK})

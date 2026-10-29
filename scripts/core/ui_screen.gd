@@ -6,6 +6,7 @@ const UiTheme := preload("res://scripts/core/ui_theme.gd")
 const UiPrompts := preload("res://scripts/core/ui_prompts.gd")
 const UiBackdrop := preload("res://scripts/core/ui_backdrop.gd")
 const UiVeil := preload("res://scripts/core/ui_veil.gd")
+const Flags := preload("res://scripts/core/flags.gd")
 
 signal closed(result: Variant)
 
@@ -415,6 +416,8 @@ func _make_row(it: Dictionary, idx: int) -> Control:
 		return l
 	if kind == "card":
 		return _make_card(it, idx)
+	if kind == "langs":
+		return _make_langs_row()
 
 	var compact := bool(it.get("compact", false))
 	var panel := PanelContainer.new()
@@ -475,10 +478,10 @@ func _make_row(it: Dictionary, idx: int) -> Control:
 		val.add_theme_color_override("font_color", it.get("value_color", UiTheme.ACCENT))
 		val.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		if prompt_context == "settings" and kind == "choice":
-			val.text = "‹   " + val.text + "   ›"
+			val.text = "‹   " + Loc.tx(val.text) + "   ›"
 		elif kind == "toggle" and val.text in ["An", "Aus"]:
 			val.add_theme_color_override("font_color", UiTheme.ACCENT2 if val.text == "An" else UiTheme.DIM)
-			val.text = "●  " + val.text
+			val.text = "●  " + Loc.tx(val.text)
 		if kind == "slider" and val.text.ends_with("%"):
 			var gauge := ProgressBar.new()
 			gauge.custom_minimum_size = Vector2(UiTheme.pad(64), UiTheme.pad(4))
@@ -504,6 +507,77 @@ func _make_row(it: Dictionary, idx: int) -> Control:
 	panel.set_meta("label", left)
 	panel.set_meta("value", hb.get_child(hb.get_child_count() - 1))
 	return panel
+
+## Sprachwahl: zwei Pixelflaggen, die aktive hervorgehoben; Klick wählt direkt,
+## links/rechts oder Bestätigen wechselt (on_adjust/on_activate des Bildschirms).
+func _make_langs_row() -> Control:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", UiTheme.row_style(false))
+	var m := MarginContainer.new()
+	for side in ["left", "right"]:
+		m.add_theme_constant_override("margin_" + side, UiTheme.pad(13))
+	for side in ["top", "bottom"]:
+		m.add_theme_constant_override("margin_" + side, UiTheme.pad(6))
+	panel.add_child(m)
+	var hb := HBoxContainer.new()
+	hb.alignment = BoxContainer.ALIGNMENT_CENTER
+	hb.add_theme_constant_override("separation", UiTheme.size(22))
+	m.add_child(hb)
+	var marker := TextureRect.new()
+	marker.texture = UiTheme.kit("cursor")
+	marker.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	marker.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	marker.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	marker.custom_minimum_size = Vector2(UiTheme.size(14), UiTheme.size(12))
+	marker.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	marker.name = "Marker"
+	hb.add_child(marker)
+	for code in Loc.LANGS:
+		var box := HBoxContainer.new()
+		box.add_theme_constant_override("separation", UiTheme.size(8))
+		box.mouse_filter = Control.MOUSE_FILTER_STOP
+		box.name = "Lang_" + code
+		var flag := TextureRect.new()
+		flag.texture = Flags.texture(code)
+		flag.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		flag.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		flag.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		flag.custom_minimum_size = Vector2(UiTheme.size(39), UiTheme.size(21))
+		flag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var active: bool = Loc.lang == code
+		flag.modulate = Color.WHITE if active else Color(1, 1, 1, 0.45)
+		box.add_child(flag)
+		var name_label := Label.new()
+		# Sprachnamen bleiben in ihrer eigenen Sprache.
+		name_label.text = "Deutsch" if code == "de" else "English"
+		name_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		name_label.add_theme_font_override("font", UiTheme.font_semi())
+		name_label.add_theme_font_size_override("font_size", UiTheme.size(15))
+		name_label.add_theme_color_override("font_color", UiTheme.TEXT if active else UiTheme.DIM)
+		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(name_label)
+		box.gui_input.connect(func(ev: InputEvent):
+			if ev is InputEventMouseButton and (ev as InputEventMouseButton).pressed \
+					and (ev as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+				choose_language(code))
+		hb.add_child(box)
+	panel.set_meta("label", marker)
+	panel.set_meta("value", hb)
+	return panel
+
+## Sprache wechseln, speichern und den Bildschirm neu aufbauen (zusammengesetzte Texte).
+func choose_language(code: String) -> void:
+	if code == Loc.lang:
+		return
+	Loc.set_language(code)
+	Save.set_g("game.language", Loc.lang)
+	Save.save_settings()
+	Audio.sfx("ui_ok", -8.0, 1.1, true)
+	var f := focus
+	rebuild()
+	refresh()
+	focus = clampi(f, 0, maxi(0, items.size() - 1))
+	_update_focus_visuals()
 
 func _make_binding_header() -> Control:
 	if UiTheme.ui_scale() > 1.15:

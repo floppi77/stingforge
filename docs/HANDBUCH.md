@@ -1,5 +1,7 @@
 # Stingforge – Kurzanleitung
 
+*Deutsch* · [English](MANUAL.md)
+
 Ein modernes horizontales Shoot'em Up. Du fliegst Yuri, eine Feldbiene, durch zehn
 Reiche gegen Stahl, Sporen und Maschinen. Alles, was du zum Spielen brauchst, steht
 auf dieser Seite.
@@ -11,12 +13,15 @@ auf dieser Seite.
 **Windows:** `Stingforge.exe` doppelklicken. Keine Installation nötig.
 **Linux:** `Stingforge.x86_64` als Programm starten (ggf. vorher
 `chmod +x Stingforge.x86_64`). Ebenfalls ohne Installation.
+**macOS:** `Stingforge-macOS.zip` entpacken und `Stingforge.app` in „Programme“ ziehen.
+Die App ist nicht von Apple notarisiert: beim ersten Start im Finder Rechtsklick › „Öffnen“.
 
 Die Programme enthalten alle Daten (Grafik, Musik, Level) in einer einzigen Datei.
 Beim ersten Start legt das Spiel einen Speicherordner an:
 
 * Windows: `%APPDATA%\Godot\app_userdata\Stingforge\`
 * Linux: `~/.local/share/godot/app_userdata/Stingforge/`
+* macOS: `~/Library/Application Support/Godot/app_userdata/Stingforge/`
 
 Darin liegt der Unterordner `saves` mit `settings.save`, `profile.save` und
 `campaign.save` sowie den jeweiligen `.bak`-Sicherungen. Beim ersten Start werden
@@ -28,21 +33,22 @@ ohne alte Originale oder schon vorhandene Stingforge-Dateien zu überschreiben.
 ## 1a. Das Hauptmenü
 
 Vor dem vom Betreiber gelieferten Bienen-/Ruinenmotiv steht links der goldene
-Titel. Darunter: *Fortsetzen* (mit Levelstand), *Neue Kampagne*, *Tutorial*,
-*Training*, *Boss-Rush*, *Highscores*, *Verschmelzungen*, *Einstellungen*, *Credits*
-und *Spiel beenden*.
+Titel. Darunter: *Fortsetzen* (mit Levelstand), *Neuer Run*, *Tutorial*,
+*Boss-Rush*, *Highscores*, *Verschmelzungen*, *Einstellungen*, *Credits*
+und *Spiel beenden*. Unter dem Menü wählst du mit den Flaggen die Sprache
+(Deutsch oder Englisch).
 
 - **Tutorial:** Ein kurzer Übungsflug in der ersten Welt.
   - Bei jedem neuen Schritt hält das Spiel an und ein kleines Bildfenster erklärt ihn:
     Fliegen, Schießen, Blütenstaub sammeln, Waffenleiste mit LB/RB bzw. Q/E und Kosten,
     Kauf und Stufen, Gegenfeuer, Schild und Bombe, Umrechnung am Levelende, Werkstatt und
     Highscore.
-  - Beim ersten Start einer Kampagne wird es angeboten. Dein Spielstand bleibt dabei unberührt.
+  - Beim ersten Start eines Runs wird es angeboten. Dein Spielstand bleibt dabei unberührt.
 - **Verschmelzungen:** Zeigt alle Evolutionspaare, die gemeinsam stärker werden.
   Noch nicht entdeckte Paare stehen ausgegraut da.
 - **Werkstatt:** Sie öffnet sich nur zwischen den Leveln.
 Nur die gewählte Zeile leuchtet gold. Gesperrte Einträge haben ein Schloss;
-ohne Spielstand ist *Neue Kampagne* vorausgewählt.
+ohne Spielstand ist *Neuer Run* vorausgewählt.
 
 Die transparente Karte unten rechts zeigt dein aktuelles Level und die
 Schwierigkeit des gespeicherten Laufs, freigeschaltete Evolutionen, verfügbare
@@ -64,13 +70,6 @@ ohne Scrollen. Mit größerer Schrift scrollt die Auswahl zum gewählten Eintrag
 | Präzisionsflug (langsam, feines Ausweichen) | `Linke Umschalttaste` |
 | Pause im Spiel / zurück | `Esc` |
 | Menü bestätigen | `Leertaste` oder `Eingabe` |
-
-### Debug (zum Testen)
-
-| Taste | Wirkung |
-|---|---|
-| `F4` (Controller: `Back`) | Debugmenü: Spiel pausiert. Enthält *Zum Levelboss*, *Zum nächsten Level*, *Vollheilen* sowie **jedes** Taktik- und Kauf-Upgrade mit Beschreibung; links/rechts stellt die Stufe ein |
-| `Esc` im Debugmenü | schließt und setzt das Spiel fort |
 
 ### Maus
 
@@ -141,9 +140,8 @@ beiden Geräteklassen in der Belegungsübersicht untereinander an.
 * **Bosskontakt:** Der sichtbare Körper und lebende Module sind berührungsgefährlich.
   Durch transparente Sprite-Ecken darfst du hindurchfliegen; Schwachphasen und
   Panzerung beeinflussen weiterhin den angerichteten Waffenschaden.
-* **Gegnerisches Feuer:** Auf Entspannt und Normal ungefähr 20 % weniger
-  Projektile als im vorherigen Stand; auf Experte bleibt die Anzahl gleich.
-  Helle, weißglühende Geschosse mit dunklem Rand und
+* **Gegnerisches Feuer:** Auf Entspannt kommen 60 %, auf Normal 80 % und auf Experte
+  alle Projektile an (siehe Abschnitt 7). Helle, weißglühende Geschosse mit dunklem Rand und
   einem weichen Hof – sie stehen still in der Form (nichts blinkt) und sind
   dadurch auch auf bunten Hintergründen sofort zu erkennen.
 * **Pause:** `Esc` oder `Start` öffnet jederzeit das Pausenmenü
@@ -198,7 +196,8 @@ Ton. Das nächste Level beginnt mit 0 Blütenstaub, die Punkte bleiben.
 Die Leiste zeigt **Kurznamen** (Basis, Fächer, Blitz, Plasma, Drohne, Bombe,
 Schild, Tempo, Reparatur). Einträge, die du **jetzt nicht bezahlen kannst, bleiben
 grau** – lesbar, aber ohne Leuchten. Sobald genug Blütenstaub da ist, färben sich
-Rahmen, Name und Preis gold; dann lohnt der Druck auf `RT`/`F`.
+Rahmen, Name und Preis gold; dann lohnt der Druck auf `RT`/`F`. Willst du einen Eintrag kaufen,
+der schon auf höchster Stufe steht, antwortet das Spiel mit „Voll ausgebaut!“.
 
 **Schild:** Erst taktisch kaufen. Stufe 0 hat keinerlei Schild; Stufen 1/2/3
 haben genau 1/2/3 Ladungen. Ein Treffer verbraucht eine Ladung, nicht die Kaufstufe.
@@ -243,9 +242,9 @@ Nach **jedem** Level – auch nach dem zehnten – wählst du aus **drei** Angeb
 Pollen, Chitin, Resonanz, Nektar). Einmal pro Levelabschluss darfst du die drei
 Angebote **einmal neu würfeln**; die Entscheidung selbst ist nicht überspringbar.
 
-* Jede neue Kampagne bietet **drei zufällig gezogene Starttalente** aus einem Pool von 20 an, möglichst aus drei verschiedenen Familien.
+* Jeder neue Run bietet **drei zufällig gezogene Starttalente** aus einem Pool von 20 an, möglichst aus drei verschiedenen Familien.
 * Weitere Talente sind **Profil-Freischaltungen**: sie erscheinen im Pool, werden
-  aber erst in einer laufenden Kampagne wirksam.
+  aber erst in einem laufenden Run wirksam.
 * Evolutionen, die eine bestimmte Waffe brauchen, sind im Angebot markiert und
   **inaktiv**, solange diese Waffe nicht gekauft ist – sie leben wieder auf, sobald
   du die Waffe besitzt.
@@ -297,7 +296,6 @@ Sie bleiben für den ganzen Lauf und stapeln sich mit allem anderen.
     führt zurück zu den Kategorien.
   * **Weiter** steht unten in der Kategoriespalte. `Esc/B` in den Kategorien verlässt die Werkstatt ebenfalls.
   * Mit der Maus zeigt Überfahren die Kategorie bzw. das Upgrade, ein Klick kauft.
-  * Aus dem Hauptmenü führt der Eintrag **Werkstatt** jederzeit hinein.
 
 <details>
 <summary>Alle 32 Werkstatt-Upgrades im Überblick</summary>
@@ -346,14 +344,12 @@ mittig im Bild.
 
 ## 6. Spielmodi
 
-* **Neue Kampagne** – zehn Level mit Zwischensequenzen, Zwischenbossen und Endkampf.
+* **Neuer Run** – zehn Level mit Zwischensequenzen, Zwischenbossen und Endkampf.
   Dauer etwa 60–90 Minuten. Vor Bossen liegt jeweils ein Checkpoint.
-* **Fortsetzen** – setzt am letzten Checkpoint des gespeicherten Laufs fort.
-* **Training** – einzelne Level oder Bosse üben. Getrennt von der Kampagne: kein
-  Fortschritt, keine Evolutionen, keine Belohnungen; der Kampagnenstand bleibt
-  unverändert.
-* **Boss-Rush** – wird nach dem Abspann freigeschaltet. Zehn Bosse in Folge mit einer
-  Kopie deines vollständigen Builds; keine zusätzlichen Evolutionen.
+* **Fortsetzen** – setzt am letzten Checkpoint des gespeicherten Runs fort.
+* **Boss-Rush** – alle Bosse, die du im laufenden Run schon besiegt hast, in Folge, mit
+  einer Kopie deines aktuellen Builds. Der Run selbst bleibt unverändert; ohne
+  laufenden Run oder vor dem ersten Bosssieg ist der Eintrag gesperrt.
 * **Einstellungen**, **Credits**, **Spiel beenden**.
 
 Im Hauptmenü beendet `Esc` das Spiel **nicht** – zum Beenden gibt es den Eintrag
@@ -408,12 +404,12 @@ Stirbst du, läuft zwei Sekunden lang die Todesanzeige, danach erscheint der
 | Eintrag | Wirkung |
 |---|---|
 | **Weiter am Kontrollpunkt** | Der Lauf geht am letzten Checkpoint weiter. **Die taktischen Upgrades der unteren Leiste starten neu** (gekaufte Zusätze 0, kostenlose Basis 1, Nektar 0). Werkstatt-Käufe und Evolutionen bleiben. |
-| **Run beenden** | Der Lauf ist vorbei, die Kampagne wird gelöscht, du landest im Hauptmenü. Was im Profil steht (Evolutionen, Bestwerte, freigeschaltete Level), bleibt. Im Menü steht dann „Run beendet – die Evolutionen im Profil bleiben erhalten.“ und **Fortsetzen ist gesperrt**. |
+| **Run beenden** | Der Lauf ist vorbei, der Run wird gelöscht, du landest im Hauptmenü. Was im Profil steht (Evolutionen, Bestwerte, freigeschaltete Level), bleibt. Im Menü steht dann „Run beendet – die Evolutionen im Profil bleiben erhalten.“ und **Fortsetzen ist gesperrt**. |
 
 **Drei Versuche pro Lauf.** Der Bildschirm zeigt „Game Over 1 von 3“. Nach dem
 dritten Game Over gibt es **kein Weiter mehr** – es bleibt nur „Zum Hauptmenü“,
 der Lauf ist vorbei. Der Zähler gilt für den ganzen Lauf und wird bei einer
-neuen Kampagne zurückgesetzt.
+neuen Run zurückgesetzt.
 
 Warum der Reset: Die Leiste ist die *taktische* Ebene – Aufbau, der innerhalb
 eines Levels entsteht und wieder verfällt. Die Werkstatt ist die *dauerhafte*
@@ -425,11 +421,21 @@ löschte, würde gekaufte Punkte verbrennen. Getrennt bleiben beide sinnvoll.
 
 ## 7. Schwierigkeit
 
-| Stufe | Leben | Gegnerfeuer | Anmerkung |
+Die drei Stufen unterscheiden sich nicht nur in den Leben:
+
+| | Entspannt | Normal | Experte |
 |---|---|---|---|
-| Entspannt | 4 | langsamer, weniger Gegner | zum Kennenlernen |
-| Normal | 3 | Referenzwert | Standard |
-| Experte | 3 | schneller, mehr Schaden, engere Unverwundbarkeit | für geübte Spieler |
+| Leben | 4 | 3 | 3 |
+| Feindgeschosse, die ankommen | 60 % | 80 % | 100 % |
+| Geschosstempo (auch Bosse) | 0,85× | 1,0× | 1,18× |
+| Feuerrate normaler Gegner | 0,75× | 1,0× | 1,35× |
+| Gegnerzahl | 0,8× | 1,0× | 1,25× |
+| Pausen zwischen Bossangriffen | 25 % länger | normal | 18 % kürzer |
+| Boss-Leben | 0,8× | 1,0× | 1,15× |
+| Trefferschaden | jeder fünfte Treffer wird verziehen | 1 je Treffer | etwa jeder dritte Treffer kostet 2 |
+| Schutzzeit nach Treffer | 1,9 s | 1,3 s | 0,95 s |
+| Schild lädt nach | 35 % schneller | normal | 30 % langsamer |
+| Punktefaktor | 0,7× | 1,0× | 1,4× |
 
 Alle zehn Level und der Abspann sind in jeder Stufe spielbar.
 
@@ -455,14 +461,14 @@ keine behaupteten echten Bosskampfzeiten.
 
 ## 7b. Highscores
 
-**Highscores** im Hauptmenü zeigt lokale Run-Ranglisten: Kampagne und Boss-Rush
+**Highscores** im Hauptmenü zeigt lokale Ranglisten: Run und Boss-Rush
 getrennt, nach Schwierigkeit filterbar, als Top 10 oder Top 20. Gezählt werden
 verdiente Gesamtpunkte **abzüglich der Werkstatt-Ausgaben**: Wer Punkte in dauerhafte
 Upgrades steckt, wird stärker, schmälert aber seinen Highscore. Der Umrechnungsbonus
 für Blütenstaub zählt genau einmal dazu.
 
 Einträge entstehen beim endgültigen Game Over, ausdrücklichen Runende oder Sieg.
-Continues bleiben derselbe Run; Training zählt nicht. Alte Levelbestwerte werden
+Continues bleiben derselbe Run. Alte Levelbestwerte werden
 nicht zu erfundenen Runpunkten addiert. Schätzwerte eines fortgesetzten alten
 Runs tragen einen Stern. Details: [R2-Bericht](<STINGFORGE_R2.md>).
 
@@ -494,9 +500,10 @@ Sechs Kategorien, mit `LB`/`RB` bzw. `Q`/`E` erreichbar:
 * **Audio** – Master, Musik, Effekte, UI getrennt; Stummschaltung bei Fensterverlust.
 * **Steuerung** – Tastenbelegung für Tastatur und Controller, Deadzone,
   Empfindlichkeit, Vibration (Treffer, Bomben, Bossphasen) und deren Stärke.
-* **Spiel** – Autofeuer-Voreinstellung, Tutorialhinweise (Steuerung im ersten Level,
+* **Spiel** – Sprache (Deutsch/Englisch, auch per Flagge im Hauptmenü),
+  Autofeuer-Voreinstellung, Tutorialhinweise (Steuerung im ersten Level,
   Angebot des Übungsflugs), Trefferzonenanzeige.
-  Die Schwierigkeit wird ausschließlich beim Start von Kampagne oder Boss-Rush
+  Die Schwierigkeit wird ausschließlich beim Start von Run oder Boss-Rush
   gewählt und bleibt während des Runs fest.
 * **Zugänglichkeit** – Schriftgröße, reduzierte Effekte, Kontrastmarkierung
   gefährlicher Objekte.
@@ -509,15 +516,11 @@ werden beim Verlassen der Kategorie übernommen, Anzeigeänderungen erst mit
 
 ## 8a. Schriftarten
 
-Das Spiel nutzt zwei freie Schriften, die mitgeliefert werden und keine
-Systemschrift voraussetzen:
+Das Spiel bringt seine Schriften mit und setzt keine Systemschrift voraus:
+**Jersey 10** für Überschriften und große Zahlen, **Silkscreen** für Versalien-Etiketten,
+**Pixelify Sans**, **Nunito** und **Oxanium** für Fließtext und Beschreibungen.
 
-* **Nunito** für Fließtext, Beschreibungen und Zahlen – freundlich und auch in
-  kleiner Größe gut lesbar.
-* **Oxanium** für Überschriften, Levelnamen und den BOSS-Schriftzug – technisch,
-  kantig, passend zum Insekten-Setting.
-
-Beide stehen unter der SIL Open Font License (die Lizenztexte liegen im Ordner
+Alle stehen unter der SIL Open Font License (die Lizenztexte liegen im Ordner
 `assets/ui/fonts/`). Die Schriftgröße lässt sich unter **Einstellungen →
 Zugänglichkeit → Schriftgröße** in Stufen verstellen; alle Bildschirme skalieren
 mit.
@@ -532,7 +535,7 @@ mit.
   Das Spiel wird stumm, wenn das Fenster den Fokus verliert (einstellbar).
 * **Controller wird nicht erkannt:** Controller anschließen und das Spiel neu
   starten; im Abschnitt Steuerung wird das erkannte Gerät angezeigt.
-* **Speicherstand zurücksetzen:** `settings.json`, `profile.json`, `campaign.json`
-  im oben genannten Ordner löschen.
+* **Speicherstand zurücksetzen:** `settings.save`, `profile.save` und `campaign.save`
+  (samt `.bak`) im Unterordner `saves` des oben genannten Ordners löschen.
 
 Viel Erfolg – der Kern wartet.

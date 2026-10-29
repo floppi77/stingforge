@@ -1,21 +1,66 @@
 extends Node
-## Zentrale Textverwaltung. Alle sichtbaren Texte laufen über Schlüssel,
-## damit weitere Sprachen ohne Eingriff in die Spiellogik ergänzt werden können.
+## Zentrale Textverwaltung. Deutsch ist die Quellsprache: Schlüssel-Texte (STRINGS)
+## und deutsche Literale im Code. Englisch kommt aus assets/i18n/en.json
+## (deutscher Text -> englischer Text) und wird zweifach genutzt:
+##  - als Godot-Translation: Labels/Buttons übersetzen ihren Text automatisch,
+##  - über tx()/t() für selbst gezeichnete Texte (HUD, Banner, Effekttexte) und
+##    Formatstrings, die erst nach der Übersetzung mit Werten gefüllt werden.
 
 const DEFAULT_LANG := "de"
+const LANGS := ["de", "en"]
+const EN_PATH := "res://assets/i18n/en.json"
 
 var lang := DEFAULT_LANG
+var _en: Dictionary = {}
+var _translation: Translation
+
+func _ready() -> void:
+	if FileAccess.file_exists(EN_PATH):
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(EN_PATH))
+		if parsed is Dictionary:
+			_en = parsed
+	_translation = Translation.new()
+	_translation.locale = "en"
+	for k in _en:
+		_translation.add_message(String(k), String(_en[k]))
+	TranslationServer.add_translation(_translation)
+	# Deutsch ist Quellsprache: ohne eigene Übersetzung nie auf Englisch zurückfallen.
+	ProjectSettings.set_setting("internationalization/locale/fallback", DEFAULT_LANG)
+	TranslationServer.set_locale(DEFAULT_LANG)
+
+## Sprache umschalten ("de"/"en"); Labels aktualisieren sich selbst.
+func set_language(code: String) -> void:
+	lang = code if code in LANGS else DEFAULT_LANG
+	TranslationServer.set_locale(lang)
+
+## Deutschen Anzeigetext in die aktuelle Sprache übersetzen (unbekannt: unverändert).
+func tx(text: String) -> String:
+	if lang == "de" or text == "":
+		return text
+	return String(_en.get(text, text))
+
+## Tausendertrennzeichen der Sprache ("48.280" / "48,280").
+func group_sep() -> String:
+	return "." if lang == "de" else ","
+
+## Dezimalzahl als Text mit dem Trennzeichen der Sprache ("0,3" / "0.3").
+func dec(text: String) -> String:
+	return text.replace(".", ",") if lang == "de" else text.replace(",", ".")
+
+## Gibt es für diesen deutschen Text eine Übersetzung? (Prüfungen)
+func has_translation(text: String) -> bool:
+	return _en.has(text)
 
 const STRINGS := {
 	"de": {
 		# --- Allgemein / Menü ---
 		"game.title": "STINGFORGE",
 		"game.subtitle": "Evolve. Adapt. Strike.",
-		"menu.new_campaign": "Neue Kampagne",
+		"menu.new_campaign": "Neuer Run",
 		"menu.continue": "Fortsetzen",
-		"menu.training": "Training",
 		"menu.boss_rush": "Boss-Rush",
-		"menu.boss_rush_locked": "Boss-Rush (nach Abschluss der Kampagne)",
+		"menu.boss_rush_locked": "Boss-Rush (Bosse aus dem laufenden Run)",
+		"menu.rush_locked": "Erst im laufenden Run einen Boss besiegen",
 		"menu.settings": "Einstellungen",
 		"menu.highscores": "Highscores",
 		"menu.credits": "Credits",
@@ -26,7 +71,7 @@ const STRINGS := {
 		"menu.restart_checkpoint": "Am Checkpoint neu starten",
 		"menu.build": "Build-Übersicht",
 		"menu.difficulty": "Schwierigkeit",
-		"menu.new_campaign_warn": "Eine neue Kampagne überschreibt den laufenden Fortschritt.",
+		"menu.new_campaign_warn": "Ein neuer Run überschreibt den laufenden Fortschritt.",
 		"menu.quit_warn": "Spiel beenden? Der letzte Checkpoint wird gespeichert.",
 		"menu.only_checkpoint": "Nur der letzte Checkpoint kann fortgesetzt werden.",
 		"menu.confirm": "Bestätigen",
@@ -43,9 +88,9 @@ const STRINGS := {
 		"diff.relaxed": "Entspannt",
 		"diff.normal": "Normal",
 		"diff.expert": "Experte",
-		"diff.relaxed.desc": "Mehr Leben, dichtere Gnadenzeit, weniger Gegnerdruck.",
-		"diff.normal.desc": "Der beabsichtigte Schwierigkeitsgrad. Drei Trefferpunkte.",
-		"diff.expert.desc": "Schnellere Muster, engere Reaktionsfenster, mehr Gegnerfeuer.",
+		"diff.relaxed.desc": "Weniger und langsamere Geschosse, Bosse mit mehr Pausen, lange Gnadenzeit. Jeder fünfte Treffer wird verziehen. Punkte ×0,7.",
+		"diff.normal.desc": "Der beabsichtigte Schwierigkeitsgrad.",
+		"diff.expert.desc": "Volles Sperrfeuer, schnellere Geschosse, mehr Gegner, Bosse ohne Atempause. Etwa jeder dritte Treffer kostet doppelt, der Schild lädt langsamer. Punkte ×1,4.",
 
 		# --- HUD ---
 		"hud.hp": "Leben",
@@ -97,7 +142,7 @@ const STRINGS := {
 		"evo.claimed": "Gewählt",
 		"evo.start_talent": "STARTTALENT",
 		"evo.new_unlock": "NEU IM PROFIL",
-		"evo.active_campaign": "IN DIESER KAMPAGNE AKTIV",
+		"evo.active_campaign": "IN DIESEM RUN AKTIV",
 		"evo.profile_only": "Nur Profilfreischaltung",
 		"evo.weapon_dependent": "Waffenabhängig: braucht %s",
 		"evo.maxed": "Ausgeschöpft",
@@ -121,14 +166,14 @@ const STRINGS := {
 		"game.game_over": "GAME OVER",
 		"game.checkpoint": "CHECKPOINT",
 		"game.continue": "Weiter",
-		"game.campaign_complete": "KAMPAGNE ABGESCHLOSSEN",
+		"game.campaign_complete": "RUN ABGESCHLOSSEN",
 		"game.score": "Punkte",
 		"game.time": "Zeit",
 		"game.hits_taken": "Treffer",
 		"game.accuracy": "Präzision",
 		"game.rank": "Wertung",
 		"game.new_best": "NEUE BESTLEISTUNG",
-		"game.training_note": "Training: kein Einfluss auf Kampagne oder Profil.",
+		"game.training_note": "Boss-Rush: kein Einfluss auf den Run oder das Profil.",
 		"game.boss_rush_note": "Boss-Rush: eigener Build, keine Evolutionsbelohnung.",
 		"game.rush_next": "Nächster Boss in %d s",
 		"game.rush_clear": "BOSS-RUSH GESCHAFFT",
@@ -261,11 +306,6 @@ const STRINGS := {
 		"credits.hint": "B oder Esc: zurück",
 
 		# --- Training ---
-		"training.title": "Training",
-		"training.subtitle": "Abgeschlossene Level erneut üben – ohne Fortschritt oder Belohnung.",
-		"training.locked": "Noch nicht abgeschlossen",
-		"training.bosses": "Bosse",
-		"training.levels": "Level",
 
 		# --- Checkpoint ---
 		"cp.reached": "Checkpoint erreicht",
@@ -274,8 +314,7 @@ const STRINGS := {
 }
 
 func t(key: String, args: Array = []) -> String:
-	var table: Dictionary = STRINGS.get(lang, STRINGS["de"])
-	var s: String = table.get(key, String(STRINGS["de"].get(key, key)))
+	var s := tx(String(STRINGS["de"].get(key, key)))
 	if args.size() > 0:
 		return s % args
 	return s

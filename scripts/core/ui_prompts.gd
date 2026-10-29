@@ -142,7 +142,7 @@ static func _key_name(code: int) -> String:
 		KEY_PRINT: return "Druck"
 		KEY_PAUSE: return "Pause"
 	var text := OS.get_keycode_string(code)
-	return text if not text.is_empty() else "Taste %d" % code
+	return text if not text.is_empty() else Loc.tx("Taste %d") % code
 
 static func _button_name(code: int) -> String:
 	match code:
@@ -161,7 +161,7 @@ static func _button_name(code: int) -> String:
 		JOY_BUTTON_DPAD_DOWN: return "Steuerkreuz ↓"
 		JOY_BUTTON_DPAD_LEFT: return "Steuerkreuz ←"
 		JOY_BUTTON_DPAD_RIGHT: return "Steuerkreuz →"
-	return "Pad-Taste %d" % code
+	return Loc.tx("Pad-Taste %d") % code
 
 static func _axis_name(axis: int, direction: float) -> String:
 	match axis:
@@ -171,7 +171,7 @@ static func _axis_name(axis: int, direction: float) -> String:
 		JOY_AXIS_LEFT_Y: return "Linker Stick ↑" if direction < 0 else "Linker Stick ↓"
 		JOY_AXIS_RIGHT_X: return "Rechter Stick ←" if direction < 0 else "Rechter Stick →"
 		JOY_AXIS_RIGHT_Y: return "Rechter Stick ↑" if direction < 0 else "Rechter Stick ↓"
-	return "Pad-Achse %d %s" % [axis, "−" if direction < 0 else "+"]
+	return Loc.tx("Pad-Achse %d %s") % [axis, "−" if direction < 0 else "+"]
 
 static func _compact_text(text: String) -> String:
 	match text:

@@ -14,8 +14,12 @@ func _ready() -> void:
 	await get_tree().create_timer(0.5, false).timeout
 	if not bool(Save.profile.get("boss_rush_unlocked", false)):
 		fails.append("Abspann schaltet Boss-Rush nicht frei")
-	# 2) Boss-Rush starten
+	# 2) Boss-Rush starten: nach dem Abspann sind alle zehn Bosse des Runs besiegt.
 	app.clear_screens()
+	Save.new_campaign("normal", 1)
+	Save.campaign.completed = true
+	for lv in range(1, 11):
+		Save.campaign.level_stats[str(lv)] = {}
 	app.start_boss_rush()
 	var g = null
 	for i in range(900):

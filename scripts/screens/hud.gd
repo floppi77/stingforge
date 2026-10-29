@@ -285,7 +285,7 @@ func _level_text(compact: bool = false) -> String:
 	if info.is_empty():
 		return ""
 	var label := "LEVEL %02d / %02d" % [info.index, info.total]
-	return label if compact else label + " · " + String(info.name)
+	return label if compact else label + " · " + Loc.tx(String(info.name))
 
 func _draw_level(s: float) -> void:
 	var layout := _status_layout(s)
@@ -297,9 +297,8 @@ func _draw_level(s: float) -> void:
 		HORIZONTAL_ALIGNMENT_CENTER)
 	if not _boss_is_visible():
 		var info := _level_info()
-		var prefix := "Training · " if String(info.get("mode", "")) == "training" else (
-			"Rush · " if String(info.get("mode", "")) == "rush" else "")
-		_text(prefix + String(info.get("name", "")), layout.level_name, 10, TEXT, s, true)
+		var prefix := "Rush · " if String(info.get("mode", "")) == "rush" else ""
+		_text(prefix + Loc.tx(String(info.get("name", ""))), layout.level_name, 10, TEXT, s, true)
 		_draw_progress(layout, s)
 
 func _draw_progress(layout: Dictionary, s: float) -> void:
@@ -375,7 +374,7 @@ func _draw_status(p: Player, s: float) -> void:
 		HORIZONTAL_ALIGNMENT_RIGHT)
 	# Tastatur UND Xbox stets gleichzeitig, nebeneinander in einer Zeile.
 	var controls: Rect2 = layout.controls
-	var auto_label := "Auto " + ("AN" if p.autofire else "AUS")
+	var auto_label := "Auto " + Loc.tx("AN" if p.autofire else "AUS")
 	_hint_h = 14.0
 	var half := controls.size.x * 0.5
 	var a_s := _hint_scale("autofire", auto_label, half - 10.0 * s, s)
@@ -468,7 +467,7 @@ func _bar_top(s: float) -> float:
 
 func _boss_readout(b: Boss) -> Dictionary:
 	var status := "Phase %d/%d · %s" % [b.phase + 1, b.phase_defs.size(),
-		"Schwachpunkt offen" if b.vulnerable else "Panzerung aktiv"]
+		Loc.tx("Schwachpunkt offen" if b.vulnerable else "Panzerung aktiv")]
 	if not banners.is_empty():
 		status = String(banners[-1].text)
 	return {"title": ("BOSS · " if boss_t > 0.0 else "") + b.name_text,
@@ -683,6 +682,7 @@ func _text(text: String, rect: Rect2, px: float, color: Color, s: float,
 		bold: bool = false, align: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT) -> void:
 	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
 		return
+	text = Loc.tx(text)
 	var font := UiT.font_bold() if bold else UiT.font_regular()
 	var fs := _fit_font(font, text, rect, px, s)
 	# Versalien mittig: Grundlinie = Mitte + halbe Versalhöhe.
@@ -694,6 +694,7 @@ func _caps(text: String, rect: Rect2, color: Color, s: float,
 		align: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT) -> void:
 	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
 		return
+	text = Loc.tx(text)
 	var font := UiT.font_caps()
 	var fs := maxi(8, int(round(s * UiT.ui_scale())) * 8)
 	while fs > 8 and (font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > rect.size.x
@@ -714,7 +715,7 @@ func _points(value: int) -> String:
 	var grouped := ""
 	for i in range(digits.length()):
 		if i > 0 and (digits.length() - i) % 3 == 0:
-			grouped += "."
+			grouped += Loc.group_sep()
 		grouped += digits[i]
 	return ("−" if value < 0 else "") + grouped
 

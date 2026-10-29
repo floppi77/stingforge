@@ -92,9 +92,6 @@ func setup(cfg: Dictionary) -> void:
 		add_child(load("res://scripts/game/tutorial.gd").new(self))
 	if mode == "rush":
 		_start_boss_rush()
-	elif bool(cfg.get("boss_only", false)):
-		director.boss_started = true
-		call_deferred("_on_boss_triggered")
 
 ## Dezente Bildfassung: leichter Lichteinfall von oben und eine weiche Vignette.
 ## Beides liegt über der Szene, aber unter der Anzeige (HUD) und stört nichts.
@@ -610,13 +607,18 @@ func spawn_enemy_bullet(pos: Vector2, vel: Vector2, dmg: int, art: String, opts:
 	if difficulty_id != _enemy_bullet_difficulty:
 		_enemy_bullet_density = 0
 		_enemy_bullet_difficulty = difficulty_id
-	if difficulty_id in ["relaxed", "normal"]:
-		_enemy_bullet_density += 4
+	# Geschossdichte je Schwierigkeit (Entspannt 3 von 5, Normal 4 von 5, Experte alle),
+	# als feste Folge ohne Zufall.
+	var diff: Dictionary = Data.DIFFICULTY[difficulty_id]
+	var keep := int(round(float(diff.get("bullet_density", 1.0)) * 5.0))
+	if keep < 5:
+		_enemy_bullet_density += keep
 		if _enemy_bullet_density < 5:
 			return
 		_enemy_bullet_density -= 5
-	# Gegnerkugeln werden je Level schneller (Bosseskalation und Levels 2-10).
-	var b: Dictionary = bullets.spawn_enemy(pos, vel * eb_speed, dmg, art, opts)
+	# Gegnerkugeln werden je Level schneller (Bosseskalation und Levels 2-10) und je
+	# Schwierigkeit (gilt für Gegner, Bosse und Gefahren gleichermaßen).
+	var b: Dictionary = bullets.spawn_enemy(pos, vel * eb_speed * float(diff.get("bullet_speed", 1.0)), dmg, art, opts)
 	if b.is_empty():
 		return
 	_apply_pollen_defenses(b)
@@ -958,8 +960,8 @@ func control_hints() -> Array[String]:
 				keys += Bindings.describe_binding(b)
 				break
 	return [
-		"Fliegen: %s / Stick  ·  Schießen: %s" % [keys, Bindings.describe_action("fire")],
-		"Waffenleiste: %s und %s  ·  Kaufen: %s" % [Bindings.describe_action("upgrade_prev"),
+		Loc.tx("Fliegen: %s / Stick  ·  Schießen: %s") % [keys, Bindings.describe_action("fire")],
+		Loc.tx("Waffenleiste: %s und %s  ·  Kaufen: %s") % [Bindings.describe_action("upgrade_prev"),
 			Bindings.describe_action("upgrade_next"), Bindings.describe_action("upgrade_buy")],
 	]
 
@@ -1244,8 +1246,11 @@ func _compute_rank() -> Dictionary:
 
 # ------------------------------------------------------------------ Boss-Rush
 func _start_boss_rush() -> void:
-	boss_sequence = ["rose_beetle", "giant_larva", "pike_beast", "fungus_mind", "mantis_pair",
-		"mech_pollinator", "mutant_skater", "harvester", "swarm_queen", "core_organism"]
+	# Nur die im laufenden Run besiegten Bosse (App.start_boss_rush legt sie fest).
+	boss_sequence = (Save.campaign.get("rush_bosses", []) as Array).duplicate()
+	if boss_sequence.is_empty():
+		boss_sequence = ["rose_beetle", "giant_larva", "pike_beast", "fungus_mind", "mantis_pair",
+			"mech_pollinator", "mutant_skater", "harvester", "swarm_queen", "core_organism"]
 	rush_index = 0
 	director.boss_started = true
 	_spawn_rush_boss()

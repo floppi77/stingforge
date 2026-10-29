@@ -251,19 +251,19 @@ func _test_run_score_income() -> void:
 	var saved_campaign := Save.campaign.duplicate(true)
 	var saved_active := Save.active_campaign
 	var saved_mode := App.mode
-	for game_mode in ["campaign", "rush", "training"]:
+	for game_mode in ["campaign", "rush"]:
 		Save.new_campaign("normal", 4281)
 		App.mode = game_mode
 		var game := _real_game({"points": 500, "upgrades": {"base": 1}, "evolutions": [{"id": "nectar_overflow", "level": 1}]})
 		game.mode = game_mode
 		player.add_points(120)
 		_check(player.points == 620, "%s: add_points ändert Einnahmen nicht" % game_mode)
-		var expected := 0 if game_mode == "training" else 120
+		var expected := 120
 		_check(int(Save.campaign.run_score) == expected, "%s: kumulativer Runscore erhält genau erlaubte Einnahmen" % game_mode)
 		player.points -= 200 # Werkstattguthaben ausgeben, kein Einkommen zurücknehmen.
 		_check(int(Save.campaign.run_score) == expected, "%s: Werkstattverbrauch mindert Runscore nicht" % game_mode)
 		player.add_nectar(3)
-		expected = 0 if game_mode == "training" else 144
+		expected = 144
 		_check(player.points == 444, "%s: Nektarstau-Punktewert bleibt8 jeNektar" % game_mode)
 		_check(int(Save.campaign.run_score) == expected, "%s: Nektarstau läuft ebenfalls über die echte Runscore-Einnahme" % game_mode)
 		player.add_points(0)

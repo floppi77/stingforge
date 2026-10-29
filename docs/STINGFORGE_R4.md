@@ -266,6 +266,26 @@ Leveln rot ([Rotlog](../build/logs/r3/r4-miniboss-red.log)), jetzt 10 von 10 gr�
   bis zu dreimal wieder auf. Die Fontänen sind im Pixellook neu gezeichnet: schaumiger
   Strahl mit Schüben, Gischtkrone, Wasservorhänge und Tropfen. Die Trefferform bleibt gleich.
 
+## Sechste Nachrunde: Schwierigkeit, Run, Zweisprachigkeit
+
+- **Schwierigkeitsgrade mit echten Unterschieden** neben den Leben (siehe Handbuch, Abschnitt 7):
+  Geschossdichte 60/80/100 %, Geschosstempo auch für Bosse, Boss-Angriffstakt, Trefferschaden
+  (Entspannt verzeiht jeden fünften Treffer, Experte kostet etwa jeden dritten doppelt),
+  Schildladezeit. Die bisher unbenutzten Werte `dmg_mult` und `shield_hits` sind ersetzt bzw. wirksam.
+- **Run statt Kampagne** in allen sichtbaren Texten und im Handbuch.
+- **Boss-Rush** nur mit den Bossen, die im laufenden Run schon besiegt sind; ohne laufenden Run gesperrt.
+- **Training entfernt** (Menüpunkt, Bildschirm, Spielmodus).
+- **Deutsch und Englisch:**
+  - Flaggen unter dem Hauptmenü und Eintrag „Sprache / Language“ unter Einstellungen › Spiel.
+  - Englische Texte in `assets/i18n/en.json` (deutscher Text → englischer Text), genutzt als
+    Godot-Übersetzung für Labels und über `Loc.tx()` für gezeichnete und zusammengesetzte Texte.
+    `tools/i18n/extract.py --missing` listet Texte ohne Übersetzung.
+  - Englische Sprachansagen mit derselben Stimme (`voice/en/`).
+  - Zahlen mit Tausender- und Dezimaltrennzeichen der Sprache.
+- **GitHub zweisprachig:** README.en.md, docs/MANUAL.md, zweisprachige SECURITY.md und Release Notes,
+  neue Galerien in `docs/media/de` und `docs/media/en`.
+- **Spielhilfe ohne Debug:** Die Debugtaste steht weder im Handbuch noch in den Steuerungseinstellungen.
+
 ## Prüfung
 
 * `python3 tools/verify_stingforge_r3.py`: alle Suiten einschließlich Pause-, Zwischengegner-

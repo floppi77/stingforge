@@ -4,21 +4,26 @@ extends Node
 ## getrennt bleiben.
 
 # ---------------------------------------------------------------- Schwierigkeit
+## Schwierigkeitsgrade. Neben Leben wirken: Gegnerzahl (spawn_mult), Feuerrate normaler
+## Gegner (fire_mult), Anteil der Feindgeschosse (bullet_density), Tempo aller Feindgeschosse
+## inklusive Bosse (bullet_speed), Angriffstakt der Bosse (boss_rate, >1 = langsamer),
+## Trefferschaden (dmg_mult, Bruchteile werden angespart), Gnadenzeit (iframes),
+## Schildladezeit (shield_regen, >1 = schneller), Boss-Leben und Punktefaktor.
 const DIFFICULTY := {
 	"relaxed": {
 		"name": "diff.relaxed", "hp": 4, "dmg_mult": 0.8, "fire_mult": 0.75,
-		"bullet_speed": 0.85, "spawn_mult": 0.8, "iframes": 1.9, "score_mult": 0.7,
-		"shield_hits": 3, "boss_hp": 0.8,
+		"bullet_speed": 0.85, "bullet_density": 0.6, "spawn_mult": 0.8, "iframes": 1.9, "score_mult": 0.7,
+		"shield_regen": 1.35, "boss_hp": 0.8, "boss_rate": 1.25,
 	},
 	"normal": {
 		"name": "diff.normal", "hp": 3, "dmg_mult": 1.0, "fire_mult": 1.0,
-		"bullet_speed": 1.0, "spawn_mult": 1.0, "iframes": 1.3, "score_mult": 1.0,
-		"shield_hits": 2, "boss_hp": 1.0,
+		"bullet_speed": 1.0, "bullet_density": 0.8, "spawn_mult": 1.0, "iframes": 1.3, "score_mult": 1.0,
+		"shield_regen": 1.0, "boss_hp": 1.0, "boss_rate": 1.0,
 	},
 	"expert": {
 		"name": "diff.expert", "hp": 3, "dmg_mult": 1.35, "fire_mult": 1.35,
-		"bullet_speed": 1.18, "spawn_mult": 1.25, "iframes": 0.95, "score_mult": 1.4,
-		"shield_hits": 1, "boss_hp": 1.15,
+		"bullet_speed": 1.18, "bullet_density": 1.0, "spawn_mult": 1.25, "iframes": 0.95, "score_mult": 1.4,
+		"shield_regen": 0.7, "boss_hp": 1.15, "boss_rate": 0.82,
 	},
 }
 
@@ -188,7 +193,7 @@ const EVOLUTIONS := [
 	{"id": "nectar_bargain", "family": "nectar", "name": "Handel", "max": 1, "start": true,
 	 "desc": "Alle Verbesserungen kosten 15% weniger Blütenstaub.",
 	 "effect": {"cost_mult": -0.15}, "synergy": "nectar_gluttony", "req": []},
-	{"id": "nectar_font", "family": "nectar", "name": "Nektarquellé", "max": 1, "start": false,
+	{"id": "nectar_font", "family": "nectar", "name": "Nektarquelle", "max": 1, "start": false,
 	 "desc": "Jeder Bossphasenwechsel spendet 15 Blütenstaub.",
 	 "effect": {"nectar_phase": 15}, "synergy": "nectar_overflow", "req": []},
 ]
@@ -566,7 +571,7 @@ func all_fusions() -> Array:
 	return out
 
 func fusion_name(a: String, b: String) -> String:
-	return "%s × %s" % [String(evo(a).get("name", a)), String(evo(b).get("name", b))]
+	return "%s × %s" % [Loc.tx(String(evo(a).get("name", a))), Loc.tx(String(evo(b).get("name", b)))]
 
 ## Zählwerte (+1), Schwellen mit "kleiner ist besser" (×0,75) und Vorteile, die
 ## negativ notiert sind (×1,5). Alles andere Positive ×1,5; Nachteile bleiben.

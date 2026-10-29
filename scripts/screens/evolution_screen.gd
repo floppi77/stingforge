@@ -67,10 +67,10 @@ func build_items() -> void:
 		var owned_partner := ""
 		var names: Array[String] = []
 		for partner in Data.synergy_partners(String(id)):
-			names.append(String(Data.evo(String(partner)).get("name", partner)))
+			names.append(Loc.tx(String(Data.evo(String(partner)).get("name", partner))))
 			for entry in Save.campaign.get("evolutions", []):
 				if String(entry.get("id", "")) == String(partner):
-					owned_partner = String(Data.evo(String(partner)).get("name", partner))
+					owned_partner = Loc.tx(String(Data.evo(String(partner)).get("name", partner)))
 		if owned_partner != "":
 			lines.append({"text": Loc.t("evo.synergy_now") % owned_partner, "size": 12, "color": UiTheme.OK})
 		elif not names.is_empty():
@@ -82,7 +82,7 @@ func build_items() -> void:
 			lines.append({"text": Loc.t("evo.new_unlock"), "size": 12, "color": UiTheme.OK})
 		list.append({
 			"kind": "card", "text": String(e.name), "family": String(e.family), "id": String(id),
-			"value_text": "Stufe %d/%d" % [cur + 1, int(e.max)], "compact": true,
+			"value_text": Loc.tx("Stufe %d/%d") % [cur + 1, int(e.max)], "compact": true,
 			"lines": lines,
 		})
 	list.append({"kind": "sep"})
@@ -98,9 +98,9 @@ func _downside_text(e: Dictionary) -> String:
 	var eff: Dictionary = e.get("effect", {})
 	var parts: Array[String] = []
 	if float(eff.get("fire_rate_mult", 0.0)) < 0.0:
-		parts.append("langsamere Schussfolge %d%%" % int(round(absf(float(eff.fire_rate_mult)) * 100.0)))
+		parts.append(Loc.tx("langsamere Schussfolge %d%%") % int(round(absf(float(eff.fire_rate_mult)) * 100.0)))
 	if float(eff.get("dmg_mult", 0.0)) < 0.0:
-		parts.append("%d%% weniger Schaden" % int(round(absf(float(eff.dmg_mult)) * 100.0)))
+		parts.append(Loc.tx("%d%% weniger Schaden") % int(round(absf(float(eff.dmg_mult)) * 100.0)))
 	if float(eff.get("hitbox", 0.0)) > 0.0:
 		parts.append("größere Trefferzone")
 	if float(eff.get("cost_mult", 0.0)) > 0.0:

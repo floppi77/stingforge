@@ -78,12 +78,11 @@ func _ready() -> void:
 			await _check_final_form()
 	_check(pixel_comparisons.size() == 9 if rendered else pixel_comparisons.is_empty(),
 		"Neun echte Pixelpaare nur im Renderlauf; headless erfindet keine Bildmessung")
-	await _check_training_and_rush()
+	await _check_rush()
 	_finish()
 
 func _start_game(level: int, mode: String) -> void:
 	app.mode = mode
-	app.training_boss = false
 	app._begin_level(level, 0)
 	app.clear_screens()
 	app.paused = false
@@ -366,15 +365,11 @@ func _check_final_form() -> void:
 		_check(get_viewport().get_texture().get_image().save_png(OUT + "L10_high_form2_phase3.png") == OK,
 			"Zusatzbeleg Form2 Phase3/3 gespeichert; neun Hauptpixelpaare bleiben exakt neun")
 
-func _check_training_and_rush() -> void:
-	Save.campaign.level = 1 # deliberately stale save: must never drive the label
-	app.start_training(8, "level")
-	app.clear_screens()
-	app.paused = false
-	get_tree().paused = false
-	app.game.process_mode = Node.PROCESS_MODE_DISABLED
-	app.hud.set_process(false)
-	_check_level(8, "training_actual_L8_not_saved_L1")
+func _check_rush() -> void:
+	# Boss-Rush nur mit Bossen des laufenden Runs: hier alle zehn besiegt.
+	Save.new_campaign("normal", 4242)
+	for lv in range(1, 11):
+		Save.campaign.level_stats[str(lv)] = {}
 	app.start_boss_rush()
 	app.clear_screens()
 	app.paused = false

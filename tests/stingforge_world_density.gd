@@ -31,9 +31,10 @@ func _ready() -> void:
 					g.spawn_enemy_bullet(Vector2(i, 270), Vector2(-200, 0), 1, "ebullet_orb")
 					if not g.bullets.enemy_bullets.is_empty():
 						sequence.append(i)
-						check_velocity(g, level)
+						check_velocity(g, level, difficulty)
 				check(is_equal_approx(randf(), expected_rng), "%s L%d verbraucht kein RNG" % [difficulty, level])
-				check(sequence.size() == (1000 if difficulty == "expert" else 800),
+				var expect: int = {"relaxed": 600, "normal": 800, "expert": 1000}[difficulty]
+				check(sequence.size() == expect,
 					"%s L%d: %d/1000 Projektile" % [difficulty, level, sequence.size()])
 				sequences.append(sequence)
 				g.free()
@@ -93,7 +94,8 @@ func _ready() -> void:
 		print("STINGFORGE_WORLD_DENSITY_OK")
 	get_tree().quit(0 if failures.is_empty() else 1)
 
-func check_velocity(g: Game, level: int) -> void:
+func check_velocity(g: Game, level: int, difficulty: String) -> void:
 	var b: Dictionary = g.bullets.enemy_bullets[0]
-	if not is_equal_approx((b.v as Vector2).x, -200.0 * (1.0 + 0.035 * float(level - 1))):
+	var diff_speed := float(Data.DIFFICULTY[difficulty].bullet_speed)
+	if not is_equal_approx((b.v as Vector2).x, -200.0 * (1.0 + 0.035 * float(level - 1)) * diff_speed):
 		check(false, "Levelgeschwindigkeit unverändert")

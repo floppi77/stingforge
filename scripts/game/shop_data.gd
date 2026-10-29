@@ -530,8 +530,8 @@ static func _join_de(items: Array) -> String:
 	if items.size() == 1:
 		return String(items[0])
 	if items.size() == 2:
-		return "%s und %s" % [String(items[0]), String(items[1])]
+		return Loc.tx("%s und %s") % [String(items[0]), String(items[1])]
 	var head := ""
 	for i in range(items.size() - 1):
 		head += String(items[i]) + ", "
-	return head + "und " + String(items[items.size() - 1])
+	return head + Loc.tx("und ") + String(items[items.size() - 1])

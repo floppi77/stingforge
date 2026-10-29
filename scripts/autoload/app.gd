@@ -68,7 +68,7 @@ var side_shade: Control
 
 var game: Node2D = null
 var hud: Control = null
-var mode: String = ""            # "", "campaign", "training", "rush", "tutorial"
+var mode: String = ""            # "", "campaign" (Run), "rush", "tutorial"
 var run_level: int = 1
 var run_checkpoint: int = 0
 var campaign_snapshot: Dictionary = {}
@@ -89,12 +89,12 @@ var _display_timer: float = 0.0
 var _display_confirm: Node = null
 var _prev_window_size: Vector2i = Vector2i.ZERO
 var _gameover_pending := false
-var training_boss := false
 ## Offene Namenseingabe für einen gerade beendeten Highscore-Lauf.
 var pending_name: Dictionary = {}
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	Loc.set_language(String(Save.g("game.language", Loc.DEFAULT_LANG)))
 	_build_tree()
 	apply_display()
 	get_tree().root.size_changed.connect(_on_root_resize)
@@ -565,7 +565,7 @@ func _on_joy_changed(device: int, connected: bool) -> void:
 
 # ------------------------------------------------------------------- Kampagne
 func menu_main() -> void:
-	if mode in ["training", "rush"] and not campaign_snapshot.is_empty():
+	if mode == "rush" and not campaign_snapshot.is_empty():
 		Save.campaign = campaign_snapshot.duplicate(true)
 		Save.active_campaign = _had_campaign
 		campaign_snapshot = {}
@@ -623,7 +623,7 @@ func continue_campaign() -> void:
 			show_evolution_screen(true)
 		return
 	if bool(Save.campaign.get("completed", false)):
-		menu_note = "Run abgeschlossen – starte eine neue Kampagne oder den Boss-Rush."
+		menu_note = "Run abgeschlossen – starte einen neuen Run oder den Boss-Rush."
 		menu_main()
 		return
 	_begin_level(run_level, run_checkpoint)
@@ -662,7 +662,6 @@ func _begin_level(level: int, checkpoint: int) -> void:
 		"level": level,
 		"checkpoint": checkpoint,
 		"app": self,
-		"boss_only": training_boss and mode == "training",
 	})
 
 func on_game_ready_to_pause() -> void:
@@ -745,19 +744,16 @@ func _record_run_highscore(completed: bool) -> void:
 func abandon_run() -> void:
 	_gameover_pending = false
 	_record_run_highscore(false)
-	# Training/Rush/Übungsflug benutzen nur eine Kopie; den Originalsave niemals löschen.
+	# Boss-Rush und Übungsflug benutzen nur eine Kopie; den Originalsave niemals löschen.
 	if mode == "tutorial":
 		_abort_tutorial()
 		return
-	if mode not in ["training", "rush"]:
+	if mode != "rush":
 		Save.end_campaign()
 	menu_note = "Run beendet – die Evolutionen im Profil bleiben erhalten."
 	menu_main()
 
 func on_level_complete(stats: Dictionary) -> void:
-	if mode == "training":
-		push_screen("res://scripts/screens/level_result_screen.gd", {"stats": stats, "training": true})
-		return
 	if mode == "rush":
 		_record_run_highscore(true)
 		Save.record_best("rush|%s|%d" % [String(Save.campaign.get("difficulty", "normal")),
@@ -979,25 +975,10 @@ func shop_done(lv: int, go_next: bool) -> void:
 # ------------------------------------------------------------------- Modi
 var _had_campaign := false
 
-func start_training(level: int, kind: String) -> void:
-	mode = "training"
-	training_boss = kind == "boss"
-	run_level = level
-	run_checkpoint = 0
-	_had_campaign = Save.active_campaign
-	campaign_snapshot = Save.campaign.duplicate(true) if Save.active_campaign else _default_build()
-	# Training arbeitet auf einer Kopie; das Original bleibt unberührt.
-	Save.campaign = campaign_snapshot.duplicate(true)
-	Save.campaign.hp = Save.campaign.max_hp
-	Save.campaign.nectar = maxi(int(Save.campaign.get("nectar", 0)), 120)
-	Save.active_campaign = false
-	_begin_level(level, 0)
-
 # ------------------------------------------------------------------- Tutorial
 ## Übungsflug: eigenes kurzes Level in Welt 1 auf einer Kopie des Spielstands.
 func start_tutorial() -> void:
 	mode = "tutorial"
-	training_boss = false
 	run_level = 1
 	run_checkpoint = 0
 	_had_campaign = Save.active_campaign
@@ -1093,17 +1074,15 @@ func _default_build() -> Dictionary:
 		"pending": {}, "level_stats": {}, "completed": false,
 	}
 
-func _begin_training_level() -> void:
-	# Training nutzt eine Kopie des Builds; Original wird danach wiederhergestellt.
-	Save.campaign = campaign_snapshot.duplicate(true)
-	Save.active_campaign = false
-	_begin_level(run_level, 0)
-
 func start_boss_rush(difficulty_id: String = "") -> void:
 	if difficulty_id not in Data.DIFFICULTY:
 		difficulty_id = String(Save.campaign.get("difficulty", Save.g("game.difficulty", "normal")))
 	if difficulty_id not in Data.DIFFICULTY:
 		difficulty_id = "normal"
+	# Nur Bosse, die im laufenden Run schon besiegt wurden.
+	var bosses := Save.run_bosses()
+	if bosses.is_empty():
+		return
 	mode = "rush"
 	run_level = 10
 	run_checkpoint = 0
@@ -1111,6 +1090,7 @@ func start_boss_rush(difficulty_id: String = "") -> void:
 	campaign_snapshot = Save.campaign.duplicate(true) if Save.active_campaign else _default_build()
 	Save.campaign = campaign_snapshot.duplicate(true)
 	Save.campaign.difficulty = difficulty_id
+	Save.campaign.rush_bosses = bosses
 	# Jeder Boss-Rush ist ein neuer Ranglistenrun, keine Kopie der Kampagnenidentität.
 	Save.campaign.erase("run_id")
 	Save.campaign.run_score = 0

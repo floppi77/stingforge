@@ -207,7 +207,7 @@ func _scan_sources_for_keys() -> void:
 					ok(t != key, "Textschlüssel ohne Übersetzung: " + key + " (" + f + ")")
 
 func _check_locale() -> void:
-	var keys := ["game.title", "menu.new_campaign", "menu.continue", "menu.training",
+	var keys := ["game.title", "menu.new_campaign", "menu.continue",
 		"menu.boss_rush", "menu.settings", "menu.credits", "menu.quit",
 		"menu.resume", "menu.restart_checkpoint", "menu.build", "menu.back_main",
 		"cp.reached", "game.rush_next", "story.intro.1", "story.intro.2", "story.intro.3",

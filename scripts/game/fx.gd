@@ -263,7 +263,7 @@ func _draw() -> void:
 	for tx in texts:
 		var font := UiT.font_bold()
 		var sz: int = int(tx.size)
-		draw_string(font, tx.p + Vector2(-20, 0), tx.text, HORIZONTAL_ALIGNMENT_CENTER, 40, sz, tx.color)
+		draw_string(font, tx.p + Vector2(-20, 0), Loc.tx(String(tx.text)), HORIZONTAL_ALIGNMENT_CENTER, 40, sz, tx.color)
 
 ## Dieselbe Feldgeometrie für Renderer und Regressionen; alle Punkte liegen im
 ## sichtbaren Spielfeld, nicht unter HUD oder Fußleiste. Schwerkraft immer abwärts.

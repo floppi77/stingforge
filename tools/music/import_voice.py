@@ -93,7 +93,8 @@ def write_named(name: str, y: np.ndarray, label: str) -> None:
     y = trim(y)
     # Spitzenpegel -3 dBFS: deutlich über SFX/Musik hörbar, ohne zu übersteuern.
     y = y / (np.abs(y).max() + 1e-12) * 10 ** (-3 / 20)
-    tmp = OUT / f'_{name}.wav'
+    tmp = OUT / f'_{name.replace("/", "_")}.wav'
+    (OUT / name).parent.mkdir(parents=True, exist_ok=True)
     sf.write(tmp, y, SR, subtype='PCM_16')
     out = OUT / f'{name}.ogg'
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(tmp), '-c:a', 'libvorbis', '-q:a', '5', str(out)],

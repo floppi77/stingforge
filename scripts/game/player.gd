@@ -45,6 +45,7 @@ var iframes: float = 0.0
 var invuln_visual: float = 0.0
 var shield_hits: int = 0
 var shield_regen_t: float = 0.0
+var _diff_damage_carry := 0.0
 # Bruchteile bleiben über einzelne Treffer/Pickups und Präzisionswechsel erhalten.
 var _guard_damage_carry: float = 0.0
 var _nectar_carry: float = 0.0
@@ -408,7 +409,8 @@ func _initial_shield_hits() -> int:
 	return shield_max
 
 func shield_regen_duration() -> float:
-	return 12.0 * (1.0 - clampf(evo_effect("shield_regen"), 0.0, 0.6)) / shield_regen_speed()
+	return 12.0 * (1.0 - clampf(evo_effect("shield_regen"), 0.0, 0.6)) / shield_regen_speed() \
+		/ float(difficulty.get("shield_regen", 1.0))
 
 func shield_regen_progress() -> float:
 	if not shield_active():
@@ -753,9 +755,13 @@ func take_damage(amount: int, from: Vector2 = Vector2.RIGHT) -> bool:
 		Bindings.rumble(0.35, 0.1, 0.15)
 		_knockback(from)
 		return true
-	var dmg := amount
+	# Schwierigkeit: Trefferschaden mit angesparten Bruchteilen (Entspannt verzeiht etwa
+	# jeden fünften Treffer, Experte kostet etwa jeden dritten Treffer doppelt).
+	var scaled := float(amount) * float(difficulty.get("dmg_mult", 1.0)) + _diff_damage_carry
+	var dmg := int(floor(scaled + 0.000001))
+	_diff_damage_carry = maxf(0.0, scaled - float(dmg))
 	if precision and evo_has("chitin_guard"):
-		var due := float(amount) * (1.0 - clampf(evo_effect("precision_guard"), 0.0, 0.9)) + _guard_damage_carry
+		var due := float(dmg) * (1.0 - clampf(evo_effect("precision_guard"), 0.0, 0.9)) + _guard_damage_carry
 		dmg = int(floor(due + 0.000001))
 		_guard_damage_carry = maxf(0.0, due - float(dmg))
 	hp -= dmg

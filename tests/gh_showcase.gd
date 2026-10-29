@@ -1,6 +1,7 @@
 extends "res://tests/r3_shots.gd"
-## Galerie für die GitHub-Projektseite: Menü, Level, Bosse, Werkstatt, Ultrawide.
-## Aufruf (mit Fenster): godot --path . tests/gh_showcase.tscn -- out=gh-showcase [size=2560x1080]
+## Galerie für die GitHub-Projektseite: Menü, Tutorial, Level, Bosse, Werkstatt,
+## Verschmelzungen, Evolution, Ultrawide – je Sprache.
+## Aufruf (mit Fenster): godot --path . tests/gh_showcase.tscn -- out=gh-showcase lang=de [size=2560x1080]
 
 func _fight(level: int, formations: Array, wait_s: float = 3.0) -> void:
 	await _level(level)
@@ -22,7 +23,23 @@ func _boss(level: int, hit: float = 0.0, settle: float = 5.0) -> void:
 	if hit > 0.0 and app.game.boss != null:
 		app.game.boss.take_damage(app.game.boss.max_hp * hit)
 
+## Hauptmenü mit laufendem Run (Level 4, drei Bosse besiegt, Evolutionen im Profil).
+func _menu_fixture() -> void:
+	Save.profile.unlocked_evolutions = ["pierce1", "splinter", "crit", "heavy_sting", "pollen_trail"]
+	Save.profile["tutorial_done"] = true
+	Save.new_campaign("normal", 20261029)
+	Save.campaign.level = 4
+	Save.campaign.points = 42137
+	Save.campaign.level_stats = {"1": {}, "2": {}, "3": {}}
+	Save.campaign.level_scores = {"1": 12000, "2": 14500, "3": 15637}
+
 func _run() -> void:
+	var lang := "de"
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("lang="):
+			lang = a.trim_prefix("lang=")
+			only.erase(a)
+	Loc.set_language(lang)
 	var wide := get_window().size.x > 2200
 	if wide:
 		await _fight(3, ["reed_leap", "moth_line"], 2.0)
@@ -30,9 +47,35 @@ func _run() -> void:
 		await _boss(9, 0.0, 5.5)
 		await _shot("uw_level9_koenigin")
 		return
+	_menu_fixture()
 	app.menu_main()
 	await _wait(1.0)
 	await _shot("01_hauptmenue")
+	Save.profile["tutorial_done"] = false
+	app.start_tutorial()
+	await _wait(1.6)
+	for i in range(2):
+		app.screens[-1]._age = 1.0
+		app.screens[-1].close()
+		await _wait(0.4)
+		if i == 0:
+			app.game.get_node("Tutorial")._moved = 700.0
+			await _wait(0.6)
+	for e in app.game.enemies:
+		if is_instance_valid(e):
+			e.take_damage(9999.0)
+	await _wait(0.6)
+	app.screens[-1]._age = 1.0
+	app.screens[-1].close()
+	app.game.player.nectar = 5
+	await _wait(0.6)
+	await _shot("10_tutorial")
+	app.menu_main()
+	await _wait(0.3)
+	Save.profile["fusions_seen"] = [Data.fusion_key("splinter", "heavy_sting"), Data.fusion_key("pierce1", "pierce_master")]
+	app.push_screen("res://scripts/screens/fusion_screen.gd", {}, 0.0)
+	await _wait(0.5)
+	await _shot("11_verschmelzungen")
 	await _fight(1, ["moth_arc", "aphid_cloud"], 1.4)
 	await _shot("02_level1_bluetenmeer")
 	await _fight(4, ["moth_line", "pod_field"], 1.6)

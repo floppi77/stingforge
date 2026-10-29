@@ -17,7 +17,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 LOGS = ROOT / 'build/logs/stingforge-r3'
 R3 = {'r3_pause_probe': 'R3_PAUSE_OK', 'r4_miniboss_probe': 'R4_MINIBOSS_OK', 'r4_ui_probe': 'R4_UI_OK',
-      'r4_boss_probe': 'R4_BOSS_OK', 'r5_music_probe': 'R5_MUSIC_OK', 'r5_gameplay_probe': 'R5_GAME_OK', 'r6_probe': 'R6_OK', 'r7_probe': 'R7_OK'}
+      'r4_boss_probe': 'R4_BOSS_OK', 'r5_music_probe': 'R5_MUSIC_OK', 'r5_gameplay_probe': 'R5_GAME_OK', 'r6_probe': 'R6_OK', 'r7_probe': 'R7_OK', 'r8_probe': 'R8_OK'}
 
 
 def load_r2():

@@ -196,20 +196,23 @@ func _run() -> void:
 		chk("Waffenabhängige Evolution inaktiv ohne Waffe", before_comp == 1 and after_comp == 0,
 			"%d -> %d" % [before_comp, after_comp])
 
-	# --- Training startet mit kopiertem Build und verändert Kampagne nicht
+	# --- Boss-Rush: nur Bosse des laufenden Runs, Run bleibt unverändert
+	Save.campaign.level_stats = {"1": {}, "2": {}}
 	var cp_before: Dictionary = Save.campaign.duplicate(true)
-	app.start_training(1, "boss")
+	app.start_boss_rush("normal")
 	var ok3 := await wait_for(func(): return app.game != null and is_instance_valid(app.game), 15.0)
-	chk("Training startet", ok3)
+	chk("Boss-Rush startet", ok3)
 	if ok3:
 		var g3 = app.game
 		await wait(1.5)
-		chk("Training zeigt Boss direkt", g3.boss != null and is_instance_valid(g3.boss))
+		chk("Boss-Rush nur mit besiegten Bossen", g3.boss_sequence == ["rose_beetle", "giant_larva"])
+		chk("Boss-Rush zeigt Boss direkt", g3.boss != null and is_instance_valid(g3.boss))
 	app.menu_main()
 	await wait(0.2)
-	chk("Kampagne nach Training unverändert",
+	chk("Run nach Boss-Rush unverändert",
 		int(Save.campaign.get("level", 0)) == int(cp_before.get("level", 0))
-		and Save.campaign.get("evolutions", []).size() == cp_before.get("evolutions", []).size())
+		and Save.campaign.get("evolutions", []).size() == cp_before.get("evolutions", []).size()
+		and Save.active_campaign)
 	await _final_encounter(app)
 
 func _defeat_boss(g, b) -> void:

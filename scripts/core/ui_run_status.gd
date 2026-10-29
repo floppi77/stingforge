@@ -41,7 +41,7 @@ static func build(box: VBoxContainer, app: Node, headline: String, headline_colo
 		var detail := LevelProgress.caption(info)
 		var marks: Array = info.get("marks", [])
 		if String(info.get("phase", "")) == "run" and not marks.is_empty():
-			detail += "  ·  Abschnitt %d / %d" % [int(info.get("checkpoint", 0)) + 1, marks.size() + 1]
+			detail += Loc.tx("  ·  Abschnitt %d / %d") % [int(info.get("checkpoint", 0)) + 1, marks.size() + 1]
 		_label(box, detail, U.font_semi(), 12, U.DIM)
 	_rule(box)
 	var p = g.player
@@ -98,6 +98,6 @@ static func _grouped(value: int) -> String:
 	var out := ""
 	for i in range(digits.length()):
 		if i > 0 and (digits.length() - i) % 3 == 0:
-			out += "."
+			out += Loc.group_sep()
 		out += digits[i]
 	return ("−" if value < 0 else "") + out

@@ -50,6 +50,7 @@ func _default_settings() -> Dictionary:
 		},
 		"game": {
 			"difficulty": "normal", "autofire_default": false, "tutorial": true, "hitbox": false,
+			"language": "de",
 		},
 		"access": {
 			"font_scale": 1.0, "reduce_effects": false, "contrast_hazards": true,
@@ -145,6 +146,22 @@ func new_campaign(difficulty: String, seed_value: int) -> Dictionary:
 	active_campaign = true
 	return campaign
 
+## Bosse, die im laufenden Run schon besiegt wurden (in Level-Reihenfolge); nur diese
+## stehen im Boss-Rush zur Wahl.
+func run_bosses() -> Array:
+	var out: Array = []
+	if not active_campaign or campaign.is_empty():
+		return out
+	var levels: Array = []
+	for k in (campaign.get("level_stats", {}) as Dictionary).keys():
+		levels.append(int(k))
+	levels.sort()
+	for lv in levels:
+		var b := String(Data.level(lv).get("boss", ""))
+		if b != "" and not out.has(b):
+			out.append(b)
+	return out
+
 ## Run beenden: Die Kampagne wird gelöscht, das Profil (Evolutionen, Bestwerte)
 ## bleibt erhalten. Im Hauptmenü gibt es dann kein „Fortsetzen“ mehr.
 func end_campaign() -> void:
@@ -182,10 +199,10 @@ func _migrate_legacy_saves() -> void:
 		# Erst verifiziertes temporäres Duplikat, dann atomar als neue Datei ablegen.
 		var temporary := target + ".migrating"
 		if DirAccess.copy_absolute(source, temporary) != OK or _read_json(temporary) == null:
-			push_warning("Alter Spielstand konnte nicht übernommen werden: " + name)
+			push_warning(Loc.tx("Alter Spielstand konnte nicht übernommen werden: ") + name)
 			continue
 		if DirAccess.rename_absolute(temporary, target) != OK:
-			push_warning("Übernommener Spielstand konnte nicht abgelegt werden: " + name)
+			push_warning(Loc.tx("Übernommener Spielstand konnte nicht abgelegt werden: ") + name)
 			continue
 		if _read_json(original + ".bak") != null:
 			DirAccess.copy_absolute(original + ".bak", target + ".bak")
@@ -222,7 +239,7 @@ func _write_json(p: String, data: Dictionary) -> bool:
 	var tmp := p + ".tmp"
 	var f := FileAccess.open(tmp, FileAccess.WRITE)
 	if f == null:
-		push_error("Speichern fehlgeschlagen: " + tmp)
+		push_error(Loc.tx("Speichern fehlgeschlagen: ") + tmp)
 		return false
 	f.store_string(JSON.stringify(data, "\t"))
 	f.flush()
@@ -230,7 +247,7 @@ func _write_json(p: String, data: Dictionary) -> bool:
 	# Prüfen, dann tauschen, alte Datei als .bak behalten.
 	var check: Variant = _read_json(tmp)
 	if not (check is Dictionary):
-		push_error("Speicherdatei unlesbar: " + tmp)
+		push_error(Loc.tx("Speicherdatei unlesbar: ") + tmp)
 		return false
 	var gpath := ProjectSettings.globalize_path(p)
 	var gt := ProjectSettings.globalize_path(tmp)
@@ -239,21 +256,21 @@ func _write_json(p: String, data: Dictionary) -> bool:
 	if FileAccess.file_exists(p):
 		if _read_json(p) != null:
 			if FileAccess.file_exists(p + ".bak") and DirAccess.remove_absolute(gb) != OK:
-				push_error("Sicherung konnte nicht erneuert werden: " + p)
+				push_error(Loc.tx("Sicherung konnte nicht erneuert werden: ") + p)
 				return false
 			if DirAccess.rename_absolute(gpath, gb) != OK:
-				push_error("Vorheriger Spielstand konnte nicht gesichert werden: " + p)
+				push_error(Loc.tx("Vorheriger Spielstand konnte nicht gesichert werden: ") + p)
 				return false
 			rotated = true
 		else:
 			# Nach Backup-Recovery nie die gute .bak mit der defekten Datei ersetzen.
 			if DirAccess.remove_absolute(gpath) != OK:
-				push_error("Defekter Spielstand konnte nicht ersetzt werden: " + p)
+				push_error(Loc.tx("Defekter Spielstand konnte nicht ersetzt werden: ") + p)
 				return false
 	if DirAccess.rename_absolute(gt, gpath) != OK:
 		if rotated:
 			DirAccess.copy_absolute(gb, gpath)
-		push_error("Neuer Spielstand konnte nicht abgelegt werden: " + p)
+		push_error(Loc.tx("Neuer Spielstand konnte nicht abgelegt werden: ") + p)
 		return false
 	return true
 
@@ -264,7 +281,7 @@ func _load_with_backup(name: String) -> Variant:
 		return d
 	var b: Variant = _read_json(p + ".bak")
 	if b != null:
-		last_load_note = name + " aus Sicherung geladen"
+		last_load_note = name + Loc.tx(" aus Sicherung geladen")
 		return b
 	return null
 

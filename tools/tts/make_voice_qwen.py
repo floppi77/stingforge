@@ -1,7 +1,7 @@
 """Sprachansagen mit Qwen3-TTS (lokal, GPU) erzeugen.
 
 Einrichtung: tools/tts/setup_qwen.sh (Python-Umgebung .venv-qwen + Modelle VoiceDesign/Base)
-Aufruf:      tools/tts/.venv-qwen/bin/python tools/tts/make_voice_qwen.py [--probe] [--only=id,…] [stimme]
+Aufruf:      tools/tts/.venv-qwen/bin/python tools/tts/make_voice_qwen.py [--probe] [--en] [--only=id,…] [stimme]
 Danach:      tools/import_shuttle.sh assets/audio/voice/*.ogg
 
 Zwei Schritte, damit alle Ansagen nach derselben Person klingen:
@@ -24,7 +24,7 @@ ROOT = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT / 'tools/music'))
 import import_voice as iv  # noqa: E402
-from make_voice import LINES  # noqa: E402
+from make_voice import LINES, LINES_EN  # noqa: E402
 
 DESIGN_MODEL = HERE / 'models/Qwen3-TTS-12Hz-1.7B-VoiceDesign'
 CLONE_MODEL = HERE / 'models/Qwen3-TTS-12Hz-1.7B-Base'
@@ -92,29 +92,30 @@ def pitch(w: np.ndarray, sr: int) -> float:
     return float(np.median(vals)) if vals else 0.0
 
 
-def speak(refs: dict[str, Path]) -> dict[str, tuple[list[np.ndarray], int]]:
+def speak(refs: dict[str, Path], lines: dict[str, str] = LINES, language: str = 'German',
+          solo: set[str] = SOLO) -> dict[str, tuple[dict[str, np.ndarray], int]]:
     """Alle Zeilen mit der geklonten Referenzstimme sprechen."""
     model = _load(CLONE_MODEL)
-    keys = [k for k in LINES if k not in SOLO]
-    texts = [LINES[k] for k in keys]
+    keys = [k for k in lines if k not in solo]
+    texts = [lines[k] for k in keys]
     out = {}
     for n, ref in refs.items():
         prompt = model.create_voice_clone_prompt(ref_audio=str(ref), ref_text=REF_TEXT)
         torch.manual_seed(SEED)
-        wavs, sr = model.generate_voice_clone(text=texts, language=['German'] * len(texts),
+        wavs, sr = model.generate_voice_clone(text=texts, language=[language] * len(texts),
                                               voice_clone_prompt=prompt * len(texts))
         wavs = list(wavs)
         target = float(np.median([pitch(w, sr) for k, w in zip(keys, wavs) if k not in RETAKES]))
-        for k in SOLO:
+        for k in solo & set(lines):
             keys.append(k)
-            texts.append(LINES[k])
+            texts.append(lines[k])
             wavs.append(np.zeros(1, dtype=np.float32))
-        for k in (RETAKES | SOLO) & set(keys):
+        for k in (RETAKES | solo) & set(keys):
             i = keys.index(k)
             tries = []
             for t in range(RETAKE_TRIES):
                 torch.manual_seed(SEED + 100 + t)
-                w, _ = model.generate_voice_clone(text=texts[i], language='German', voice_clone_prompt=prompt)
+                w, _ = model.generate_voice_clone(text=texts[i], language=language, voice_clone_prompt=prompt)
                 tries.append(w[0])
             best = min(tries, key=lambda w: abs(pitch(w, sr) - target))
             print(f'{n}/{k}: {pitch(wavs[i], sr):.0f} Hz -> {pitch(best, sr):.0f} Hz (Ziel {target:.0f} Hz)')
@@ -128,26 +129,31 @@ def main(argv: list[str]) -> int:
     # --only=upgrade_max,nectar_low schreibt nur diese Clips (übrige bleiben unangetastet).
     only = {k for a in argv if a.startswith('--only=') for k in a[7:].split(',') if k}
     names = [a for a in argv if not a.startswith('--')] or (list(VOICES) if probe else [VOICE])
+    # --en: englische Ansagen (gleiche Stimme, geklont), Ablage unter assets/audio/voice/en/.
+    english = '--en' in argv
+    lines = LINES_EN if english else LINES
     refs = design(names, refresh='--refresh' in argv)
-    for n, (wavs, sr) in speak(refs).items():
+    spoken = speak(refs, lines, 'English', set()) if english else speak(refs)
+    for n, (wavs, sr) in spoken.items():
         if probe:
             PROBE_DIR.mkdir(parents=True, exist_ok=True)
             gap = np.zeros(int(sr * 0.45), dtype=np.float32)
             ref, rsr = sf.read(refs[n], dtype='float32')
             parts = [ref, np.zeros(int(rsr * 0.8), dtype=np.float32)]
-            for key in LINES:
+            for key in lines:
                 parts += [wavs[key].astype(np.float32), gap]
-            sf.write(PROBE_DIR / f'{n}.wav', np.concatenate(parts), sr)
-            print(f'Hörprobe {n}: {PROBE_DIR / (n + ".wav")}')
+            name = f'{n}_en' if english else n
+            sf.write(PROBE_DIR / f'{name}.wav', np.concatenate(parts), sr)
+            print(f'Hörprobe {name}: {PROBE_DIR / (name + ".wav")}')
             continue
         tmp = ROOT / 'tools/music/build/voice'
         tmp.mkdir(parents=True, exist_ok=True)
-        for key, text in LINES.items():
+        for key, text in lines.items():
             if only and key not in only:
                 continue
             raw = tmp / f'{key}.wav'
             sf.write(raw, wavs[key], sr)
-            iv.write_named(key, iv.decode(raw), f'{text} ({key})')
+            iv.write_named(('en/' if english else '') + key, iv.decode(raw), f'{text} ({key})')
     return 0
 
 

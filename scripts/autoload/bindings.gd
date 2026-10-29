@@ -308,7 +308,7 @@ func describe_binding(b: Dictionary) -> String:
 		"key":
 			var code := int(b.get("c", 0))
 			var s := OS.get_keycode_string(code)
-			return s if s != "" else ("Taste %d" % code)
+			return s if s != "" else (Loc.tx("Taste %d") % code)
 		"jb":
 			match int(b.get("c", -1)):
 				JOY_BUTTON_A: return "A"
@@ -323,14 +323,14 @@ func describe_binding(b: Dictionary) -> String:
 				JOY_BUTTON_DPAD_DOWN: return "D-Pad ↓"
 				JOY_BUTTON_DPAD_LEFT: return "D-Pad ←"
 				JOY_BUTTON_DPAD_RIGHT: return "D-Pad →"
-				_: return "Taste %d" % int(b.get("c", 0))
+				_: return Loc.tx("Taste %d") % int(b.get("c", 0))
 		"ja":
 			match int(b.get("a", -1)):
 				JOY_AXIS_TRIGGER_LEFT: return "LT"
 				JOY_AXIS_TRIGGER_RIGHT: return "RT"
 				JOY_AXIS_LEFT_X: return "Stick ↔"
 				JOY_AXIS_LEFT_Y: return "Stick ↕"
-				_: return "Achse %d" % int(b.get("a", 0))
+				_: return Loc.tx("Achse %d") % int(b.get("a", 0))
 	return "?"
 
 func describe_action(action: String) -> String:

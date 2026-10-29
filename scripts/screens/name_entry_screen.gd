@@ -31,11 +31,11 @@ func setup(args: Dictionary) -> void:
 	cursor = mini(letters.size(), MAX_LEN - 1)
 
 func build_items() -> void:
-	var mode_label := "Boss-Rush" if run_mode == "rush" else "Kampagne"
+	var mode_label := "Boss-Rush" if run_mode == "rush" else "Run"
 	items = [
-		{"kind": "label", "text": "Platz %d · %s · %s Punkte%s" % [rank, mode_label, _grouped(score),
+		{"kind": "label", "text": Loc.tx("Platz %d · %s · %s Punkte%s") % [rank, mode_label, _grouped(score),
 			"  · durchgespielt" if completed else ""], "size": 18, "color": UiTheme.ACCENT},
-		{"kind": "label", "text": "Trage deinen Namen ein (bis zu %d Zeichen)." % MAX_LEN, "size": 14},
+		{"kind": "label", "text": Loc.tx("Trage deinen Namen ein (bis zu %d Zeichen).") % MAX_LEN, "size": 14},
 		{"kind": "sep"},
 		{"kind": "action", "text": "Name übernehmen", "id": "ok", "accent": true},
 	]
@@ -151,6 +151,6 @@ static func _grouped(value: int) -> String:
 	var out := ""
 	for i in range(digits.length()):
 		if i > 0 and (digits.length() - i) % 3 == 0:
-			out += "."
+			out += Loc.group_sep()
 		out += digits[i]
 	return out

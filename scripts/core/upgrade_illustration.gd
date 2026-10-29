@@ -92,6 +92,7 @@ func _spark(p: Vector2, col: Color, r: float = 3.0) -> void:
 	draw_rect(Rect2(c, Vector2(1, 1)), HOT)
 
 func _text(p: Vector2, txt: String, col: Color = GOLD, fs: int = 8) -> void:
+	txt = Loc.tx(txt)
 	draw_string_outline(_font, p.floor(), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 2, INK)
 	draw_string(_font, p.floor(), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
 
@@ -410,7 +411,7 @@ func _s_extra_shield() -> void:
 		var glow: bool = k < 0.35 + safe * 0.5
 		_bee(Color(0.6, 1.0, 0.95, 0.6) if glow and int(_t * 12.0) % 2 == 0 else Color.WHITE)
 		_bar(Vector2(_x0() + 20, H - 12), 60.0, 1.0 - clampf(k / (0.35 + safe * 0.5), 0.0, 1.0), ARC)
-		_text(Vector2(_x0() + 20, H - 16), "+%ss" % str(safe).replace(".", ","), ARC)
+		_text(Vector2(_x0() + 20, H - 16), "+%ss" % Loc.dec(str(safe)), ARC)
 		return
 	_bee()
 
@@ -443,7 +444,7 @@ func _s_iframe_plus() -> void:
 	_bee(Color(1, 1, 1, 0.25) if blink else Color.WHITE)
 	_bar(Vector2(_x0() + 20, H - 12), 60.0, 1.0 - clampf(k / limit, 0.0, 1.0), GOLD)
 	draw_rect(Rect2(Vector2(_x0() + 20 + 60.0 * base / limit, H - 13), Vector2(1, 6)), HOT)
-	_text(Vector2(_x0() + 20, H - 16), "+%ss" % str(dur).replace(".", ","), GOLD)
+	_text(Vector2(_x0() + 20, H - 16), "+%ss" % Loc.dec(str(dur)), GOLD)
 
 func _s_bomb_radius() -> void:
 	var c := Vector2(_w * 0.5, H * 0.5)
@@ -533,7 +534,7 @@ func _s_combo() -> void:
 			_sprite("aphid", p)
 		else:
 			_spark(p, GOLD, 2.0)
-	_text(Vector2(_x0() + 22, 12), "SERIE x%d" % maxi(1, kills), GOLD)
+	_text(Vector2(_x0() + 22, 12), Loc.tx("SERIE x%d") % maxi(1, kills), GOLD)
 	_text(Vector2(_x0() + 22, H - 6), "+%d%%" % [8, 16, 26][stage - 1], UiTheme.DIM)
 
 func _s_convert_bonus() -> void:

@@ -21,13 +21,13 @@ func setup(args: Dictionary) -> void:
 
 func _ready() -> void:
 	title_key = "Highscores"
-	subtitle_override = "Lokale Run-Ranglisten · Kampagne und Boss Rush getrennt · Namen nach jedem Lauf eintragen"
+	subtitle_override = "Lokale Ranglisten · Run und Boss-Rush getrennt · Namen nach jedem Lauf eintragen"
 	prompt_context = "menu"
 	super._ready()
 
 func build_items() -> void:
 	scores = Save.get_highscores(selected_mode, difficulty_filter, row_limit)
-	var mode_label := "Kampagne" if selected_mode == "campaign" else "Boss Rush"
+	var mode_label := "Run" if selected_mode == "campaign" else "Boss-Rush"
 	header_note = "%s  /  %s  /  Top %d" % [mode_label, DIFFICULTY_LABELS[difficulty_filter], row_limit]
 	hint_override = "Links/rechts oder Bestätigen ändert den gewählten Filter. Hoch/runter scrollt durch die Liste."
 	footer_text = "Gesamtpunkte = verdiente Punkte abzüglich Werkstatt-Ausgaben. * = aus altem Spielstand geschätzt."
@@ -57,7 +57,7 @@ func _points_text(points: int) -> String:
 	var text := str(points)
 	var at := text.length() - 3
 	while at > 0:
-		text = text.insert(at, ".")
+		text = text.insert(at, Loc.group_sep())
 		at -= 3
 	return text
 

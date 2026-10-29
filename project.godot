@@ -59,3 +59,7 @@ folder_colors={
 "res://tools/": "gray",
 "res://docs/": "green"
 }
+
+[internationalization]
+
+locale/fallback="de"

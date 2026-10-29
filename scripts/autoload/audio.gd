@@ -216,22 +216,25 @@ func voice(id: String, text: String) -> void:
 		return
 	if not ProjectSettings.get_setting("audio/general/text_to_speech", false):
 		return
-	var voices := DisplayServer.tts_get_voices_for_language("de")
+	var voices := DisplayServer.tts_get_voices_for_language(Loc.lang)
 	if voices.is_empty():
 		return
 	DisplayServer.tts_stop()
 	var vol := int(clampf(float(Save.g("audio.ui", 0.7)) * float(Save.g("audio.master", 0.9)) * 100.0, 10.0, 100.0))
-	DisplayServer.tts_speak(text, voices[0], vol, 1.0, 1.25)
+	DisplayServer.tts_speak(Loc.tx(text), voices[0], vol, 1.0, 1.25)
 
+## Sprachclip in der aktuellen Sprache (Englisch unter voice/en/), sonst Deutsch.
 func _load_voice(id: String) -> AudioStream:
-	if _voice_cache.has(id):
-		return _voice_cache[id]
+	var key := Loc.lang + "/" + id
+	if _voice_cache.has(key):
+		return _voice_cache[key]
 	var stream: AudioStream = null
-	for ext in [".ogg", ".wav"]:
-		if ResourceLoader.exists(VOICE_DIR + id + ext):
-			stream = load(VOICE_DIR + id + ext)
-			break
-	_voice_cache[id] = stream
+	var dirs := [VOICE_DIR + Loc.lang + "/", VOICE_DIR] if Loc.lang != "de" else [VOICE_DIR]
+	for dir in dirs:
+		for ext in [".ogg", ".wav"]:
+			if stream == null and ResourceLoader.exists(dir + id + ext):
+				stream = load(dir + id + ext)
+	_voice_cache[key] = stream
 	return stream
 
 func sfx_var(name: String, volume_db: float = 0.0) -> void:

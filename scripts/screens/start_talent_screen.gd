@@ -65,7 +65,7 @@ func build_items() -> void:
 			],
 		})
 	list.append({"kind": "sep"})
-	list.append({"kind": "label", "text": "Drei von %d Starttalenten, zufällig gezogen. Genau eines wählen – spätere Evolutionen kommen nach jedem Level dazu." % start_pool().size(),
+	list.append({"kind": "label", "text": Loc.tx("Drei von %d Starttalenten, zufällig gezogen. Genau eines wählen – spätere Evolutionen kommen nach jedem Level dazu.") % start_pool().size(),
 		"size": 15})
 	items = list
 

@@ -22,7 +22,7 @@ func build_items() -> void:
 		var lvl := _bar_level(id)
 		list.append({"kind": "choice", "id": "u:" + id, "compact": true,
 			"text": "%s  (%s)" % [Loc.t(String(u.name)), _short_kind(String(u.kind))],
-			"value_text": "Stufe %d/%d" % [lvl, int(u.get("max", 1))],
+			"value_text": Loc.tx("Stufe %d/%d") % [lvl, int(u.get("max", 1))],
 			"value_color": UiTheme.ACCENT if lvl > 0 else UiTheme.DIM})
 	list.append({"kind": "sep"})
 	list.append({"kind": "label", "text": "KAUF-UPGRADES (WERKSTATT)", "size": 13, "color": UiTheme.ACCENT2})
@@ -31,7 +31,7 @@ func build_items() -> void:
 		var slvl := _shop_level(sid)
 		list.append({"kind": "choice", "id": "s:" + sid, "compact": true,
 			"text": String(it.name),
-			"value_text": "Stufe %d/%d" % [slvl, int(it.get("max", 3))],
+			"value_text": Loc.tx("Stufe %d/%d") % [slvl, int(it.get("max", 3))],
 			"value_color": UiTheme.ACCENT if slvl > 0 else UiTheme.DIM})
 	list.append({"kind": "sep"})
 	list.append({"kind": "action", "text": "Weiter", "id": "close", "accent": true})
@@ -176,7 +176,7 @@ func _fmt(n: int) -> String:
 		out = s[i] + out
 		c += 1
 		if c % 3 == 0 and i > 0:
-			out = "." + out
+			out = Loc.group_sep() + out
 	return ("-" if n < 0 else "") + out
 
 func _after_change() -> void:
@@ -216,10 +216,10 @@ func _fill_side() -> void:
 		_side_line(String(entry.name), 21, UiTheme.ACCENT, true)
 		_side_line("Werkstatt · Stufe %d/%d" % [lvl, int(entry.get("max", 3))], 14, UiTheme.DIM)
 		if lvl > 0:
-			_side_line("Jetzt: " + String(ShopData.step(sid, lvl - 1).get("desc", "")),
+			_side_line(Loc.tx("Jetzt: ") + String(ShopData.step(sid, lvl - 1).get("desc", "")),
 				14, UiTheme.TEXT)
 		if lvl < int(entry.get("max", 3)):
-			_side_line("Stufe %d: " % (lvl + 1) + String(ShopData.step(sid, lvl).get("desc", "")),
+			_side_line(Loc.tx("Stufe %d: ") % (lvl + 1) + String(ShopData.step(sid, lvl).get("desc", "")),
 				15, UiTheme.TEXT)
 			_side_line("Preis im Spiel: %s Punkte" % _fmt(ShopData.cost(sid, lvl)), 13, UiTheme.DIM)
 		else:

@@ -49,6 +49,12 @@ tools/import_shuttle.sh assets/audio/voice/*.ogg
 `--refresh` entwirft die Referenzstimme neu. Die Erzeugung ist mit festem Seed
 wiederholbar.
 
+Englische Ansagen (Spielsprache Englisch), gleiche Stimme, Ablage unter `assets/audio/voice/en/`:
+
+```bash
+tools/tts/.venv-qwen/bin/python tools/tts/make_voice_qwen.py --en
+```
+
 ## Texte
 
 | Datei | Text |
@@ -64,6 +70,9 @@ wiederholbar.
 | `upgrade_repair` | Reparatur! |
 | `nectar_low` | Zu wenig Blütenstaub. |
 | `upgrade_max` | Voll ausgebaut! |
+
+Englisch: Basic!, Spread!, Lightning!, Plasma!, Drone!, Bomb!, Shield!, Speed!, Repair!,
+Not enough pollen., Maxed out! (`LINES_EN` in `tools/tts/make_voice.py`).
 
 Neue Ansagen:
 1. Zeile in `LINES` in `tools/tts/make_voice.py` ergänzen.

@@ -18,10 +18,10 @@ func build_items() -> void:
 		{"kind": "label", "text": Loc.t("story.end.1"), "size": 20, "color": UiTheme.TEXT},
 		{"kind": "label", "text": Loc.t("story.end.2"), "size": 20, "color": UiTheme.TEXT},
 		{"kind": "sep"},
-		{"kind": "label", "text": "Gesamtpunkte: %d" % total, "size": 18, "color": UiTheme.ACCENT},
-		{"kind": "label", "text": "Freigeschaltete Evolutionen: %d / %d" % [
+		{"kind": "label", "text": Loc.tx("Gesamtpunkte: %d") % total, "size": 18, "color": UiTheme.ACCENT},
+		{"kind": "label", "text": Loc.tx("Freigeschaltete Evolutionen: %d / %d") % [
 			(Save.profile.unlocked_evolutions as Array).size(), Data.EVOLUTIONS.size()], "size": 17},
-		{"kind": "label", "text": "Boss-Rush freigeschaltet: im Hauptmenü verfügbar.", "size": 16, "color": UiTheme.OK},
+		{"kind": "label", "text": "Boss-Rush: alle zehn Bosse dieses Runs stehen im Hauptmenü bereit.", "size": 16, "color": UiTheme.OK},
 		{"kind": "sep"},
 		{"kind": "action", "text": "menu.back_main", "id": "menu", "accent": true},
 	]

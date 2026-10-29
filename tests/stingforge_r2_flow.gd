@@ -169,6 +169,8 @@ func _test_run_endings() -> void:
 
 	# Rush ist ein eigener Run; Quit muss die Originalkampagne erhalten.
 	fresh("expert")
+	# Boss-Rush braucht mindestens einen im Run besiegten Boss.
+	Save.campaign.level_stats = {"1": {}}
 	Save.save_campaign()
 	var campaign_id: String = Save.campaign.run_id
 	var original_hash := FileAccess.get_sha256(Save._path("campaign"))

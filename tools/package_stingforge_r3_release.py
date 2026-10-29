@@ -7,8 +7,8 @@ import hashlib
 import json
 import shutil
 
-## Anzahl der Regressionssuiten (R2-Bestand + R3/R4 + R5 Musik/Gameplay + R6 + R7).
-SUITE_COUNT = 42
+## Anzahl der Regressionssuiten (R2-Bestand + R3/R4 + R5 Musik/Gameplay + R6 + R7 + R8).
+SUITE_COUNT = 43
 
 ROOT = Path(__file__).resolve().parents[1]
 RELEASE = ROOT / 'release'

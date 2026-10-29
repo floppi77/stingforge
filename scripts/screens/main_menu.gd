@@ -187,20 +187,22 @@ func build_items() -> void:
 	if app != null and String(app.menu_note) != "":
 		subtitle_override = String(app.menu_note)
 		app.menu_note = ""
+	var rush_bosses := Save.run_bosses()
 	items = [
 		{"kind": "action", "text": "menu.continue", "id": "continue", "disabled": not can_continue,
 			"value_text": "Level %02d" % int(Save.campaign.get("level", 1)) if has_campaign else ""},
 		{"kind": "action", "text": "menu.new_campaign", "id": "new"},
 		{"kind": "action", "text": "Tutorial", "id": "tutorial",
 			"value_text": "" if bool(Save.profile.get("tutorial_done", false)) else "Empfohlen"},
-		{"kind": "action", "text": "menu.training", "id": "training", "disabled": not _has_training()},
-		{"kind": "action", "text": "menu.boss_rush", "id": "rush", "disabled": not bool(Save.profile.get("boss_rush_unlocked", false)),
-			"secondary_text": "Nach Kampagnenabschluss" if not bool(Save.profile.get("boss_rush_unlocked", false)) else ""},
+		{"kind": "action", "text": "menu.boss_rush", "id": "rush", "disabled": rush_bosses.is_empty(),
+			"value_text": "%d/10" % rush_bosses.size() if not rush_bosses.is_empty() else "",
+			"secondary_text": Loc.t("menu.rush_locked") if rush_bosses.is_empty() else ""},
 		{"kind": "action", "text": "menu.highscores", "id": "scores"},
 		{"kind": "action", "text": "Verschmelzungen", "id": "fusions"},
 		{"kind": "action", "text": "menu.settings", "id": "settings", "divider": true},
 		{"kind": "action", "text": "menu.credits", "id": "credits"},
 		{"kind": "action", "text": "menu.quit", "id": "quit"},
+		{"kind": "langs", "id": "language"},
 	]
 	if _first_focus:
 		focus = 0 if can_continue else 1
@@ -236,6 +238,11 @@ func refresh() -> void:
 	_layout_reference.call_deferred()
 
 func _make_reference_row(it: Dictionary) -> PanelContainer:
+	if String(it.get("kind", "action")) == "langs":
+		var langs: PanelContainer = _make_langs_row()
+		langs.add_theme_stylebox_override("panel", _row_skin(false))
+		langs.remove_meta("label")
+		return langs
 	var panel := PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", _row_skin(false))
 	var margin := MarginContainer.new()
@@ -308,7 +315,7 @@ func _update_focus_visuals() -> void:
 		row.add_theme_stylebox_override("panel", _row_skin(i == focus))
 		var marker := row.find_child("Marker", true, false) as CanvasItem
 		if marker != null: marker.modulate.a = 1.0 if i == focus else 0.0
-		var label: Label = row.get_meta("label")
+		var label := (row.get_meta("label") if row.has_meta("label") else null) as Label
 		if label != null and not items[i].get("disabled", false):
 			label.add_theme_color_override("font_color", GOLD if i == focus else INK)
 	_scroll_focus_into_view()
@@ -378,7 +385,7 @@ func _build_profile() -> void:
 	evo_row.add_child(_text("%d / %d" % [unlocked, total], 13, INK, true))
 	side_box.add_child(evo_row)
 	_profile_rule()
-	_profile_line("Werkstatt", _pretty_points(points) + " Punkte", 13, 13, GOLD)
+	_profile_line("Werkstatt", _pretty_points(points) + Loc.tx(" Punkte"), 13, 13, GOLD)
 	_profile_line("Bestpunkte", _pretty_points(best), 13, 13, INK)
 
 func _profile_rule() -> void:
@@ -411,18 +418,21 @@ func _pretty_points(n: int) -> String:
 	var raw := str(n)
 	var out := ""
 	for i in range(raw.length()):
-		if i > 0 and (raw.length() - i) % 3 == 0: out += "."
+		if i > 0 and (raw.length() - i) % 3 == 0: out += Loc.group_sep()
 		out += raw[i]
 	return out
 
-func _has_training() -> bool:
-	for lv in Save.campaign.get("level_scores", {}).keys():
-		return true
-	return bool(Save.profile.get("boss_rush_unlocked", false)) or (Save.profile.unlocked_evolutions as Array).size() > 0
+## Sprachzeile: links/rechts wechselt die Sprache.
+func on_adjust(index: int, dir: int) -> void:
+	if String(items[index].get("id", "")) == "language":
+		var i := Loc.LANGS.find(Loc.lang)
+		choose_language(String(Loc.LANGS[(i + dir + Loc.LANGS.size()) % Loc.LANGS.size()]))
 
 func on_activate(index: int) -> void:
 	var it: Dictionary = items[index]
 	match String(it.get("id", "")):
+		"language":
+			on_adjust(index, 1)
 		"new":
 			Audio.sfx("ui_ok", -6.0, 1.0, true)
 			_open_new_campaign()
@@ -433,9 +443,6 @@ func on_activate(index: int) -> void:
 			if Save.active_campaign:
 				Audio.sfx("ui_ok", -6.0, 1.0, true)
 				app.continue_campaign()
-		"training":
-			Audio.sfx("ui_ok", -6.0, 1.0, true)
-			app.push_screen("res://scripts/screens/training_screen.gd", {})
 		"rush":
 			Audio.sfx("ui_ok", -6.0, 1.0, true)
 			app.push_screen("res://scripts/screens/difficulty_screen.gd", {"run_mode": "rush"})

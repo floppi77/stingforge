@@ -182,7 +182,7 @@ func update(delta: float) -> void:
 ## Ruhige Passage = kaum Gegner im Bild. Dann kommen Hornissen von hinten oder
 ## eine Spinne von oben; unabhängig davon patrouillieren Bodengegner.
 func _update_extras(delta: float) -> void:
-	if mode not in ["campaign", "training"]:
+	if mode != "campaign":
 		return
 	ambush_t -= delta
 	ground_t -= delta
@@ -318,7 +318,7 @@ func _spawn(enemy_id: String, pos: Vector2, opts: Dictionary) -> void:
 	spawn_enemy_requested.emit(enemy_id, pos, opts)
 
 func _update_hazards(delta: float) -> void:
-	if mode != "campaign" and mode != "training":
+	if mode != "campaign":
 		return
 	hazard_t -= delta
 	if hazard_t > 0.0:

@@ -368,7 +368,12 @@ func _apply_level_threat() -> void:
 
 ## Angriffstakt sinkt mit dem Level (nie unter 62 %).
 func _rate() -> float:
-	return clampf(1.0 - 0.04 * float(level_index - 1), 0.62, 1.0)
+	# Spätere Level und höhere Schwierigkeit verkürzen die Pausen zwischen Angriffen.
+	var diff_rate := 1.0
+	var g := get_parent()
+	if g != null and "difficulty" in g:
+		diff_rate = float((g.difficulty as Dictionary).get("boss_rate", 1.0))
+	return clampf(1.0 - 0.04 * float(level_index - 1), 0.62, 1.0) * diff_rate
 
 ## Nach einiger Zeit wechselt der Boss sein Bewegungsmuster (ab Bedrohungsstufe 4).
 func _tick_move_swap(delta: float) -> void:

@@ -205,7 +205,7 @@ func _test_attack_admission(g: Game, b: Boss, stage: int) -> void:
 		for i in range(1000):
 			g.spawn_enemy_bullet(Vector2(600, 266), Vector2.LEFT, 1, "ebullet_orb")
 			if i == 4:
-				check(g.bullets.enemy_bullets.size() == (5 if difficulty == "expert" else 4), "reborn Game keeps cumulative0.8/1.0 density for" + difficulty)
+				check(g.bullets.enemy_bullets.size() == {"relaxed": 3, "normal": 4, "expert": 5}[difficulty], "reborn Game keeps cumulative 0.6/0.8/1.0 density for " + difficulty)
 		check(g.bullets.enemy_bullets.size() == 420, "central enemy max420 survives1000requests in" + difficulty)
 		g.bullets.enemy_bullets.clear()
 	g.difficulty = Data.DIFFICULTY.normal

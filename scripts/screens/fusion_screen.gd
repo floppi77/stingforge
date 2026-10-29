@@ -15,7 +15,7 @@ func build_items() -> void:
 	for pair in pairs:
 		if Save.is_fusion_seen(Data.fusion_key(String(pair[0]), String(pair[1]))):
 			found += 1
-	subtitle_override = "Zwei passende Evolutionen verschmelzen und werden gemeinsam stärker · %d von %d entdeckt" % [found, pairs.size()]
+	subtitle_override = Loc.tx("Zwei passende Evolutionen verschmelzen und werden gemeinsam stärker · %d von %d entdeckt") % [found, pairs.size()]
 	footer_text = "Verschmolzen: Prozentwerte +50 %, Zählwerte +1, Auslöseschwellen −25 %, Sonderwirkungen stärker. Nachteile bleiben."
 	var list: Array = []
 	var last_family := ""
@@ -29,7 +29,7 @@ func build_items() -> void:
 			last_family = family
 		var seen := Save.is_fusion_seen(Data.fusion_key(String(pair[0]), String(pair[1])))
 		list.append({"kind": "choice", "id": Data.fusion_key(String(pair[0]), String(pair[1])), "compact": true,
-			"text": "%s × %s" % [String(a.get("name", "")), String(b.get("name", ""))],
+			"text": "%s × %s" % [Loc.tx(String(a.get("name", ""))), Loc.tx(String(b.get("name", "")))],
 			"value_text": "entdeckt" if seen else "noch nicht entdeckt",
 			"value_color": UiTheme.OK if seen else UiTheme.DIM,
 			"dim": not seen})

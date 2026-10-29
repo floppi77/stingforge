@@ -190,6 +190,9 @@ func _build_audio(list: Array) -> void:
 func _build_controls(list: Array) -> void:
 	list.append({"kind": "label", "text": "", "binding_header": true})
 	for a in Bindings.ACTIONS:
+		# Die Debugtaste ist ein Entwicklerwerkzeug und erscheint nicht in der Spielhilfe.
+		if a == "debug_menu":
+			continue
 		list.append({
 			"kind": "action", "text": "act." + a, "id": "bind:" + a,
 			"value_text": Bindings.describe_action(a), "binding_action": a,
@@ -207,6 +210,8 @@ func _build_controls(list: Array) -> void:
 	list.append({"kind": "action", "text": "set.reset", "id": "reset_bindings"})
 
 func _build_game(list: Array) -> void:
+	list.append({"kind": "choice", "text": "Sprache / Language", "id": "language",
+		"value_text": "Deutsch" if Loc.lang == "de" else "English"})
 	list.append({"kind": "toggle", "text": "set.autofire_default", "id": "autofire_default",
 		"value_text": _bool_text(bool(Save.g("game.autofire_default", false)))})
 	list.append({"kind": "toggle", "text": "set.tutorial", "id": "tutorial",
@@ -267,6 +272,10 @@ func _adjust_choice(id: String, dir: int) -> void:
 				idx = 0
 			Save.set_g("display.fps_cap", caps[(idx + dir + caps.size()) % caps.size()])
 			App.apply_display()
+		"language":
+			var li := Loc.LANGS.find(Loc.lang)
+			choose_language(String(Loc.LANGS[(li + dir + Loc.LANGS.size()) % Loc.LANGS.size()]))
+			return
 		"scaling":
 			var scs := ["pixel_plus_ui", "integer", "smooth"]
 			var idx2 := scs.find(String(Save.g("display.scaling", "pixel_plus_ui")))

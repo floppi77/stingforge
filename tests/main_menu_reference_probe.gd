@@ -9,7 +9,7 @@ const U := preload("res://scripts/core/ui_theme.gd")
 const MENU := "res://scripts/screens/main_menu.gd"
 const SHOT_DIR := "res://docs/ui-reference"
 const TEST_DATA := "res://build/reference-menu-testdata"
-const IDS := ["continue", "new", "tutorial", "training", "rush", "scores", "fusions", "settings", "credits", "quit"]
+const IDS := ["continue", "new", "tutorial", "rush", "scores", "fusions", "settings", "credits", "quit"]
 const RUN_NOTE := "Run beendet – die Evolutionen im Profil bleiben erhalten."
 const EPS := 2.0
 
@@ -50,7 +50,6 @@ func _ready() -> void:
 		_check_menu(menu, "Aktiv", true)
 		_check_enabled(menu, "continue", true, "Aktiv")
 		_check_enabled(menu, "tutorial", true, "Aktiv")
-		_check_enabled(menu, "training", true, "Aktiv")
 		_check_enabled(menu, "rush", true, "Aktiv")
 		_check_status(menu, 4, 42137, 4, "Aktiv")
 		await _shot("01_active")
@@ -63,13 +62,13 @@ func _ready() -> void:
 	menu = await _open_menu(1.0)
 	if menu != null:
 		_check_menu(menu, "Frisch", true)
-		for id in ["continue", "training", "rush"]:
+		for id in ["continue", "rush"]:
 			_check_enabled(menu, id, false, "Frisch")
 		for id in ["new", "tutorial", "scores", "fusions", "settings", "credits", "quit"]:
 			_check_enabled(menu, id, true, "Frisch")
 		_chk(not _visible_text(menu.side_panel).replace(".", "").contains("42137"), "Frisch: kein alter Kampagnenpunktestand")
 		await _shot("02_fresh")
-		for id in ["continue", "training", "rush"]:
+		for id in ["continue", "rush"]:
 			await _test_disabled(menu, id)
 		await _test_navigation(menu, "Frisch")
 
@@ -103,25 +102,27 @@ func _ready() -> void:
 		_chk(String(app.menu_note).is_empty(), "Game Over: Notiz einmalig übernommen")
 		_check_enabled(menu, "continue", false, "Game Over")
 		_check_enabled(menu, "tutorial", true, "Game Over")
-		_check_enabled(menu, "training", true, "Game Over")
-		_check_enabled(menu, "rush", true, "Game Over")
+		_check_enabled(menu, "rush", false, "Game Over: ohne laufenden Run kein Boss-Rush")
 		await _shot("05_gameover")
 		await _test_navigation(menu, "Game Over")
 
-	# Freigaben stammen aus dem Profil, nicht aus einer offenen Kampagne.
+	# Boss-Rush hängt am laufenden Run: nur dort besiegte Bosse sind verfügbar.
 	_fixture_fresh()
 	Save.profile.unlocked_evolutions = _evolution_ids(4)
+	Save.profile.boss_rush_unlocked = true
 	menu = await _open_menu(1.0)
 	if menu != null:
-		_check_enabled(menu, "training", true, "Evolutionen ohne Kampagne")
-		_check_enabled(menu, "rush", false, "Evolutionen ohne Rush-Freigabe")
-		_check_enabled(menu, "continue", false, "Evolutionen ohne Kampagne")
-		Save.profile.boss_rush_unlocked = true
+		_check_enabled(menu, "rush", false, "Profilfreigabe allein reicht nicht")
+		_check_enabled(menu, "continue", false, "Evolutionen ohne Run")
+		Save.new_campaign("normal", 20261028)
+		Save.campaign.level = 3
+		Save.campaign.level_stats = {"1": {}, "2": {}}
 		menu.rebuild()
 		menu.refresh()
 		await _settle()
-		_check_enabled(menu, "rush", true, "Profilfreigabe nach Neuaufbau")
-		_check_menu(menu, "Profilfreigabe", true)
+		_check_enabled(menu, "rush", true, "Run mit zwei besiegten Bossen")
+		_chk(Save.run_bosses() == ["rose_beetle", "giant_larva"], "Boss-Rush bietet genau die besiegten Bosse")
+		_check_menu(menu, "Run mit Bossen", true)
 		await _shot("06_profile_unlocked")
 
 	# Zweiter echter Datenstand entlarvt fest eingebrannte Referenzzahlen.
@@ -153,6 +154,7 @@ func _fixture_active() -> void:
 	Save.campaign.level = 4
 	Save.campaign.points = 42137
 	Save.campaign.level_scores = {"1": 12000, "2": 14500, "3": 15637}
+	Save.campaign.level_stats = {"1": {}, "2": {}, "3": {}}
 	Save.campaign.shop = {"back": 2}
 	Save.last_load_note = ""
 
@@ -190,7 +192,9 @@ func _open_menu(scale_value: float, keep_note := false):
 	return menu
 
 func _check_menu(menu, label: String, no_scroll: bool) -> void:
-	_chk(menu.items.size() == IDS.size(), label + ": genau neun Menüaktionen")
+	# Neun Menüaktionen plus die Sprachzeile mit den Flaggen.
+	_chk(menu.items.size() == IDS.size() + 1 and String(menu.items[-1].get("id", "")) == "language",
+		label + ": genau neun Menüaktionen und die Sprachwahl")
 	_chk(menu._rows.size() == menu.items.size(), label + ": für jede Aktion eine Zeile")
 	for id in IDS:
 		var count := 0

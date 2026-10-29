@@ -24,7 +24,6 @@ func _ready() -> void:
 	await _screen(app, "res://scripts/screens/credits_screen.gd", {})
 	await _screen(app, "res://scripts/screens/highscore_screen.gd", {"mode": "campaign", "difficulty": "all"})
 	await _screen(app, "res://scripts/screens/difficulty_screen.gd", {})
-	await _screen(app, "res://scripts/screens/training_screen.gd", {})
 	await _screen(app, "res://scripts/screens/start_talent_screen.gd", {})
 	await _screen(app, "res://scripts/screens/build_overview_screen.gd", {})
 	await _screen(app, "res://scripts/screens/confirm_screen.gd", {

@@ -35,6 +35,20 @@ LINES = {
     'nectar_low': 'Zu wenig Blütenstaub.',
     'upgrade_max': 'Voll ausgebaut!',
 }
+# Englische Fassung (Spielsprache Englisch), gleiche Kennungen, Ablage unter voice/en/.
+LINES_EN = {
+    'upgrade_base': 'Basic!',
+    'upgrade_fan': 'Spread!',
+    'upgrade_lightning': 'Lightning!',
+    'upgrade_plasma': 'Plasma!',
+    'upgrade_companion': 'Drone!',
+    'upgrade_bombs': 'Bomb!',
+    'upgrade_shield': 'Shield!',
+    'upgrade_speed': 'Speed!',
+    'upgrade_repair': 'Repair!',
+    'nectar_low': 'Not enough pollen.',
+    'upgrade_max': 'Maxed out!',
+}
 # Etwas zügiger als normal (1.0), damit schnelles Blättern verständlich bleibt.
 LENGTH_SCALE = '0.88'
 

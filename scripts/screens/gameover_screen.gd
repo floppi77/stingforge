@@ -27,7 +27,7 @@ func build_items() -> void:
 		title_label.add_theme_color_override("font_color", UiTheme.DANGER)
 	var list: Array = []
 	var total := maxi(1, max_deaths)
-	list.append({"kind": "label", "text": "Game Over %d von %d" % [mini(deaths, total), total],
+	list.append({"kind": "label", "text": Loc.tx("Game Over %d von %d") % [mini(deaths, total), total],
 		"size": 18, "color": UiTheme.ACCENT})
 	if attempts_left > 0:
 		list.append({"kind": "label",
@@ -38,7 +38,7 @@ func build_items() -> void:
 			"size": 15, "color": UiTheme.DIM})
 		list.append({"kind": "sep"})
 		list.append({"kind": "action", "text": "Weiter am Kontrollpunkt", "id": "continue",
-			"accent": true, "value_text": "noch %d" % attempts_left})
+			"accent": true, "value_text": Loc.tx("noch %d") % attempts_left})
 	else:
 		list.append({"kind": "label", "text": "Kein Weiter mehr – der Run ist vorbei.",
 			"size": 15, "color": UiTheme.DANGER})

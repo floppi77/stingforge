@@ -83,7 +83,8 @@ func setup(point_id: String, pos: Vector2, options: Dictionary = {}) -> void:
 		var d := String(Save.campaign.get("difficulty", Save.g("game.difficulty", "normal")))
 		diff = Data.DIFFICULTY.get(d, Data.DIFFICULTY["normal"])
 	fire_mult = float(diff.fire_mult) * clampf(float(options.get("fire_mult", 1.0)), 0.5, 1.75)
-	bullet_speed_mult = float(diff.bullet_speed)
+	# Geschosstempo je Schwierigkeit setzt Game.spawn_enemy_bullet zentral (auch für Bosse).
+	bullet_speed_mult = 1.0
 	_build_sprite()
 	body_half_height = maxf(radius, float(Art.info(String(def.sprite)).get("h", 16)) * 0.5)
 	_clamp_playfield()

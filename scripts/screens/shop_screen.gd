@@ -69,9 +69,9 @@ func _ready() -> void:
 func build_items() -> void:
 	var list: Array = []
 	# Punktestand in der Untertitelzeile: spart eine Kopfzeile für die Liste.
-	subtitle_override = "Verfügbar: %s Punkte · drei Stufen je Eintrag" % _fmt(points)
+	subtitle_override = Loc.tx("Verfügbar: %s Punkte · drei Stufen je Eintrag") % _fmt(points)
 	var cat: Dictionary = _cats[clampi(cat_index, 0, _cats.size() - 1)]
-	list.append({"kind": "label", "text": String(cat.name).to_upper(), "size": 14,
+	list.append({"kind": "label", "text": Loc.tx(String(cat.name)).to_upper(), "size": 14,
 		"color": UiTheme.ACCENT2})
 	for it in ShopData.items_of(String(cat.id)):
 		list.append(_row_for(it))
@@ -124,7 +124,7 @@ func _update_cat_rows() -> void:
 			continue
 		if i == _cats.size():
 			# level ist das gerade beendete Level; weiter geht es mit dem nächsten.
-			value.text = "Menü" if from_menu or tutorial else "mit Level %d" % (level + 1)
+			value.text = "Menü" if from_menu or tutorial else Loc.tx("mit Level %d") % (level + 1)
 			value.add_theme_color_override("font_color", UiTheme.ACCENT)
 			continue
 		var bought := 0
@@ -268,7 +268,7 @@ func _row_for(it: Dictionary) -> Dictionary:
 	var value := ""
 	var color := UiTheme.DIM
 	if maxed:
-		value = "Stufe %d/%d · fertig" % [lvl, int(it.get("max", 3))]
+		value = Loc.tx("Stufe %d/%d · fertig") % [lvl, int(it.get("max", 3))]
 		color = UiTheme.OK
 	elif not unlocked:
 		value = "gesperrt"
@@ -278,7 +278,7 @@ func _row_for(it: Dictionary) -> Dictionary:
 		color = UiTheme.ACCENT if affordable else UiTheme.DIM
 	return {
 		"kind": "choice", "id": id, "compact": true,
-		"text": "%s  %s" % [String(it.name), _pips(lvl, int(it.get("max", 3)))],
+		"text": "%s  %s" % [Loc.tx(String(it.name)), _pips(lvl, int(it.get("max", 3)))],
 		"value_text": value, "value_color": color,
 		"accent": affordable,
 		"dim": maxed or not unlocked or not affordable,
@@ -309,7 +309,7 @@ func _fmt(n: int) -> String:
 		out = s[i] + out
 		c += 1
 		if c % 3 == 0 and i > 0:
-			out = "." + out
+			out = Loc.group_sep() + out
 	return ("-" if n < 0 else "") + out
 
 # --------------------------------------------------------------- Detailspalte
@@ -334,7 +334,7 @@ func _fill_side() -> void:
 	var lvl := int(levels.get(id, 0))
 	var maxed := lvl >= int(it.get("max", 3))
 	_side_line(String(it.name), 22, UiTheme.ACCENT, true)
-	_side_line("%s · Stufe %d/%d  %s" % [_cat_name(String(it.cat)),
+	_side_line(Loc.tx("%s · Stufe %d/%d  %s") % [_cat_name(String(it.cat)),
 		lvl, int(it.get("max", 3)), _pips(lvl, int(it.get("max", 3)))], 14, UiTheme.DIM)
 	_side_illustration(id, lvl if maxed else lvl + 1)
 	# Preis und Kaufstatus direkt unter der Grafik: ohne Scrollen sichtbar.
@@ -345,21 +345,21 @@ func _fill_side() -> void:
 		var blocker := ShopData.blocker_of(id, levels)
 		if blocker != "":
 			_side_line("Gesperrt für diesen Lauf: %s ist gewählt."
-				% String(ShopData.item(blocker).get("name", blocker)), 14, UiTheme.DANGER)
+				% Loc.tx(String(ShopData.item(blocker).get("name", blocker))), 14, UiTheme.DANGER)
 			_side_line(ShopData.group_note(id), 13, UiTheme.DIM)
 		elif not _unlocked(it):
-			_side_line("Gesperrt – braucht: " + _req_text(it), 14, Color(1.0, 0.72, 0.55))
+			_side_line(Loc.tx("Gesperrt – braucht: ") + _req_text(it), 14, Color(1.0, 0.72, 0.55))
 		elif points >= price:
-			_side_line("Preis: %s Punkte – bezahlbar" % _fmt(price), 15, UiTheme.OK)
+			_side_line(Loc.tx("Preis: %s Punkte – bezahlbar") % _fmt(price), 15, UiTheme.OK)
 		else:
-			_side_line("Preis: %s Punkte – es fehlen %s" % [_fmt(price), _fmt(price - points)],
+			_side_line(Loc.tx("Preis: %s Punkte – es fehlen %s") % [_fmt(price), _fmt(price - points)],
 				15, Color(1.0, 0.72, 0.55))
 		_side_gap(4)
-		_side_line("Stufe %d: " % (lvl + 1) + String(ShopData.step(id, lvl).get("desc", "")),
+		_side_line(Loc.tx("Stufe %d: ") % (lvl + 1) + Loc.tx(String(ShopData.step(id, lvl).get("desc", ""))),
 			14, UiTheme.TEXT)
 	if lvl > 0:
 		_side_gap(4)
-		_side_line("Jetzt: " + String(ShopData.step(id, lvl - 1).get("desc", "")), 13, UiTheme.DIM)
+		_side_line(Loc.tx("Jetzt: ") + Loc.tx(String(ShopData.step(id, lvl - 1).get("desc", ""))), 13, UiTheme.DIM)
 	# Ausschlussgruppe: was dieser Kauf sperrt (rot) bzw. was schon gesperrt ist
 	var lock_ids: Array = []
 	if lvl <= 0:
@@ -368,13 +368,13 @@ func _fill_side() -> void:
 		lock_ids = ShopData.locks_of(id, levels)
 	if lvl > 0 and not lock_ids.is_empty():
 		_side_gap(8)
-		_side_line("Gesperrt für diesen Lauf: " + ShopData.lock_names(lock_ids), 14,
+		_side_line(Loc.tx("Gesperrt für diesen Lauf: ") + ShopData.lock_names(lock_ids), 14,
 			UiTheme.DANGER)
 		_side_line(ShopData.group_note(id), 13, UiTheme.DIM)
 	elif lvl <= 0 and not lock_ids.is_empty():
 		_side_gap(8)
-		_side_line("Sperrt: " + ShopData.lock_names(lock_ids), 14, UiTheme.DANGER)
-		var own := String(it.name)
+		_side_line(Loc.tx("Sperrt: ") + ShopData.lock_names(lock_ids), 14, UiTheme.DANGER)
+		var own := Loc.tx(String(it.name))
 		_side_line("Mit dem Kauf von %s ist %s für diesen Lauf nicht mehr wählbar."
 			% [own, ShopData.lock_names(lock_ids)], 13, UiTheme.DIM)
 	_side_gap(8)
@@ -383,7 +383,7 @@ func _fill_side() -> void:
 func _fill_side_category() -> void:
 	if _on_next_row():
 		_side_line("Weiter", 22, UiTheme.ACCENT, true)
-		_side_line("Zurück zum Hauptmenü." if from_menu or tutorial else "Weiter mit Level %d." % (level + 1),
+		_side_line("Zurück zum Hauptmenü." if from_menu or tutorial else Loc.tx("Weiter mit Level %d.") % (level + 1),
 			15, UiTheme.TEXT)
 		_side_gap(6)
 		_side_line("Nicht ausgegebene Punkte bleiben erhalten.", 14, UiTheme.DIM)
@@ -402,7 +402,7 @@ func _fill_side_category() -> void:
 		if int(levels.get(String(it.id), 0)) < int(it.get("max", 3)) and _unlocked(it) \
 				and points >= ShopData.cost(String(it.id), int(levels.get(String(it.id), 0))):
 			open += 1
-	_side_line("%d Upgrades · %d jetzt bezahlbar" % [entries.size(), open], 14,
+	_side_line(Loc.tx("%d Upgrades · %d jetzt bezahlbar") % [entries.size(), open], 14,
 		UiTheme.OK if open > 0 else UiTheme.DIM)
 	_side_gap(8)
 	side_box.add_child(UiPrompts.make_hint("ui_accept", "Liste öffnen", true))
@@ -419,13 +419,13 @@ func _req_text(it: Dictionary) -> String:
 		var rid := String((req as Array)[0])
 		var rlvl := int((req as Array)[1])
 		var other := ShopData.item(rid)
-		parts.append("%s Stufe %d" % [String(other.get("name", rid)), rlvl])
+		parts.append(Loc.tx("%s Stufe %d") % [Loc.tx(String(other.get("name", rid))), rlvl])
 	return ", ".join(parts)
 
 func _cat_name(cat: String) -> String:
 	for c in ShopData.CATEGORIES:
 		if String(c.id) == cat:
-			return String(c.name)
+			return Loc.tx(String(c.name))
 	return cat
 
 func _side_line(text: String, size: int, color: Color, bold := false) -> void:

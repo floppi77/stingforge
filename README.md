@@ -2,6 +2,8 @@
   <img src="docs/media/logo.png" alt="Stingforge" width="560">
 </p>
 
+<p align="center"><b>Deutsch</b> · <a href="README.en.md">English</a></p>
+
 <p align="center"><b>Evolve. Adapt. Strike.</b><br>
 Ein horizontales Pixel-Shoot’em-up mit einer Biene in der Hauptrolle – eine Hommage an <i>Apidya</i> (Amiga, 1992).</p>
 
@@ -10,7 +12,7 @@ Ein horizontales Pixel-Shoot’em-up mit einer Biene in der Hauptrolle – eine 
 </p>
 
 <p align="center">
-  <img src="docs/media/level1-bluetenmeer.png" alt="Level 1 – Blütenmeer" width="860">
+  <img src="docs/media/de/level1.png" alt="Level 1 – Blütenmeer" width="860">
 </p>
 
 Yuri, eine Kampfbiene, fliegt durch zehn Reiche – vom sonnigen Blütenmeer über Wurzelhöhlen,
@@ -24,21 +26,21 @@ Jedes Level endet mit einem Boss, der sich wie sein Tier bewegt und in mehreren 
 
 | | |
 |---|---|
-| ![Hauptmenü](docs/media/hauptmenue.png) | ![Tutorial](docs/media/tutorial.png) |
-| **Hauptmenü** – Pixel-Titelbild, Spielstand auf einen Blick | **Tutorial** – das Spiel hält an und erklärt in Bildern |
-| ![Level 4 – Pilzwald](docs/media/level4-pilzwald.png) | ![Verschmelzungen](docs/media/verschmelzungen.png) |
+| ![Hauptmenü](docs/media/de/main-menu.png) | ![Tutorial](docs/media/de/tutorial.png) |
+| **Hauptmenü** – Spielstand auf einen Blick, Sprachwahl per Flagge | **Tutorial** – das Spiel hält an und erklärt in Bildern |
+| ![Level 4 – Pilzwald](docs/media/de/level4.png) | ![Verschmelzungen](docs/media/de/fusions.png) |
 | **Pilzwald** – wandernde Sporenwolken engen die Wege ein | **Verschmelzungen** – entdeckte Paare, der Rest wartet ausgegraut |
-| ![Level 6 – Glas](docs/media/level6-glas.png) | ![Larven-Boss, Phase II](docs/media/boss-larve-phase2.png) |
+| ![Level 6 – Glas](docs/media/de/level6.png) | ![Larven-Boss, Phase II](docs/media/de/boss-larva.png) |
 | **Gläsernes Gewächshaus** – Glasscheiben fangen Schüsse ab, bis sie zerspringen | **Grabende Riesenlarve** – Phasenwechsel mit Auftritt |
-| ![Boss Mantidenpaar](docs/media/boss-mantidenpaar.png) | ![Boss Kernorganismus](docs/media/boss-kernorganismus.png) |
+| ![Boss Mantidenpaar](docs/media/de/boss-mantis.png) | ![Boss Kernorganismus](docs/media/de/boss-core.png) |
 | **Mantidenpaar** – zwei Klingen, ein Rhythmus | **Kern der Verwandlung** – der Endboss (und nicht zum letzten Mal) |
-| ![Werkstatt](docs/media/werkstatt.png) | ![Evolution](docs/media/evolution.png) |
+| ![Werkstatt](docs/media/de/workshop.png) | ![Evolution](docs/media/de/evolution.png) |
 | **Werkstatt** – Kategorien, Upgrades, animierte Erklärszene | **Evolution** – nach jedem Level eine dauerhafte Weiterentwicklung |
 
 **Ultrawide:** Das Spielfeld bleibt 16:9, die Seiten zeigen die Levelkulisse weiter.
 
-![Ultrawide – Level 3](docs/media/ultrawide-level3.png)
-![Ultrawide – Schwarmkönigin](docs/media/ultrawide-koenigin.png)
+![Ultrawide – Level 3](docs/media/de/ultrawide-level3.png)
+![Ultrawide – Schwarmkönigin](docs/media/de/ultrawide-queen.png)
 
 ## Was drinsteckt
 
@@ -61,11 +63,14 @@ Jedes Level endet mit einem Boss, der sich wie sein Tier bewegt und in mehreren 
     synchron zur Levelzeit.
   - Die Bossmusik setzt nahtlos im selben Tempo ein und loopt, solange der Kampf dauert.
 - **Plattformen:** Linux, Windows und macOS.
+- **Zweisprachig:** Deutsch und Englisch, inklusive Sprachansagen; umschaltbar per Flagge im
+  Hauptmenü.
+- **Drei Schwierigkeitsgrade,** die sich deutlich unterscheiden: Geschossdichte und -tempo,
+  Takt der Bosse, Trefferschaden, Schildladezeit, Gegnerzahl und Gnadenzeit.
 - **Pixellook in 1920 × 1080:** Ultrawide (21:9, 32:9) und 16:10, Pixelschriften, Menüs im Amiga-Stil.
 - **Modi:**
-  - Kampagne mit Checkpoints
-  - Training
-  - Boss-Rush
+  - Run mit Checkpoints
+  - Boss-Rush mit den Bossen, die im laufenden Run schon besiegt sind
   - Highscores mit Namenseingabe
 - **Bedienung:** Tastatur, Maus und Xbox-Controller, frei belegbar, beide Gerätearten
   immer gleichzeitig angezeigt.
@@ -88,7 +93,7 @@ Die Mac-App ist nicht von Apple notarisiert: beim ersten Start im Finder Rechtsk
 | Kaufen / aktivieren | F | RT |
 | Pause | Esc | Start |
 
-Alles Weitere steht im [Handbuch](docs/HANDBUCH.md).
+Alles Weitere steht im [Handbuch](docs/HANDBUCH.md) ([English manual](docs/MANUAL.md)).
 
 ## Aus den Quellen bauen
 
@@ -99,7 +104,7 @@ export XDG_DATA_HOME="$PWD/.godot_data" XDG_CONFIG_HOME="$PWD/.godot_config" XDG
 godot --headless --path . --export-release Linux build/linux/Stingforge.x86_64
 godot --headless --path . --export-release Windows build/windows/Stingforge.exe
 godot --headless --path . --export-release macOS build/macos/Stingforge-macOS.zip
-python3 tools/verify_stingforge_r3.py     # 42 Regressionssuiten
+python3 tools/verify_stingforge_r3.py     # 43 Regressionssuiten
 ```
 
 Details: [Build-Anleitung](docs/BUILD.md).
@@ -109,7 +114,7 @@ die Dateien für alle drei Plattformen, Prüfsummen und einen Entwurf des GitHub
 Sicherheitsprüfungen laufen bei jedem Push, siehe [SECURITY.md](SECURITY.md).
 
 ```bash
-git tag v0.4.1 && git push origin v0.4.1
+git tag v0.5.0 && git push origin v0.5.0
 ```
 
 ## Soundtrack-Pipeline

@@ -196,7 +196,7 @@ Die alten Einzeltests sind weiterhin verfügbar:
 ```bash
 export XDG_DATA_HOME="$PWD/.godot_data"
 
-# Funktionstest (Kampagne, Kampf, Boss, Evolution, Pause, Einstellungen, Training)
+# Funktionstest (Run, Kampf, Boss, Evolution, Pause, Einstellungen, Boss-Rush)
 godot --headless --path . res://tests/smoke.tscn
 
 # Inhaltsprüfung (Daten, Assets, Ton, Übersetzungen, Formationen)

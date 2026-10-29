@@ -35,7 +35,7 @@ func _ready() -> void:
 		list.append({"kind": "label", "text": line, "size": 20, "color": UiTheme.TEXT})
 	var flight := _flight_seconds()
 	if flight > 0.0:
-		list.append({"kind": "label", "text": "Flugzeit bis zum Boss: etwa %s" % LevelProgress.clock(flight),
+		list.append({"kind": "label", "text": Loc.tx("Flugzeit bis zum Boss: etwa %s") % LevelProgress.clock(flight),
 			"size": 14, "color": UiTheme.DIM})
 	list.append({"kind": "sep"})
 	list.append({"kind": "action", "text": "game.continue", "id": "skip"})

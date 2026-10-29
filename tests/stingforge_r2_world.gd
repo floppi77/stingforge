@@ -76,7 +76,7 @@ func _test_run_difficulty() -> void:
 		Save.active_campaign = false
 		Save.settings.game.difficulty = "expert" if run == "normal" else "relaxed"
 		var g := game(3)
-		g.mode = "training"
+		g.mode = "rush"
 		var e: Enemy = g.spawn_enemy("beetle_grunt", Vector2(800, 270))
 		check(is_equal_approx(e.fire_mult, float(Data.DIFFICULTY[run].fire_mult) * 1.08),
 			"Enemy verwendet Lauf-%s statt geänderter Optionen bei inaktiverCampaign" % run)
