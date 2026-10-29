@@ -307,10 +307,13 @@ func spawn_enemy(id: String, pos: Vector2, opts: Dictionary = {}) -> Node:
 	return enemies[enemies.size() - 1]
 
 ## Für Prüfläufe: Blütenstaubmenge eines Tropfens an dieser Stelle.
-## roll < 0: echter Zufallswurf für "Reichere Beute" (Chance auf einen Tropfen mehr).
-func drop_amount(amount: int, roll: float = -1.0) -> int:
+## roll < 0: echter Zufallswurf für "Reichere Beute" (Chance auf einen Tropfen mehr),
+## scent_roll < 0: echter Zufallswurf für Duftspur (10 % je Stufe, verschmolzen ×1,5).
+func drop_amount(amount: int, roll: float = -1.0, scent_roll: float = -1.0) -> int:
 	var r := rng.randf() if roll < 0.0 else roll
-	return amount + int(player.evo_effect("nectar_drop")) + (1 if r < nectar_bonus_chance() else 0)
+	var s := rng.randf() if scent_roll < 0.0 else scent_roll
+	var scent := 1 if s < player.evo_effect("nectar_drop_chance") else 0
+	return amount + scent + (1 if r < nectar_bonus_chance() else 0)
 
 ## "Reichere Beute": Wahrscheinlichkeit eines zusätzlichen Blütenstaubs je Gegner.
 func nectar_bonus_chance() -> float:

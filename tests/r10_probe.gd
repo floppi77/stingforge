@@ -23,6 +23,7 @@ func _ready() -> void:
 	await _menu_and_debug()
 	_debug_scores()
 	await _recipes_and_art()
+	await _scent_chance()
 	for f in fails:
 		print("R10_FEHLER: " + f)
 	print("R10_OK" if fails.is_empty() else "R10_FAILED")
@@ -499,5 +500,27 @@ func _recipes_and_art() -> void:
 		shown[wanted] = String(ills[-1].key) if not ills.is_empty() else ""
 	_ok(shown["master:m_death_mark"] == "m_death_mark" and shown["master:m_gold_rush"] == "locked",
 		"Sammelbuch: entdeckter Meister mit Grafik, unentdeckter gesperrt (%s)" % str(shown))
+	app.menu_main()
+	await _wait(0.2)
+
+# ------------------------------------------------------------------ Duftspur
+func _scent_chance() -> void:
+	Save.new_campaign("normal", 8181)
+	app.mode = "campaign"
+	app.clear_screens()
+	app._begin_level(1, 0)
+	await _wait(0.3)
+	var g = app.game
+	g.player.shop_mods["nectar_plus"] = 0.0
+	g.player.evolutions = [{"id": "nectar_scent", "level": 1}]
+	_ok(is_equal_approx(g.player.evo_effect("nectar_drop_chance"), 0.1), "Duftspur Stufe 1: 10 % Chance")
+	_ok(g.drop_amount(3, 0.99, 0.05) == 4 and g.drop_amount(3, 0.99, 0.5) == 3,
+		"Duftspur: nur mit Glück ein Blütenstaub mehr, sonst keiner")
+	var extra := 0
+	for i in range(2000):
+		extra += g.drop_amount(1, 0.99) - 1
+	_ok(extra > 120 and extra < 290, "Duftspur: im Mittel etwa jeder zehnte Gegner (%d/2000)" % extra)
+	g.player.evolutions = [{"id": "nectar_scent", "level": 1}, {"id": "pollen_economy", "level": 1}]
+	_ok(is_equal_approx(g.player.evo_effect("nectar_drop_chance"), 0.15), "Duftspur verschmolzen: 15 % Chance")
 	app.menu_main()
 	await _wait(0.2)

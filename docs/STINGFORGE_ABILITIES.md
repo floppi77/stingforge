@@ -160,7 +160,7 @@ Schnellfeuerüberschuss wird mit `max(1, angeforderter_Takt × tatsächliches_In
 | Endton `resonance_final` | Resonanzmultiplikator ×2; `fire_rate_mult=-0.1` | E: tatsächlich doppelter Resonanzschaden; T Tempoanteil |
 | Nektarstau `nectar_overflow` | maximale Waffenstufe → zusätzliche Punkte/Schild beim Pickup | E: Schildquelle regeneriert auch allein; T Punkteconsumer |
 | Umwandlung `nectar_convert` | alle20s zehn Nektar gegen ein fehlendes HP | E: tatsächlicher Verbrauch/Heilung |
-| Duftspur `nectar_scent` | `nectar_drop` → vollständige Wertsumme der Beute | E Welt: Dropwert bleibt bei maximal fünf Objekten erhalten |
+| Duftspur `nectar_scent` | `nectar_drop_chance` → 10 % je Stufe auf einen Blütenstaub mehr (verschmolzen ×1,5) | E Welt: Dropwert bleibt bei maximal fünf Objekten erhalten |
 | Völlerei `nectar_gluttony` |20% Nektarbonus mit Bruchrest,10% langsamerer Takt | E: fünf Einzelpickups ergeben6; mit Sammelinstinkt2 insgesamt18 statt15 |
 | Handel `nectar_bargain` | `cost_mult` → tatsächlicher Upgradepreis | E: erster Fächer kostet weniger als30 |
 | Nektarquelle `nectar_font` | Bossphasenereignis →15 Nektar, kein Pickup-/Völlereiproc | E: echte Player-Ereignisfunktion |

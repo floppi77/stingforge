@@ -254,7 +254,8 @@ func _test_checkpoint_drops_pollen() -> void:
 	g._take_checkpoint_snapshot()
 	check(g.player.hp == 2, "Chitin-Regeneration heilt am echten Checkpoint")
 	check(int(g.checkpoint_snapshot.hp) == 2, "Checkpoint sichert den geheilten Zustand")
-	g.player.evolutions = [{"id": "nectar_scent", "level": 2}]
+	# Duftspur ist eine Chance (siehe R10); hier zählt nur die sichere Werkstatt-Chance.
+	g.player.evolutions = []
 	g.player.shop_mods["nectar_plus"] = 1.0 # sichere Chance: immer ein Tropfen mehr
 	for amount in [1, 6, 17]:
 		for p in g.pickups:
@@ -267,7 +268,7 @@ func _test_checkpoint_drops_pollen() -> void:
 			if p.kind == "nectar":
 				total += p.value
 				count += 1
-		check(total == amount + 3, "Nektar-Drop%d erhält volle Summe%d stattObjektcap5" % [amount, amount + 3])
+		check(total == amount + 1, "Nektar-Drop%d erhält volle Summe%d stattObjektcap5" % [amount, amount + 1])
 		check(count <= 5, "Nektar bleibt bei höchstens5Objekten")
 	g.player.evolutions = [{"id": "pollen_trail", "level": 1}, {"id": "wind_rider", "level": 1}]
 	g.player.vel = Vector2(120, -100)

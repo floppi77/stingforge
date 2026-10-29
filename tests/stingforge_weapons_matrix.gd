@@ -298,7 +298,7 @@ func _check_evolution_consumers() -> void:
 		"resonance_calm": ["player", "calm_bonus + 0.04"], "resonance_pulse": ["player", "hold_time >= 3.0"],
 		"resonance_tuning": ["player", "tuning_t = 2.0"], "resonance_final": ["player", "evo_effect(\"rhythm_mult\")"],
 		"nectar_overflow": ["player", "evo_has(\"nectar_overflow\")"], "nectar_convert": ["player", "evo_effect(\"nectar_convert\")"],
-		"nectar_scent": ["game", "evo_effect(\"nectar_drop\")"], "nectar_gluttony": ["player", "evo_effect(\"nectar_mult\")"],
+		"nectar_scent": ["game", "evo_effect(\"nectar_drop_chance\")"], "nectar_gluttony": ["player", "evo_effect(\"nectar_mult\")"],
 		"nectar_bargain": ["player", "evo_effect(\"cost_mult\")"], "nectar_font": ["player", "evo_effect(\"nectar_phase\")"],
 	}
 	var sources := {"player": FileAccess.get_file_as_string("res://scripts/game/player.gd"), "game": FileAccess.get_file_as_string("res://scripts/game/game.gd")}

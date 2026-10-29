@@ -185,8 +185,8 @@ const EVOLUTIONS := [
 	 "desc": "Zehn Blütenstaub werden alle 20 Sekunden automatisch zu einem Leben.",
 	 "effect": {"nectar_convert": 10}, "synergy": "nectar_overflow", "req": []},
 	{"id": "nectar_scent", "family": "nectar", "name": "Duftspur", "max": 2, "start": true,
-	 "desc": "Gegner lassen einen Blütenstaub mehr fallen.",
-	 "effect": {"nectar_drop": 1}, "synergy": "pollen_economy", "req": []},
+	 "desc": "Gegner lassen mit 10% Chance einen Blütenstaub mehr fallen.",
+	 "effect": {"nectar_drop_chance": 0.1}, "synergy": "pollen_economy", "req": []},
 	{"id": "nectar_gluttony", "family": "nectar", "name": "Völlerei", "max": 1, "start": false,
 	 "desc": "20% mehr Blütenstaub, 10% langsamere Schussfolge.",
 	 "effect": {"nectar_mult": 0.2, "fire_rate_mult": -0.1}, "synergy": "nectar_overflow", "req": []},
@@ -627,7 +627,7 @@ func fusion_name(a: String, b: String) -> String:
 ## Zählwerte (+1), Schwellen mit "kleiner ist besser" (×0,75) und Vorteile, die
 ## negativ notiert sind (×1,5). Alles andere Positive ×1,5; Nachteile bleiben.
 const FUSION_ADD := ["pierce", "splinter", "companion_add", "hp", "heal_checkpoint", "nectar_pickup",
-	"nectar_drop", "rhythm_chain"]
+	"rhythm_chain"]
 const FUSION_LESS := ["swarm_mark", "swarm_call", "drone_shield", "nectar_convert", "rhythm"]
 const FUSION_NEG_GOOD := ["cost_mult", "hitbox"]
 

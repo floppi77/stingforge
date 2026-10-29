@@ -440,9 +440,13 @@ func _s_ev_nectar_scent() -> void:
 		return
 	_spark(e, GOLD, 3.0)
 	var k := (u - 0.25) / 0.75
+	# Nur jeder zehnte Abschuss bringt einen Tropfen mehr (in der Vorschau jeder dritte Zyklus).
+	var lucky := posmod(int(floorf(_t * 0.5)), 3) == 0
 	_sprite("nectar", e + Vector2(-7.0 * k, k * k * 38.0))
-	_sprite("nectar", e + Vector2(7.0 * k, k * k * 38.0), Color(1, 1, 0.7))
-	_text(e + Vector2(12, -2), "+1", GOLD)
+	if lucky:
+		_sprite("nectar", e + Vector2(7.0 * k, k * k * 38.0), Color(1, 1, 0.7))
+		_text(e + Vector2(12, -2), "+1", GOLD)
+	_text(Vector2(e.x + 22, 18), "10%" if stage == 1 else "15%", UiTheme.DIM)
 
 func _s_ev_nectar_bargain() -> void:
 	var c := Vector2(_w * 0.35, H * 0.5)

@@ -324,7 +324,7 @@
  "GEFAHR ERKANNT · BOSS NÄHERT SICH": "DANGER DETECTED · BOSS APPROACHING",
  "Game Over %d von %d": "Game Over %d of %d",
  "Ganzzahlige Skalierung": "Integer Scaling",
- "Gegner lassen einen Blütenstaub mehr fallen.": "Enemies drop one more pollen.",
+ "Gegner lassen mit 10% Chance einen Blütenstaub mehr fallen.": "Enemies have a 10% chance to drop one more pollen.",
  "Gegnerische Geschosse im Umkreis werden deutlich verlangsamt.": "Enemy projectiles nearby are slowed down considerably.",
  "Gekauft!": "Bought!",
  "Gekaufte Upgrades starten im nächsten Level wieder auf Stufe 1.": "Purchased upgrades restart at level 1 in the next level.",
