@@ -142,7 +142,7 @@ Die Sample-Bibliotheken werden nicht mitgeliefert, sondern bei Bedarf geladen.
 - **Sprachansagen:** erzeugt lokal mit [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS)
   (Modelle VoiceDesign und Base, Apache-2.0). Die Stimme ist aus einer Beschreibung
   entworfen, sie gehört keinem echten Sprecher.
-- Made with Vibe, DeepSeek V4.1 Flash, GPT Sol 6.1, Claude Opus 5.5, Coffee and Love.
+- Made with Vibe, DeepSeek, Sol, Opus, Coffee, Qwen and Love.
 - **Vorbild:** *Apidya* (Kaiko, 1992). Stingforge ist eine eigenständige Hommage, ohne
   Verbindung zu den Rechteinhabern.
 
