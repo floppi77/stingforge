@@ -8,6 +8,9 @@
 Ein horizontales Pixel-Shoot’em-up mit einer Biene in der Hauptrolle – eine Hommage an <i>Apidya</i> (Amiga, 1992).</p>
 
 <p align="center">
+  <a href="https://github.com/floppi77/stingforge/actions/workflows/regression.yml"><img src="https://github.com/floppi77/stingforge/actions/workflows/regression.yml/badge.svg" alt="Regression"></a>
+  <a href="https://github.com/floppi77/stingforge/actions/workflows/security.yml"><img src="https://github.com/floppi77/stingforge/actions/workflows/security.yml/badge.svg" alt="Sicherheit"></a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/floppi77/stingforge"><img src="https://api.scorecard.dev/projects/github.com/floppi77/stingforge/badge" alt="OpenSSF Scorecard"></a>
   <a href="https://ko-fi.com/floppi77"><img src="https://img.shields.io/badge/Ko--fi-Unterst%C3%BCtzen-FF5E5B?logo=ko-fi&amp;logoColor=white" alt="Auf Ko-fi unterstützen"></a>
 </p>
 

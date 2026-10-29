@@ -1,4 +1,5 @@
-# Dependabot hält die gepinnten GitHub Actions aktuell (wöchentlich, gesammelt in einem PR).
+# Dependabot hält die gepinnten GitHub Actions und die hashgepinnten Prüfwerkzeuge
+# (Bandit, zizmor) aktuell, wöchentlich und jeweils gesammelt in einem PR.
 # Das Spiel selbst hat keine Paketabhängigkeiten; Godot ist in den Workflows fest gepinnt.
 version: 2
 updates:
@@ -8,6 +9,15 @@ updates:
       interval: weekly
     groups:
       actions:
+        patterns: ['*']
+    commit-message:
+      prefix: 'CI'
+  - package-ecosystem: pip
+    directory: /.github/requirements
+    schedule:
+      interval: weekly
+    groups:
+      pruefwerkzeuge:
         patterns: ['*']
     commit-message:
       prefix: 'CI'

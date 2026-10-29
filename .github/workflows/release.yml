@@ -1,6 +1,7 @@
 # Release-Build in der CI: aus einem Tag (v*) entstehen die Spieldateien für Linux,
-# Windows und macOS. Dazu kommen SHA256SUMS.txt und, sobald das Repository öffentlich
-# ist, signierte Herkunftsnachweise (Build Provenance über Sigstore).
+# Windows und macOS. Dazu kommen SHA256SUMS.txt und signierte Herkunftsnachweise
+# (Build Provenance über Sigstore).
+#   - Das Tag muss zur Versionsnummer in export_presets.cfg passen.
 #   - Godot und die Exportvorlagen werden gegen die SHA-512-Summen des Godot-Projekts geprüft.
 #   - Linux-Datei startet zur Probe ohne Fenster; die Mac-App wird auf Aufbau geprüft.
 #   - Existiert das Release schon, werden die Dateien ersetzt, sonst entsteht ein Entwurf
@@ -39,6 +40,16 @@ jobs:
         with:
           ref: ${{ inputs.tag || github.ref }}
           persist-credentials: false
+
+      # Tag und Versionsnummer der Mac-App müssen übereinstimmen (v0.6.0 ↔ 0.6.0).
+      - name: Version prüfen
+        run: |
+          want="${TAG#v}"
+          for key in short_version version; do
+            have=$(sed -n "s/^application\/${key}=\"\(.*\)\"$/\1/p" export_presets.cfg)
+            echo "application/${key}=${have}"
+            test "$have" = "$want" || { echo "Version in export_presets.cfg ($have) passt nicht zum Tag $TAG"; exit 1; }
+          done
 
       - name: Godot und Exportvorlagen laden (SHA-512 geprüft)
         run: |
@@ -88,7 +99,7 @@ jobs:
           cat SHA256SUMS.txt
 
       # Artefakt-Attestierungen stehen für private Repositories nur mit GitHub Enterprise
-      # zur Verfügung. Der Schritt läuft deshalb erst, wenn das Repository öffentlich ist.
+      # zur Verfügung; die Bedingung hält den Build lauffähig, falls das je wieder so ist.
       - name: Herkunftsnachweis (Build Provenance)
         if: ${{ !github.event.repository.private }}
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2

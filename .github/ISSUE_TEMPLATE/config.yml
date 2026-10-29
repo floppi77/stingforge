@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Sicherheitsproblem melden / Report a security issue
+    url: https://github.com/floppi77/stingforge/security/advisories/new
+    about: Bitte privat melden, nicht als öffentliches Issue. / Please report privately, not as a public issue.
+  - name: Handbuch / Manual
+    url: https://github.com/floppi77/stingforge/blob/main/docs/HANDBUCH.md
+    about: Steuerung, Modi, Bosse und Einstellungen (English manual in docs/MANUAL.md).

@@ -1,0 +1,60 @@
+# Regressionsprüfung in der CI: alle Prüfsuiten (tools/verify_stingforge_r3.py) laufen
+# headless mit Godot gegen den gepushten Stand. Reine Dokumentationsänderungen lösen
+# keinen Lauf aus. Bei Fehlern stehen die Protokolle als Artefakt bereit.
+name: Regression
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**', 'LICENSE*', '.github/ISSUE_TEMPLATE/**']
+  pull_request:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**', 'LICENSE*', '.github/ISSUE_TEMPLATE/**']
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: regression-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  suites:
+    name: Prüfsuiten
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    env:
+      GODOT_VERSION: 4.7.2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Godot laden (SHA-512 geprüft)
+        run: |
+          cd "$RUNNER_TEMP"
+          base="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-stable"
+          editor="Godot_v${GODOT_VERSION}-stable_linux.x86_64"
+          curl -fsSLO "$base/SHA512-SUMS.txt"
+          curl -fsSLO "$base/$editor.zip"
+          grep -F "  $editor.zip" SHA512-SUMS.txt | sha512sum -c -
+          unzip -q "$editor.zip"
+          sudo install -m 755 "$editor" /usr/local/bin/godot
+          godot --version
+
+      # Godot stürzt beim Beenden gelegentlich ab, nachdem der Import fertig ist.
+      - name: Assets importieren
+        run: godot --headless --path . --import || test -d .godot/imported
+
+      - name: Prüfsuiten ausführen
+        run: python3 tools/verify_stingforge_r3.py
+
+      - name: Protokolle sichern
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: regression-logs
+          path: build/logs/
+          retention-days: 14

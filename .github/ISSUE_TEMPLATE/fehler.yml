@@ -1,0 +1,63 @@
+name: Fehler melden / Bug report
+description: Etwas funktioniert nicht wie erwartet. / Something does not work as expected.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke für die Meldung! Sicherheitsprobleme bitte **nicht** hier, sondern privat über
+        *Security › Report a vulnerability* melden.
+        Thanks for reporting! Please report security issues **privately** via
+        *Security › Report a vulnerability*, not here.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Release, z. B. v0.6.0 (steht im Dateinamen des Downloads bzw. im Release). / Release, e.g. v0.6.0.
+      placeholder: v0.6.0
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: System / Platform
+      options:
+        - Windows
+        - Linux
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+    validations:
+      required: true
+  - type: dropdown
+    id: input
+    attributes:
+      label: Eingabe / Input
+      options:
+        - Tastatur / Keyboard
+        - Controller
+        - Maus / Mouse
+  - type: input
+    id: where
+    attributes:
+      label: Wo? / Where?
+      description: Level, Boss, Menü … / Level, boss, menu …
+      placeholder: Level 7, Wasserläufer, Phase 4
+  - type: textarea
+    id: what
+    attributes:
+      label: Was ist passiert? / What happened?
+      description: Und was hättest du erwartet? / And what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Schritte zum Nachstellen / Steps to reproduce
+      placeholder: |
+        1. …
+        2. …
+  - type: textarea
+    id: media
+    attributes:
+      label: Bilder oder Videos / Screenshots or videos
+      description: Gern per Drag & Drop. / Drag and drop welcome.

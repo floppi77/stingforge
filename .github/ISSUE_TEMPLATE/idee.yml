@@ -1,0 +1,16 @@
+name: Idee vorschlagen / Suggest an idea
+description: Vorschlag für Gameplay, Bosse, Menüs oder Barrierefreiheit. / Suggestion for gameplay, bosses, menus or accessibility.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Idee / Idea
+      description: Was soll anders oder neu sein? / What should be different or new?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Warum? / Why?
+      description: Welches Problem löst es oder was macht es besser? / Which problem does it solve or what does it improve?

@@ -3,7 +3,8 @@
 #   - Bandit: statische Sicherheitsanalyse der Python-Werkzeuge unter tools/
 #   - zizmor: Sicherheitsprüfung der GitHub-Workflows selbst
 # Alle Fremdwerkzeuge sind auf feste Versionen gepinnt, Actions auf Commit-SHAs,
-# heruntergeladene Programme werden gegen veröffentlichte Prüfsummen geprüft.
+# Python-Pakete per Hash (.github/requirements), heruntergeladene Programme werden
+# gegen veröffentlichte Prüfsummen geprüft.
 name: Sicherheit
 
 on:
@@ -56,8 +57,9 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
-      - name: Bandit installieren
-        run: python -m pip install --disable-pip-version-check bandit==1.9.4
+      # Versionen und Hashes aller Pakete stehen in .github/requirements/bandit.txt.
+      - name: Bandit installieren (hashgepinnt)
+        run: python -m pip install --disable-pip-version-check --require-hashes --no-deps -r .github/requirements/bandit.txt
       # Mittlere und hohe Schwere bei mindestens mittlerer Sicherheit; die Werkzeuge
       # rufen bewusst lokale Programme (ffmpeg, godot) mit Argumentlisten auf.
       - name: Analyse
@@ -72,5 +74,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: zizmor installieren (hashgepinnt)
+        run: python -m pip install --disable-pip-version-check --require-hashes --no-deps -r .github/requirements/zizmor.txt
       - name: Analyse
-        run: pipx run zizmor==1.31.1 --offline .github/workflows
+        run: zizmor --offline .github/workflows
