@@ -21,6 +21,14 @@ Alle Dateien sind in der CI aus dem getaggten Stand gebaut worden.
 sha256sum -c SHA256SUMS.txt --ignore-missing
 ```
 
+Zusätzlich gibt es einen signierten Herkunftsnachweis. Mit der
+[GitHub CLI](https://cli.github.com) lässt sich prüfen, dass eine Datei wirklich von dieser
+CI stammt:
+
+```bash
+gh attestation verify Stingforge.exe --repo floppi77/stingforge
+```
+
 Mehr dazu in [SECURITY.md](https://github.com/floppi77/stingforge/blob/main/SECURITY.md).
 
 ### Unterstützen
@@ -63,6 +71,13 @@ All files were built by CI from the tagged source.
 
 ```bash
 sha256sum -c SHA256SUMS.txt --ignore-missing
+```
+
+There is also a signed build provenance attestation. With the
+[GitHub CLI](https://cli.github.com) you can check that a file really comes from this CI:
+
+```bash
+gh attestation verify Stingforge.exe --repo floppi77/stingforge
 ```
 
 More in [SECURITY.md](https://github.com/floppi77/stingforge/blob/main/SECURITY.md).
